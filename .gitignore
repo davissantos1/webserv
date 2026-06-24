@@ -1,0 +1,5 @@
+*.o
+*.swp
+.vscode
+webserv
+webserv_test
