@@ -1,34 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   CgiEnviroment.cpp                                  :+:      :+:    :+:   */
+/*   CgiEnvironment.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 09:07:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/07 16:57:14 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "CgiEnviroment.hpp"
+#include "CgiEnvironment.hpp"
 
-CgiEnviroment::CgiEnviroment()
+CgiEnvironment::CgiEnvironment()
 {
 
 }
 
-CgiEnviroment::~CgiEnviroment()
+CgiEnvironment::~CgiEnvironment()
 {
 
 }
 
-CgiEnviroment::CgiEnviroment(const CgiEnviroment& other)
+CgiEnvironment::CgiEnvironment(const CgiEnvironment& other)
 {
 	if (this != &other)
 		*this = other;
 }
 
-CgiEnviroment&	CgiEnviroment::operator=(const CgiEnviroment& other)
+CgiEnvironment&	CgiEnvironment::operator=(const CgiEnvironment& other)
 {
 	if (this != other)
 	{
