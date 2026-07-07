@@ -1,33 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Location.hpp                                       :+:      :+:    :+:   */
+/*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/03 17:29:09 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/04 15:41:44 by dasimoes         ###   ########.fr       */
+/*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
+/*   Updated: 2026/07/07 08:50:58 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-#ifndef LOCATION_HPP
-# define LOCATION_HPP
+#ifndef HTTPREQUEST_HPP
+# define HTTPREQUEST_HPP
 
-#include "webserv.hpp"
-
-class	Location
+class HttpRequest
 {
 	private:
-		std::string					_root;
-		std::vector<std::string>	_index;
-		std::vector<std::string>	_paths;
-		std::vector<std::string>	_allowedMethods;
+
 	public:
-		Location();
-		~Location();
-		Location(const Location& other);
-		Location&	operator=(const Location& other);
+		HttpRequest();
+		~HttpRequest();
+		HttpRequest(const HttpRequest& other);
+		HttpRequest& operator=(const HttpRequest& other);
 };
 
 #endif

@@ -6,11 +6,10 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/06 18:58:00 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/07 08:50:59 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
@@ -18,19 +17,20 @@
 # define MAX_EVENTS 10
 # define _GNU_SOURCE
 
-# include "Config.hpp"
-# include "Connection.hpp"
 # include <vector>
 # include <map>
 # include <iostream>
 # include <sys/epoll.h>
 
+class VirtualHostConfig;
+class Client;
+
 class	Server
 {
 	private:
 		std::vector<VirtualHostConfig>	_configs;
-		std::map<int, Connection*>		_connectionMap;
-		std::vector<Connection*>		_connections;
+		std::map<int, Client*>			_clientMap;
+		std::vector<Client*>			_clients;
 		std::vector<int>				_listenFds;
 		int								_epollFd;
 		bool							_isRunning;

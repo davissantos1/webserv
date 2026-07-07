@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/06 18:25:37 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/07 08:14:57 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ void	Server::stopServer()
 {
 	for (int i = 0; this->_connections[i]; i++)
 	{
-		Connection* curr = this->_connections[i];
+		Client* curr = this->_connections[i];
 		if (curr)
 		{
 			close(curr->_connectionFd);
@@ -113,7 +113,7 @@ void	Server::loopServer()
 			if (eventType & EPOLLIN)
 			{
 				if (it != listenEnd)
-					this->createConnection(currentFd);
+					this->createClient(currentFd);
 				else
 					this->processHttpRequest();
 			}
@@ -132,13 +132,13 @@ void	Server::loopServer()
 					Server::printLog("socket fd removed from connection");
 				}
 				else
-					this->destroyConnection(currentFd);
+					this->destroyClient(currentFd);
 			}
 		}
 	}
 }
 
-void	Server::createConnection(int sockFd)
+void	Server::createClient(int sockFd)
 {
 	struct epoll_event event;
 	struct sockaddr_storage addr;
@@ -158,14 +158,14 @@ void	Server::createConnection(int sockFd)
 		close(connectionFd);
 		return ;
 	}
-	Connection* newConnection = new Connection(connectionFd);
-	this->_connections.push_back(newConnection);
-	this->_connectionMap[sockFd] = newConnection;
+	Client* newClient = new Client(connectionFd);
+	this->_connections.push_back(newClient);
+	this->_connectionMap[sockFd] = newClient;
 }
 
-void	Server::destroyConnection(int connectionFd)
+void	Server::destroyClient(int connectionFd)
 {
-	Connection* conn = this->_connectionMap[connectionFd];
+	Client* conn = this->_connectionMap[connectionFd];
 
 	this->_connectionMap.erase(connectionFd);
 	std::remove(this->_connections.begin(), this->connections.end(), conn); 

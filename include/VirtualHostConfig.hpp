@@ -6,18 +6,18 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/04 15:44:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/07 08:50:59 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
 #ifndef VIRTUALHOSTCONFIG_HPP
 # define VIRTUALHOSTCONFIG_HPP
 
-#include "Location.hpp"
 #include <string>
 #include <map>
 #include <vector>
+
+class Location;
 
 class VirtualHostConfig
 {

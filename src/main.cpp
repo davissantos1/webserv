@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/04 16:08:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/04 16:20:02 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/06 21:10:18 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,5 +36,6 @@ int	main(int ac, char** av)
 		std::cerr	<< e.what() << std::endl;
 		return (1);
 	}
+	server.loopServer();
 	return (0);
 }

@@ -6,9 +6,11 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 17:59:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/04 15:45:59 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/07 09:08:33 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "Location.hpp"
 
 Location::Location() {}
 
@@ -31,3 +33,5 @@ Location&	operator=(const Location& other)
 	}
 	return (*this);
 }
+
+// to be added Vitor
