@@ -14,11 +14,10 @@
 #include "Location.hpp"
 #include "VirtualHostConfig.hpp"
 #include <cstddef>
-#include <cstdio>
+#include <cstring>
 #include <deque>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -64,51 +63,57 @@ static std::pair<t_file_tokens, std::string> makePair( t_file_tokens type, std::
 
 	token.first = type;
 	token.second = text;
-	return token;
+	return (token);
 }
 
 void	ConfigParser::makeTokens( std::ifstream& file )
 {
-	std::string			line;
-	std::stringstream	ss;
-	std::string			token_text;
-	std::size_t			pos;
-	while (!file.eof())
+	std::string line;
+	std::size_t	pos;
+	std::size_t	comment_pos;
+	std::string	token_text;
+
+	while (file.eof() == false)
 	{
+		pos = 0;
 		getline(file, line);
 
-		pos = line.find('#');
-		if (pos != std::string::npos)
-			line.erase(pos, line.length() - pos);
+		comment_pos = line.find('#');
+		if (comment_pos != std::string::npos)
+			line.erase(comment_pos);
 
-		ss.clear();
-		ss.str(line);
-
-		while (ss.eof() != false)
+		while (pos < line.length())
 		{
-			getline(ss, token_text, ' ');
-
-			if (!token_text[0])
-				continue ;
-
-			if (token_text.length() > 1)
-				_tokens.push_back(makePair(TOKEN_WORD, token_text));
-			else
+			if (line[pos] == ' ' || (line[pos] >= 9 && line[pos] <= 13))
 			{
-				switch (token_text[0])
-				{
-					case '{':
-						_tokens.push_back(makePair(TOKEN_L_BRACE, token_text));
-						break ;
-					case '}':
-						_tokens.push_back(makePair(TOKEN_R_BRACE, token_text));
-						break ;
-					case ';':
-						_tokens.push_back(makePair(TOKEN_SEMICOLON, token_text));
-						break ;
-					default:
-						_tokens.push_back(makePair(TOKEN_WORD, token_text));
-				}
+				pos++;
+				continue ;
+			}
+
+			switch (line[pos])
+			{
+				case '{':
+					_tokens.push_back(makePair(TOKEN_L_BRACE, ""));
+					pos++;
+					break ;
+				case '}':
+					_tokens.push_back(makePair(TOKEN_R_BRACE, ""));
+					pos++;
+					break ;
+				case ';':
+					_tokens.push_back(makePair(TOKEN_SEMICOLON, ""));
+					pos++;
+					break ;
+				default :
+					std::size_t	i = pos;
+					while (i < line.length() && !std::strchr("{}; \t\n\r", line[i]))
+					{
+						token_text += line[i];
+						i++;
+					}
+					_tokens.push_back(makePair(TOKEN_WORD, token_text));
+					token_text.clear();
+					pos = i;
 			}
 		}
 		_tokens.push_back(makePair(TOKEN_NEWLINE, ""));
