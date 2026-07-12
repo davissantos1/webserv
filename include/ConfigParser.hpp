@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/11 12:15:40 by vitosant         ###    ########.fr      */
+/*   Updated: 2026/07/12 15:40:51 by vitosant         ###    ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <fstream>
 #include <deque>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,7 +27,6 @@ typedef enum e_tokens
 {
 	TOKEN_L_BRACE,
 	TOKEN_R_BRACE,
-	TOKEN_HASH,
 	TOKEN_SEMICOLON,
 	TOKEN_NEWLINE,
 	TOKEN_WORD
@@ -40,10 +40,10 @@ class ConfigParser
 		std::size_t											_pos;
 
 		void				makeTokens( std::ifstream& file );
-		bool				analyseTokens( void );
+		bool				analyseTokens( void ) const;
 
-		Location			parseLocation( void );
-		VirtualHostConfig	parseVirtHost( void );
+		Location			parseLocation( void ) const;
+		VirtualHostConfig	parseVirtHost( void ) const;
 		void				mountConfigVec( std::vector<VirtualHostConfig> & configs );
 
 	public:
@@ -53,6 +53,9 @@ class ConfigParser
 		ConfigParser& operator=(const ConfigParser& other);
 
 		std::vector<VirtualHostConfig> parse( const std::string& path );
+		const std::deque< std::pair<t_file_tokens, std::string> >&	getTokens( void ) const;
 };
+
+std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens );
 
 #endif

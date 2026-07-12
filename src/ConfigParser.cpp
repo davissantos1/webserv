@@ -3,16 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 09:08:33 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/12 15:40:53 by vitosant         ###    ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ConfigParser.hpp"
+#include "Location.hpp"
 #include "VirtualHostConfig.hpp"
+#include <cstddef>
 #include <cstdio>
+#include <deque>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -69,19 +72,83 @@ void	ConfigParser::makeTokens( std::ifstream& file )
 	std::string			line;
 	std::stringstream	ss;
 	std::string			token_text;
-
+	std::size_t			pos;
 	while (!file.eof())
 	{
 		getline(file, line);
 
-		ss.str("");
-		ss << line;
-		getline(ss, token_text, ' ');
+		pos = line.find('#');
+		if (pos != std::string::npos)
+			line.erase(pos, line.length() - pos);
 
-		if (token_text.find('#') != std::string::npos)
-			std::cout << "tratar # no meio da linha --nao_esquecer" << std::endl;
+		ss.clear();
+		ss.str(line);
 
-		if (token_text.length() > 1)
-			{}
+		while (ss.eof() != false)
+		{
+			getline(ss, token_text, ' ');
+
+			if (!token_text[0])
+				continue ;
+
+			if (token_text.length() > 1)
+				_tokens.push_back(makePair(TOKEN_WORD, token_text));
+			else
+			{
+				switch (token_text[0])
+				{
+					case '{':
+						_tokens.push_back(makePair(TOKEN_L_BRACE, token_text));
+						break ;
+					case '}':
+						_tokens.push_back(makePair(TOKEN_R_BRACE, token_text));
+						break ;
+					case ';':
+						_tokens.push_back(makePair(TOKEN_SEMICOLON, token_text));
+						break ;
+					default:
+						_tokens.push_back(makePair(TOKEN_WORD, token_text));
+				}
+			}
+		}
+		_tokens.push_back(makePair(TOKEN_NEWLINE, ""));
 	}
+}
+
+bool	ConfigParser::analyseTokens( void ) const
+{
+	return (false);
+}
+
+Location	ConfigParser::parseLocation( void ) const
+{
+	return (Location());
+}
+
+VirtualHostConfig	ConfigParser::parseVirtHost( void ) const
+{
+	return (VirtualHostConfig());
+}
+
+void	ConfigParser::mountConfigVec( std::vector<VirtualHostConfig> & configs )
+{
+	configs.push_back(parseVirtHost());
+}
+
+const std::deque< std::pair<t_file_tokens, std::string> >&	ConfigParser::getTokens( void ) const
+{
+		return (_tokens);
+}
+
+std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens )
+{
+	std::size_t	i = 0;
+	std::size_t	size = tokens.getTokens().size();
+
+	while (i < size)
+	{
+		out << tokens.getTokens()[i].second << " ----- ";
+		i++;
+	}
+	return (out);
 }
