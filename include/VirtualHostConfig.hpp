@@ -16,8 +16,7 @@
 #include <string>
 #include <map>
 #include <vector>
-
-class Location;
+#include "Location.hpp"
 
 class VirtualHostConfig
 {
@@ -41,9 +40,9 @@ class VirtualHostConfig
 
 		const std::vector<std::string>& getServerNames() const { return _serverNames; }
 		const std::string& getHostIp() const { return _hostIp; }
-		const int getPort() const { return _port; }
+		int getPort() const { return _port; }
 		const std::map<int, std::string>& getErrorPages() const { return _errorPages; }
-		const std::size_t getMaxBodySize() const { return _maxBodySize; }
+		std::size_t getMaxBodySize() const { return _maxBodySize; }
 		const std::string& getRoot() const { return _root; }
 		const std::vector<std::string>& getIndex() const { return _index; }
 		const std::vector<std::string>& getAllowedMethods() const { return _allowedMethods; }

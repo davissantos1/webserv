@@ -22,7 +22,7 @@ Location::Location(const Location& other)
 		*this = other;
 }
 
-Location&	operator=(const Location& other)
+Location&	Location::operator=(const Location& other)
 {
 	if (this != &other)
 	{

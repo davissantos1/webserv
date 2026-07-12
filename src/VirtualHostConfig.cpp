@@ -10,15 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "VirtualHostConfig.hpp"
+
 VirtualHostConfig::VirtualHostConfig() {}
 
 VirtualHostConfig::~VirtualHostConfig() {}
 
 VirtualHostConfig::VirtualHostConfig(const std::string configPath)
 {
+    (void)configPath;
 }
 
-VirtualHostConfig&	operator=(const VirtualHostConfig& other)
+VirtualHostConfig&	VirtualHostConfig::operator=(const VirtualHostConfig& other)
 {
 	if (this != &other)
 	{
