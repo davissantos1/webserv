@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 08:50:59 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/13 18:44:57 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,10 @@
 # define SERVER_HPP
 
 # define BACKLOG 20
-# define MAX_EVENTS 10
-# define _GNU_SOURCE
 
 # include <vector>
 # include <map>
 # include <iostream>
-# include <sys/epoll.h>
 
 class VirtualHostConfig;
 class Client;
@@ -32,17 +29,16 @@ class	Server
 		std::map<int, Client*>			_clientMap;
 		std::vector<Client*>			_clients;
 		std::vector<int>				_listenFds;
-		int								_epollFd;
-		bool							_isRunning;
 	public:
 		Server();
 		~Server();	
 		Server(const Server& other);	
-		Server(const std::vector<VirtualHostConfig> config);
 		Server&	operator=(const Server& other);
-		void	startServer();
-		void	loopServer();
-		void	stopServer();
+		Server(const std::vector<VirtualHostConfig> config);
+		std::vector<int>	startServer();
+		int					createClient(int sockFd);
+		void				destroyClient(int clientFd);
+		static void			printLog(const std::string& msg);
 		class ServerException: std::exception
 		{
 			private:
