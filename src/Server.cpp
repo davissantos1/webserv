@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 18:42:51 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/13 22:56:00 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Server::Server(const std::vector<VirtualHostConfig> config): _configs(config) {}
 
 Server::~Server() 
 {
-	for (int i = 0; this->_clients[i]; i++)
+	for (int i = 0; i < this->_clients.size(); i++)
 	{
 		Client* curr = this->_clients[i];
 		if (curr)
@@ -28,10 +28,10 @@ Server::~Server()
 		}
 	}
 	for (int j = 0; j < this->_listenFds.size(); j++)
-		close(this->_listenFds[i]);
+		close(this->_listenFds[j]);
 }
 
-Server&	Sever::operator=(const Server& other)
+Server&	Server::operator=(const Server& other)
 {
 	if (this != &other)
 	{

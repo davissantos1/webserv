@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 18:44:57 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/13 22:54:07 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,12 @@
 
 # define BACKLOG 20
 
+# include "webserv.hpp"
+# include <sys/socket.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <cstring>
+# include <algorithm>
 # include <vector>
 # include <map>
 # include <iostream>
@@ -43,7 +49,7 @@ class	Server
 		{
 			private:
 				int	_errno;
-			public
+			public:
 				ServerException(int err): _errno(err) {}
 				const char* what() const throw { return std::strerror(_errno); }
 		};
