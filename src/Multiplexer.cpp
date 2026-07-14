@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 23:26:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/14 13:30:47 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,10 @@ Multiplexer&	Multiplexer::operator=(const Multiplexer& other)
 
 void	Multiplexer::eventLoop(Server* server)
 {
-	int status, eventQuantity, currentFd;
+	int eventQuantity, currentFd;
 	struct epoll_event event, readyEvents[MAXEVENTS];
 	std::vector<int>::iterator listenBegin, listenEnd, it;
-	uint32_t eventType
+	enum FdType fdType;
 
 	while (serverRunning)
 	{
@@ -46,35 +46,41 @@ void	Multiplexer::eventLoop(Server* server)
 		for (int j = 0; j < eventQuantity; j++)
 		{
 			currentFd = readyEvents[j].data.fd;
-			eventType = readyEvents[j].events;
 			listenBegin = server->_listenFds.begin();
 			listenEnd = server->_listenFds.end();
 			it = std::find(listenBegin, listenEnd, readyEvents[j].data.fd);
-			if (eventType & EPOLLIN)
-			{
-				if (it != listenEnd)
-					server->createClient(currentFd);
-				else
-					server->processHttpRequest();
-			}
-			if (eventType & EPOLLOUT)
-			{
-				if (it == listenEnd)
-					server->processHttpResponse();
-
-			}
-			if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
-			{
-				if (it != listenEnd)
-				{
-					std::remove(server->_listenFds.begin(), server->_listenFds.end(), currentFd);
-					close(currentFd);
-					Server::printLog("socket fd removed from connection");
-				}
-				else
-					server->destroyClient(currentFd);
-			}
+			fdType = (it != listenEnd) ? SOCKET : CLIENT;
+			this->routeEvent(currentFd, readyEvents[j].events, fdType, server);
 		}
+	}
+}
+
+void	Multiplexer::routeEvent(int currentFd, uint32_t eventType, enum FdType fdType, Server& server)
+{
+	int acceptFd;
+	Client* client = (fdType == CLIENT) ? server._clientMap[currentFd] : nullptr;
+	if (eventType & EPOLLIN)
+	{
+		if (fdType == SOCKET)
+		{
+			acceptFd = server->createClient(currentFd);
+			this->manageFd(acceptFd, EPOLL_CTL_ADD, EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP);
+		}
+		else if (fdType == CLIENT)
+			client->processHttpRequest(currentFd);
+	}
+	if ((eventType & EPOLLOUT) && fdType == CLIENT)
+		client->processHttpResponse(currentFd);
+	if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+	{
+		if (fdType == SOCKET)
+		{
+			std::remove(server->_listenFds.begin(), server->_listenFds.end(), currentFd);
+			close(currentFd);
+			Server::printLog("socket fd removed from connection");
+		}
+		else if (fdType == CLIENT)
+			server->destroyClient(currentFd);
 	}
 }
 

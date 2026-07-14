@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 23:26:26 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/13 23:51:38 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,12 @@
 # include "webserv.hpp"
 # include <sys/epoll.h> 
 # include <stdint.h> 
+
+enum FdType
+{
+	SOCKET,
+	CLIENT
+};
 
 class Server;
 
