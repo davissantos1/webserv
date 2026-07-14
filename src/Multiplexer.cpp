@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 18:18:22 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/13 23:26:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,21 +35,21 @@ Multiplexer&	Multiplexer::operator=(const Multiplexer& other)
 
 void	Multiplexer::eventLoop(Server* server)
 {
-	int status, event_quantity, current_fd;
-	struct epoll_event event, ready_events[MAX_EVENTS];
+	int status, eventQuantity, currentFd;
+	struct epoll_event event, readyEvents[MAXEVENTS];
 	std::vector<int>::iterator listenBegin, listenEnd, it;
-	uint32_t event_type
+	uint32_t eventType
 
-	while (server->_isRunning)
+	while (serverRunning)
 	{
-		event_quantity = epoll_wait(this->_epollFd, ready_events, MAX_EVENTS, -1);
-		for (int j = 0; j < event_quantity; j++)
+		eventQuantity = epoll_wait(this->_epollFd, readyEvents, MAX_EVENTS, -1);
+		for (int j = 0; j < eventQuantity; j++)
 		{
-			currentFd = ready_events[j].data.fd;
-			eventType = ready_events[j].events;
+			currentFd = readyEvents[j].data.fd;
+			eventType = readyEvents[j].events;
 			listenBegin = server->_listenFds.begin();
 			listenEnd = server->_listenFds.end();
-			it = std::find(listenBegin, listenEnd, ready_events[j].data.fd);
+			it = std::find(listenBegin, listenEnd, readyEvents[j].data.fd);
 			if (eventType & EPOLLIN)
 			{
 				if (it != listenEnd)
@@ -76,10 +76,17 @@ void	Multiplexer::eventLoop(Server* server)
 			}
 		}
 	}
-	server->stopServer();
 }
 
-void	Multiplexer::registerFd(int fd, std::uint32_t action)
+void	Multiplexer::manageFd(int fd, int op, uint32_t event)
 {
+	int		status;
+	struct	epoll_event ev;
 
+	errno = 0;
+	ev.events = event;
+	if (op == EPOLL_CTL_ADD || op == EPOLL_CTL_MOD || op == EPOLL_CTL_DEL)
+		status = epoll_ctl(this->_epollFd, op, fd, &event);
+	if (status < 0)
+		throw (MultiplexerException(errno));
 }
