@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 04:14:38 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 06:20:46 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ std::vector<std::pair<int, uint32_t>>	Multiplexer::wait()
 	std::vector<std::pair<int, uint32_t>>	fds;
 	uint32_t	eventType;
 
-	eventQuantity = epoll_wait(this->_epollFd, readyEvents, MAX_EVENTS, -1);
+	eventQuantity = epoll_wait(this->_epollFd, readyEvents, MAX_EVENTS, EPOLL_WAIT);
 	for (int j = 0; j < eventQuantity; j++)
 	{
 		currentFd = readyEvents[j].data.fd;

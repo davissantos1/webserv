@@ -6,16 +6,17 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 04:13:25 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 06:21:25 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MULTIPLEXER_HPP
 # define MULTIPLEXER_HPP
 
-# define MAXEVENTS 10
+# define MAX_EVENTS 10
 # define _GNU_SOURCE
 
+# include "webserv.hpp"
 # include <sys/epoll.h> 
 # include <stdint.h> 
 

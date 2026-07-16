@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 04:00:44 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 06:33:35 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ std::vector<int> Server::startServer()
 			throw (ServerException(errno));
 		if ((status = fcntl(sockFd, F_SETFL, O_NONBLOCK)) == -1)
 			throw (ServerException(errno));
-		this->_serverMap[sockFd] = v;
+		this->_configMap[sockFd] = v;
 	}
 	serverRunning = 1;
 	return (this->_listenFds);
@@ -107,6 +107,7 @@ void	Server::runServer()
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
+			this->checkTimeouts();
 		}
 	}
 }
@@ -150,9 +151,9 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		case CLIENT:
 		{
 			Client* client = this->_clientMap[fd];
-
 			if (!client) break;
 
+			enum ClientStatus clientStatus = ;
 			if (eventType & EPOLLIN)
 				status = client->processHttpRequest(fd);
 			else if (eventType & EPOLLOUT)
@@ -164,7 +165,6 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				return ;
 			}
 			
-			client->updateClient();
 			uint32_t nextEvent = (client->getStatus() == READING_REQUEST || client->getStatus() == EXECUTING_CGI)
 								? (EPOLLIN | EPOLLRDHUP
 								: (EPOLLOUT | EPOLLRDHUP;
@@ -205,7 +205,7 @@ int Server::createClient(int sockFd)
 					<< ((ip & 0xFF));
 		ip = ipStream.str();
 	}
-	Client* newClient = new Client(ip, port, clientFd);
+	Client* newClient = new Client(ip, port, clientFd, this->_configMap[sockFd]);
 	this->_clients.push_back(newClient);
 	this->_clientMap[sockFd] = newClient;
 	return (clientFd);
@@ -219,6 +219,23 @@ void	Server::destroyClient(int clientFd)
 	std::remove(this->_clients.begin(), this->clients.end(), conn); 
 	close(clientFd);
 	delete(client);
+}
+
+void	Server::checkTimeouts()
+{
+	std::time_t currentTime = std::time(NULL);
+
+	for (int i = 0; i < this->_clients.size(); i++)
+	{
+		Client* currentClient = this->_clients[i];
+		double secondsIdle = std::difftime(currentTime, client->getLastActivity());
+
+		if (secondsIdle > TIMEOUT)
+		{
+			Server::printLog("client timed out!");
+			this->destroyClient(currentClient->getFd());
+		}
+	}
 }
 
 void	Server::printLog(const std::string& msg)

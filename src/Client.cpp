@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/15 17:35:47 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 06:07:05 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 
 Client::Client() {}
 
-Client::Client(std::string ip, uint16_t port, int fd): _ip(ip), _port(port), _fd(fd) {}
+Client::~Client() {}
 
-Client::~Client()
-{}
+Client::Client(std::string ip, uint16_t port, int fd, VirtualHostConfig config):
+ _ip(ip), _port(port), _fd(fd), _config(config) {}
 
 Client::Client(const Client& other)
 {
@@ -42,16 +42,20 @@ Client&	Client::operator=(const Client& other)
 	return (*this);
 }
 
-int	Client::processHttpRequest(int fd)
+int	Client::processHttpRequest()
 {
 	char tempBuffer[8192];
+	HttpRequestParser& parse = this->_httpRequestParser;
 
 	while (true)
 	{
 		ernno = 0;
 		ssize_t bytes = recv(fd, tempBuffer, sizeof(tempBuffer));
 		if (bytes > 0)
-			this->_httpRequestParser.feed(tempBuffer);
+		{
+			this->_lastActivity = std::time(NULL);
+			parse.feed(tempBuffer);
+		}
 		else if (bytes == 0)
 			return (-1);
 		else
@@ -61,10 +65,17 @@ int	Client::processHttpRequest(int fd)
 			throw (ClientException(errno));
 		}
 	}
+	if (parse.isRequestReady() && !parse.hasCgi())
+		this->_status = PREPARING_RESPONSE;
+	if (parse.isRequestReady() && parse.hasCgi())
+		this->_status = EXECUTING_CGI;
 	return (0);
 }
 
-void	Client::processHttpResponse(int fd)
+void	Client::processHttpResponse()
 {
+	HttpRequest& req = this->_httpRequestParser.getRequest();
+	HttpResponseBuilder& build = this->_httpResponseBuilder;
 
+	
 }

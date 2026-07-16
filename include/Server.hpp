@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 03:18:45 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 05:57:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class	Server
 	private:
 		std::vector<VirtualHostConfig>			_configs;
 		std::map<int, const VirtualHostConfig*>	_serverMap;
+		std::map<int, VirtualHostConfig>		_configMap;
 		std::map<int, Client*>					_clientMap;
 		std::map<int, Client*>					_cgiMap;
 		std::vector<Client*>					_clients;
@@ -54,8 +55,8 @@ class	Server
 		Server(const Server& other);	
 		Server&	operator=(const Server& other);
 		Server(const std::vector<VirtualHostConfig> config);
-		std::vector<int>	startServer();
 		void				runServer()
+		std::vector<int>	startServer();
 		int					createClient(int sockFd);
 		void				destroyClient(int clientFd);
 		static void			printLog(const std::string& msg);
