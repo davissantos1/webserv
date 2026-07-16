@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 23:51:38 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 04:13:25 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,8 @@
 # define MAXEVENTS 10
 # define _GNU_SOURCE
 
-# include "webserv.hpp"
 # include <sys/epoll.h> 
 # include <stdint.h> 
-
-enum FdType
-{
-	SOCKET,
-	CLIENT
-};
-
-class Server;
 
 class Multiplexer
 {
@@ -37,12 +28,15 @@ class Multiplexer
 		~Multiplexer();
 		Multiplexer(const Multiplexer& other);
 		Multiplexer& operator=(const Multiplexer& other);
-		void	eventLoop(Server* server);
-		class MultiplexerException: std::exception
+		void	deleteFd(int fd);
+		void	addFd(int fd, uint32_t event);
+		void	modifyFd(int fd, uint32_t event);
+		std::vector<std::pair<int, uint32_t>>	wait();
+		class MultiplexerException: public std::exception
 		{
 			private:
 				int	_errno;
-			public
+			public:
 				MultiplexerException(int err): _errno(err) {}
 				const char* what() const throw { return std::strerror(_errno); }
 		};
