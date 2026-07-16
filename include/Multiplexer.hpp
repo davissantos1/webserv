@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 16:20:46 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 04:07:38 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,7 @@
 # define _GNU_SOURCE
 
 # include <sys/epoll.h> 
-
-class Server;
+# include <stdint.h> 
 
 class Multiplexer
 {
@@ -29,12 +28,15 @@ class Multiplexer
 		~Multiplexer();
 		Multiplexer(const Multiplexer& other);
 		Multiplexer& operator=(const Multiplexer& other);
-		void	eventLoop(Server* server);
-		class MultiplexerException: std::exception
+		void	deleteFd(int fd);
+		void	addFd(int fd, uint32_t event);
+		void	modifyFd(int fd, uint32_t event);
+		std::vector<std::pair<int, uint32_t>>	wait();
+		class MultiplexerException: public std::exception
 		{
 			private:
 				int	_errno;
-			public
+			public:
 				MultiplexerException(int err): _errno(err) {}
 				const char* what() const throw { return std::strerror(_errno); }
 		};

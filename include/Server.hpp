@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 22:54:07 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 03:18:45 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,23 @@
 
 # include "webserv.hpp"
 # include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
 # include <fcntl.h>
 # include <unistd.h>
 # include <cstring>
 # include <algorithm>
+# include <sstream>
 # include <vector>
 # include <map>
 # include <iostream>
+
+enum FdType
+{
+	SOCKET,
+	CLIENT,
+	CGI
+};
 
 class VirtualHostConfig;
 class Client;
@@ -31,10 +41,13 @@ class Client;
 class	Server
 {
 	private:
-		std::vector<VirtualHostConfig>	_configs;
-		std::map<int, Client*>			_clientMap;
-		std::vector<Client*>			_clients;
-		std::vector<int>				_listenFds;
+		std::vector<VirtualHostConfig>			_configs;
+		std::map<int, const VirtualHostConfig*>	_serverMap;
+		std::map<int, Client*>					_clientMap;
+		std::map<int, Client*>					_cgiMap;
+		std::vector<Client*>					_clients;
+		std::vector<int>						_listenFds;
+		Multiplexer								_multiplexer;
 	public:
 		Server();
 		~Server();	
@@ -42,10 +55,12 @@ class	Server
 		Server&	operator=(const Server& other);
 		Server(const std::vector<VirtualHostConfig> config);
 		std::vector<int>	startServer();
+		void				runServer()
 		int					createClient(int sockFd);
 		void				destroyClient(int clientFd);
 		static void			printLog(const std::string& msg);
-		class ServerException: std::exception
+		void				routeServer(int fd, uint32_t eventType, enum FdType fdType)
+		class ServerException: public std::exception
 		{
 			private:
 				int	_errno;

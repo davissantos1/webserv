@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 18:18:22 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 04:10:05 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,53 +33,52 @@ Multiplexer&	Multiplexer::operator=(const Multiplexer& other)
 	return (*this);
 }
 
-void	Multiplexer::eventLoop(Server* server)
+std::vector<std::pair<int, uint32_t>>	Multiplexer::wait()
 {
-	int status, event_quantity, current_fd;
-	struct epoll_event event, ready_events[MAX_EVENTS];
-	std::vector<int>::iterator listenBegin, listenEnd, it;
-	uint32_t event_type
+	int eventQuantity, currentFd;
+	struct epoll_event event, readyEvents[MAX_EVENTS];
+	std::vector<std::pair<int, uint32_t>>	fds;
+	uint32_t	eventType;
 
-	while (server->_isRunning)
+	eventQuantity = epoll_wait(this->_epollFd, readyEvents, MAX_EVENTS, -1);
+	for (int j = 0; j < eventQuantity; j++)
 	{
-		event_quantity = epoll_wait(this->_epollFd, ready_events, MAX_EVENTS, -1);
-		for (int j = 0; j < event_quantity; j++)
-		{
-			currentFd = ready_events[j].data.fd;
-			eventType = ready_events[j].events;
-			listenBegin = server->_listenFds.begin();
-			listenEnd = server->_listenFds.end();
-			it = std::find(listenBegin, listenEnd, ready_events[j].data.fd);
-			if (eventType & EPOLLIN)
-			{
-				if (it != listenEnd)
-					server->createClient(currentFd);
-				else
-					server->processHttpRequest();
-			}
-			if (eventType & EPOLLOUT)
-			{
-				if (it == listenEnd)
-					server->processHttpResponse();
-
-			}
-			if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
-			{
-				if (it != listenEnd)
-				{
-					std::remove(server->_listenFds.begin(), server->_listenFds.end(), currentFd);
-					close(currentFd);
-					Server::printLog("socket fd removed from connection");
-				}
-				else
-					server->destroyClient(currentFd);
-			}
-		}
+		currentFd = readyEvents[j].data.fd;
+		eventType = readyEvents[j].events;
+		std::pair<int, uint32_t> fdPair(currentFd, eventType);
+		fds.push_back(fdPair);
 	}
-	server->stopServer();
+	return (fds);
 }
 
-void	Multiplexer::registerFd(int fd, std::uint32_t action)
+void	Multiplexer::addFd(int fd, uint32_t event)
 {
+	int		status;
+	struct	epoll_event ev;
 
+	errno = 0;
+	ev.data.fd = fd;
+	ev.events = event;
+	status = epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &ev);
+	if (status < 0)
+		throw (MultiplexerException(errno));
+}
+
+void	Multiplexer::removeFd(int fd)
+{
+	int		status;
+
+	status = epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, fd, NULL);
+	if (status < 0)
+		throw (MultiplexerException(errno));
+}
+
+void	Multiplexer::modifyFd(int fd, uint32_t event)
+{
+	errno = 0;
+	ev.data.fd = fd;
+	ev.events = event;
+	status = epoll_ctl(this->_epollFd, EPOLL_CTL_MOD, fd, &ev);
+	if (status < 0)
+		throw (MultiplexerException(errno));
 }
