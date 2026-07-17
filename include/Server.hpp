@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 05:29:16 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 08:54:06 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,6 @@ enum FdType
 	STATIC_FILE,
 	CGI
 };
-
-class VirtualHostConfig;
 
 class	Server
 {

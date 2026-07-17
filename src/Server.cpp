@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 06:46:19 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 08:49:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 							this->_multiplexer.addFd(tasks[i].fd, EPOLLOUT);
 							break;
 					}
+					client->registerFd(tasks[i].fd);
 				}
 			}
 			break;

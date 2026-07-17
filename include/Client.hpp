@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 06:51:16 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 08:51:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,8 @@ class Client
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_requestBuilder.setStatusCode(code); }
+
+		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
 		{
