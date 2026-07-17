@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 08:51:20 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 09:15:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,9 @@ class Client
 		uint16_t			_port;
 		int					_fd;
 		enum ClientStatus	_status;
-		VirtualHostConfig	_config;
-		HttpRequestParser	_requestParser;
-		HttpResponseBuilder	_requestBuilder;
+		VirtualHostConfig	_virtualHostConfig;
+		HttpRequestParser	_httpRequestParser;
+		HttpResponseBuilder	_httpResponseBuilder;
 		StaticFileHandler	_staticFileHandler;
 		CgiHandler			_cgiHandler;
 		std::vector<int>	_activeFds;
@@ -72,7 +72,7 @@ class Client
 		void	processHttpRequest();
 		void	processStaticFile(); // to be implemented
 		void	processCgi(); // to be implemented
-		void	destroyCgi(); // to be implemented
+		void	destroyCgi(int fd);
 		std::vector<FdTasks> executeMethod(); // to be implemented
 
 		void	getFd() { return this->_fd; }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 08:49:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 15:31:29 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,11 +148,11 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				return ;
 			}
 			
-			uint32_t clientStatus = client->getStatus();
+			enum ClientStatus clientStatus = client->getStatus();
 			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
 			{
 				this->_multiplexer.removeFd(fd);
-				std::vector<FdTask> tasks = client->executeMethod();
+				std::vector<FdTask> tasks = client->executeMethod(clientStatus);
 				for (int i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].type)
@@ -184,7 +184,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			Client* client = this->_staticFileMap[fd];
 			if (!client) break;
 			
-			bool isDone = client->processStaticFile(fd);
+			bool isDone = client->processStaticFile(fd, eventType);
 			
 			if (isDone)
 			{
@@ -247,7 +247,7 @@ void	Server::handleError(int fd, enum FdType fdType)
 			this->_multiplexer.removeFd(fd);
 			this->_cgiMap.erase(fd);
 			close(fd);
-			client->destroyCgi();
+			client->destroyCgi(fd);
 			client->setStatusCode(500);
 			client->setStatus(PREPARING_RESPONSE);
 			this->_multiplexer.addFd(client->getFd(), EPOLLOUT);
