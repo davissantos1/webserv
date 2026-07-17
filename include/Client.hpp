@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:32:47 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 01:09:41 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ class HttpResponse;
 enum ClientStatus;
 {
 	READING_REQUEST,
-	EXECUTING_CGI,
+	PROCESSING_CGI,
+	PROCESSING_STATIC_FILE,
 	PREPARING_RESPONSE,
 	WRITING_RESPONSE,
 	DISCONNECT
@@ -35,6 +36,7 @@ class Client
 		std::string			_ip;
 		uint16_t			_port;
 		int					_fd;
+		CgiHandler			_cgi;
 		enum ClientStatus	_status;
 		VirtualHostConfig	_config;
 		HttpRequestParser	_requestParser;
@@ -49,12 +51,16 @@ class Client
 		void	processHttpRequest();
 		void	processHttpResponse();
 
+		void	methodGET();
+		void	methodPOST();
+		void	methodDELETE();
+
 		void	getFd() { return this->_fd; }
 		void	getStatus() { return this->_status; }
 		void	getLastActivity() { return this->_lastActivity; }
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 
-		class	ClientException: std::exception
+		class	ClientException: public std::exception
 		{
 			private:
 				int	_errno;

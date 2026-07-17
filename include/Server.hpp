@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 05:57:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/16 22:16:32 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # define BACKLOG 20
 
 # include "webserv.hpp"
+# include "Client.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
@@ -32,19 +33,19 @@ enum FdType
 {
 	SOCKET,
 	CLIENT,
+	STATIC_FILE,
 	CGI
 };
 
 class VirtualHostConfig;
-class Client;
 
 class	Server
 {
 	private:
 		std::vector<VirtualHostConfig>			_configs;
-		std::map<int, const VirtualHostConfig*>	_serverMap;
 		std::map<int, VirtualHostConfig>		_configMap;
 		std::map<int, Client*>					_clientMap;
+		std::map<int, Client*>					_staticMap;
 		std::map<int, Client*>					_cgiMap;
 		std::vector<Client*>					_clients;
 		std::vector<int>						_listenFds;

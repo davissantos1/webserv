@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:33:35 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 03:58:29 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				break;
 			case CLIENT:
 				this->destroyClient(fd);
-				client = NULL;
+				break;
+			case STATIC_FILE:
 				break;
 			case CGI:
 				client->destroyCgi();
@@ -153,11 +154,10 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			Client* client = this->_clientMap[fd];
 			if (!client) break;
 
-			enum ClientStatus clientStatus = ;
 			if (eventType & EPOLLIN)
-				status = client->processHttpRequest(fd);
+				status = client->processHttpRequest();
 			else if (eventType & EPOLLOUT)
-				status = client->processHttpResponse(fd);
+				status = client->sendHttpResponse();
 
 			if (status == -1)
 			{
@@ -165,18 +165,41 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				return ;
 			}
 			
-			uint32_t nextEvent = (client->getStatus() == READING_REQUEST || client->getStatus() == EXECUTING_CGI)
-								? (EPOLLIN | EPOLLRDHUP
-								: (EPOLLOUT | EPOLLRDHUP;
-			this->_multiplexer.modifyFd(fd, nextEvent);
+			uint32_t clientStatus = client->getStatus();
+			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
+			{
+				this->_multiplexer.removeFd(fd);
+				std::pair<int, uint32_t> exec = client->executeMethod();
+				this->_multiplexer.addFd(exec.first, exec.second);
+				if (clientStatus == PROCESSING_CGI)
+					this->_cgiMap[exec.first] = client;
+				else
+					this->_staticMap[exec.first] = client;
+			}
+			break;
+		}
+		case STATIC_FILE:
+		{
+			Client* client = this->_clientMap[fd];
+			
+			// to be fixed
+			if (eventType & EPOLLIN)
+				client->processStaticFile(GET);
+			else if (eventType & EPOLLOUT)
+				client->processStaticFile(POST);
 			break;
 		}
 		case CGI:
+		{
+			Client* client = this->_clientMap[fd];
+
+			// to be fixed
 			if (eventType & EPOLLIN)
-				// read output from CGI
+				client->processCgi(); 
 			else if (eventType & EPOLLOUT)
-				// write request body to CGI
+				client->processCgi();
 			break;
+		}
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:07:05 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 00:52:38 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,16 +66,18 @@ int	Client::processHttpRequest()
 		}
 	}
 	if (parse.isRequestReady() && !parse.hasCgi())
-		this->_status = PREPARING_RESPONSE;
+		this->_status = PROCESSING_STATIC_FILE;
 	if (parse.isRequestReady() && parse.hasCgi())
-		this->_status = EXECUTING_CGI;
+		this->_status = PROCESSING_CGI;
 	return (0);
 }
 
-void	Client::processHttpResponse()
+void	Client::sendHttpResponse()
 {
 	HttpRequest& req = this->_httpRequestParser.getRequest();
 	HttpResponseBuilder& build = this->_httpResponseBuilder;
 
-	
+	if (!build.isResponseReady())
+		return ;
+	// add loop code to send() everything in chunks
 }
