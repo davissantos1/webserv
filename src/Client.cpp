@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 00:52:38 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 05:48:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,53 @@ int	Client::processHttpRequest()
 	if (parse.isRequestReady() && parse.hasCgi())
 		this->_status = PROCESSING_CGI;
 	return (0);
+}
+
+int		Client::processStaticFile()
+{
+
+}
+
+int		Client::processCgi()
+{
+
+}
+
+std::pair<int, uint32_t>	Client::executeMethod()
+{
+	int fd, status;
+	std::pair<int, uint32_t> exec;
+	HttpRequest& req = this->_httpRequestParser.getRequest();
+
+	if (!req.hasCgi())
+	{
+		if (req.getMethod() == "GET")
+		{
+			fd = open(req.getUri(), O_RDONLY | O_NONBLOCK);
+			if (fd == -1)
+				throw (ClientException(errno));
+			exec = std::make_pair(fd, EPOLLIN);
+		}	
+		else if (req.getMethod() == "POST")
+		{
+			fd = open(req.getUri(), O_WRONLY | O_CREAT | O_NONBLOCK);
+			if (fd == -1)
+				throw (ClientException(errno));
+			exec = std::make_pair(fd, EPOLLOUT);
+		}
+		else if (req.getMethod() == "DELETE")
+		{
+			status = std::remove(req.getUri());
+			if (!status)
+				this->processHttpResponse(SUCCESS);
+			
+		}
+	}
+	else
+	{
+
+	}
+	return (exec);
 }
 
 void	Client::sendHttpResponse()
