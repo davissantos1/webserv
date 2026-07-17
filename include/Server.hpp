@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 22:16:32 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 05:29:16 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,8 @@ class	Server
 		std::vector<VirtualHostConfig>			_configs;
 		std::map<int, VirtualHostConfig>		_configMap;
 		std::map<int, Client*>					_clientMap;
-		std::map<int, Client*>					_staticMap;
 		std::map<int, Client*>					_cgiMap;
+		std::map<int, Client*>					_staticFileMap;
 		std::vector<Client*>					_clients;
 		std::vector<int>						_listenFds;
 		Multiplexer								_multiplexer;

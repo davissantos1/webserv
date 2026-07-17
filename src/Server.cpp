@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 03:58:29 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 06:46:19 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,25 +118,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 
 	if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
 	{
-		switch (fdType)
-		{
-			case SOCKET:
-				this->_listenFds.erase(std::remove(this->_listenFds.begin(), this->_listenFds.end(), fd));
-				close(fd);
-				Server::printLog("socket fd removed from connection");
-				break;
-			case CLIENT:
-				this->destroyClient(fd);
-				break;
-			case STATIC_FILE:
-				break;
-			case CGI:
-				client->destroyCgi();
-				std::remove(this->.begin(), this->_listenFds.end(), fd);
-				close(fd);
-				Server::printLog("CGI FD removed due to internal error");
-				break;
-		}
+		this->handleError(fd, fdType);
+		return ;
 	}
 
 	switch (fdType)
@@ -169,42 +152,113 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
 			{
 				this->_multiplexer.removeFd(fd);
-				std::pair<int, uint32_t> exec = client->executeMethod();
-				this->_multiplexer.addFd(exec.first, exec.second);
-				if (clientStatus == PROCESSING_CGI)
-					this->_cgiMap[exec.first] = client;
-				else
-					this->_staticMap[exec.first] = client;
+				std::vector<FdTask> tasks = client->executeMethod();
+				for (int i = 0; i < tasks.size(); i++)
+				{
+					switch (tasks[i].type)
+					{
+						case STATIC_FILE_READ:
+							this->_staticFileMap[tasks[i].fd] = client;
+							this->_multiplexer.addFd(tasks[i].fd, EPOLLIN);
+							break;
+						case CGI_READ:
+							this->_cgiMap[tasks[i].fd] = client;
+							this->_multiplexer.addFd(tasks[i].fd, EPOLLIN);
+							break;
+						case STATIC_FILE_WRITE:
+							this->_staticFileMap[tasks[i].fd] = client;
+							this->_multiplexer.addFd(tasks[i].fd, EPOLLOUT);
+							break;
+						case CGI_WRITE:
+							this->_cgiMap[tasks[i].fd] = client;
+							this->_multiplexer.addFd(tasks[i].fd, EPOLLOUT);
+							break;
+					}
+				}
 			}
 			break;
 		}
 		case STATIC_FILE:
 		{
-			Client* client = this->_clientMap[fd];
+			Client* client = this->_staticFileMap[fd];
+			if (!client) break;
 			
-			// to be fixed
-			if (eventType & EPOLLIN)
-				client->processStaticFile(GET);
-			else if (eventType & EPOLLOUT)
-				client->processStaticFile(POST);
+			bool isDone = client->processStaticFile(fd);
+			
+			if (isDone)
+			{
+				this->_multiplexer.removeFd(fd);
+				close(fd);
+				this->_staticFileMap.erase(fd);
+				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);	
+			}
+			
 			break;
 		}
 		case CGI:
 		{
-			Client* client = this->_clientMap[fd];
+			Client* client = this->_cgiMap[fd];
+			if (!client) break;
 
-			// to be fixed
-			if (eventType & EPOLLIN)
-				client->processCgi(); 
-			else if (eventType & EPOLLOUT)
-				client->processCgi();
+			bool isPipeDone = client->processCgi(fd, eventType);
+			if (isPipeDone)
+			{
+				this->_multiplexer.removeFd(fd);
+				close(fd);
+				this->_cgiMap.erase(fd);
+				if (client->getStatus() == PREPARING_RESPONSE)
+					this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);	
+			}
 			break;
 		}
 	}
 }
 
-int Server::createClient(int sockFd)
+void	Server::handleError(int fd, enum FdType fdType)
 {
+	switch (fdType)
+	{
+		case SOCKET:
+			this->_listenFds.erase(std::remove(this->_listenFds.begin(), this->_listenFds.end(), fd));
+			close(fd);
+			Server::printLog("socket fd removed from connection");
+			break;
+		case CLIENT:
+			this->destroyClient(fd);
+			break;
+		case STATIC_FILE:
+		{
+			Client* client = this->_staticFileMap[fd];
+
+			this->_multiplexer.removeFd(fd);
+			this->_staticFileMap.erase(fd);
+			close(fd);
+			client->setStatusCode(500);
+			client->setStatus(PREPARING_RESPONSE);
+			this->_multiplexer.addFd(client->getFd(), EPOLLOUT);
+			Server::printLog("static file presented an error");
+			break;
+		}
+		case CGI:
+		{
+			Client* client = this->_cgiMap[fd];
+
+			this->_multiplexer.removeFd(fd);
+			this->_cgiMap.erase(fd);
+			close(fd);
+			client->destroyCgi();
+			client->setStatusCode(500);
+			client->setStatus(PREPARING_RESPONSE);
+			this->_multiplexer.addFd(client->getFd(), EPOLLOUT);
+			Server::printLog("CGI FD removed due to internal error");
+			break;
+		}
+	}
+}
+
+int	Server::createClient(int sockFd)
+{
+	std::string ipStr;
 	struct sockaddr_storage addr;
 	struct socklen_t addr_len = sizeof(addr);
 	int clientFd, status;
@@ -221,14 +275,14 @@ int Server::createClient(int sockFd)
 		struct sockaddr_in* addr_in = (struct sockaddr_storage*)&addr;
 		port = ntohs(addr_in->sin_port);
 		ip = ntohl(addr_in->sin_addr.s_addr);
-		std::stream ipStream;
+		std::stringstream ipStream;
 		ipStream	<< ((ip >> 24) & 0xFF) << "."
 					<< ((ip >> 16) & 0xFF) << "."
 					<< ((ip >> 8) & 0xFF) << "."
 					<< ((ip & 0xFF));
-		ip = ipStream.str();
+		ipStr = ipStream.str();
 	}
-	Client* newClient = new Client(ip, port, clientFd, this->_configMap[sockFd]);
+	Client* newClient = new Client(ipStr, port, clientFd, this->_configMap[sockFd]);
 	this->_clients.push_back(newClient);
 	this->_clientMap[sockFd] = newClient;
 	return (clientFd);
@@ -237,11 +291,22 @@ int Server::createClient(int sockFd)
 void	Server::destroyClient(int clientFd)
 {
 	Client* client = this->_clientMap[clientFd];
+	if (!client) return ;
 
+	this->_multiplexer.removeFd(clientFd);
 	this->_clientMap.erase(clientFd);
-	std::remove(this->_clients.begin(), this->clients.end(), conn); 
+	this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), client), this->_clients.end());
+	std::vector<int> activeFds = client->getActiveFds();
+	for (size_t i = 0; i < activeFds.size(); i++)
+	{
+		int fd = activeFds[i];
+		this->_multiplexer.removeFd(fd);
+		this->_staticFileMap.erase(fd);
+		this->_cgiMap.erase(fd);
+		close (fd);
+	}
 	close(clientFd);
-	delete(client);
+	delete (client);
 }
 
 void	Server::checkTimeouts()
@@ -251,7 +316,7 @@ void	Server::checkTimeouts()
 	for (int i = 0; i < this->_clients.size(); i++)
 	{
 		Client* currentClient = this->_clients[i];
-		double secondsIdle = std::difftime(currentTime, client->getLastActivity());
+		double secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
 
 		if (secondsIdle > TIMEOUT)
 		{
