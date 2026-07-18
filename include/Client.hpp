@@ -6,35 +6,95 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 08:50:58 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 09:15:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-#include "webserv.hpp"
+#include <ctime>
+#include <string>
+#include <iostream>
 
-enum Status;
+class HttpRequest;
+class HttpResponse;
+class VirtualHostConfig;
+class CgiHandler;
+class StaticFileHandler;
+
+enum ClientStatus;
 {
-	REQUEST_PROCESSING,
-	RESPONSE_PROCESSING,
-	CGI_PROCESSING,
-	REQUEST_READY,
-	RESPONSE_READY,
-	CGI_READY
+	READING_REQUEST,
+	PROCESSING_CGI,
+	PROCESSING_STATIC_FILE,
+	PREPARING_RESPONSE,
+	WRITING_RESPONSE,
+	DISCONNECT
 };
+
+enum FdIoType
+{
+	STATIC_FILE_READ,
+	STATIC_FILE_WRITE,
+	CGI_READ,
+	CGI_WRITE
+};
+
+struct FdTask
+{
+	int fd;
+	enum FdIoType type;
+};
+
+struct 
 
 class Client
 {
 	private:
-		enum Status;
-		int	clientFd;
+		std::string			_ip;
+		uint16_t			_port;
+		int					_fd;
+		enum ClientStatus	_status;
+		VirtualHostConfig	_virtualHostConfig;
+		HttpRequestParser	_httpRequestParser;
+		HttpResponseBuilder	_httpResponseBuilder;
+		StaticFileHandler	_staticFileHandler;
+		CgiHandler			_cgiHandler;
+		std::vector<int>	_activeFds;
+		time_t				_lastActivity;
 	public:
 		Client();
 		~Client();
 		Client(const Client& other);
+		Client(std::string ip, uint16_t port, int fd);
 		Client&	operator=(const Client& other);
+		void	processHttpRequest();
+		void	processStaticFile(); // to be implemented
+		void	processCgi(); // to be implemented
+		void	destroyCgi(int fd);
+		std::vector<FdTasks> executeMethod(); // to be implemented
+
+		void	getFd() { return this->_fd; }
+		void	getStatus() { return this->_status; }
+		void	getLastActivity() { return this->_lastActivity; }
+		void	getActiveFds() { return this->_activeFds; }
+		void	getPort() { return this->_port; }
+		void	getIp() { return this->_ip; }
+
+		void	setStatus(enum ClientStatus status) { this->_status = status; }
+		void	setStatusCode(int code) { this->_requestBuilder.setStatusCode(code); }
+
+		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
+
+		class	ClientException: public std::exception
+		{
+			private:
+				int	_errno;
+			public:
+				ClientException(int err): _errno(err) {}
+				const char* what() const throw { return std::strerror(_errno); }
+		};	
 };
 
 #endif

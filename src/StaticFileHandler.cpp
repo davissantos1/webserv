@@ -1,39 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HttpRequest.cpp                                    :+:      :+:    :+:   */
+/*   StaticFileHandler.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 08:00:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/17 07:00:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "HttpRequest.hpp"
+#include "StaticFileHandler.hpp"
 
-HttpRequest::HttpRequest()
+StaticFileHandler::StaticFileHandler()
 {
 
 }
 
-HttpRequest::~HttpRequest(){}
+StaticFileHandler::~StaticFileHandler()
+{
 
-HttpRequest::HttpRequest(const HttpRequest& other)
+}
+
+StaticFileHandler::StaticFileHandler(const StaticFileHandler& other)
 {
 	if (this != &other)
 		*this = other;
 }
 
-HttpRequest&	HttpRequest::operator=(const HttpRequest& other)
+StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 {
 	if (this != other)
 	{
-		this->_method = other._method;
-		this->_uri = other._uri;
-		this->_version = other._version;
-		this->_headers = other._headers;
-		this->_body = other._body;
+		// whatever
 	}
 	return (*this);
 }
+
+// to be added Davi

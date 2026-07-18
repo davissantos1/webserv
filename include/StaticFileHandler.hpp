@@ -1,23 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*   StaticFileHandler.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/28 16:33:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:20:57 by dasimoes         ###   ########.fr       */
+/*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
+/*   Updated: 2026/07/17 06:59:26 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef WEBSERV_HPP
-# define WEBSERV_HPP
+#ifndef STATICFILEHANDLER_HPP
+# define STATICFILEHANDLER_HPP
 
-# include <csignal>
-
-# define TIMEOUT 15.0
-# define EPOLL_WAIT 1000
-
-extern volatile sig_atomic_t serverRunning;
+class StaticFileHandler
+{
+	private:
+		// to be added Davi
+	public:
+		StaticFileHandler();
+		~StaticFileHandler();
+		StaticFileHandler(const StaticFileHandler& other);
+		StaticFileHandler& operator=(const StaticFileHandler& other);
+};
 
 #endif
