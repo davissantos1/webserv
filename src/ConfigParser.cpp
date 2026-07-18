@@ -22,11 +22,15 @@
 #include <utility>
 #include <vector>
 
-ConfigParser::ConfigParser( void ) {}
+ConfigParser::ConfigParser( void )
+{
+	_pos = 0;
+	_flagErr = false;
+}
 
 ConfigParser::~ConfigParser( void ) {}
 
-ConfigParser::ConfigParser(const ConfigParser& other): _tokens(other._tokens), _filePath(other._filePath), _pos(other._pos){}
+ConfigParser::ConfigParser(const ConfigParser& other): _tokens(other._tokens), _filePath(other._filePath), _pos(other._pos), _flagErr(other._flagErr){}
 
 ConfigParser&	ConfigParser::operator=(const ConfigParser& other)
 {
@@ -93,15 +97,15 @@ void	ConfigParser::makeTokens( std::ifstream& file )
 			switch (line[pos])
 			{
 				case '{':
-					_tokens.push_back(makePair(TOKEN_L_BRACE, ""));
+					_tokens.push_back(makePair(TOKEN_L_BRACE, "{"));
 					pos++;
 					break ;
 				case '}':
-					_tokens.push_back(makePair(TOKEN_R_BRACE, ""));
+					_tokens.push_back(makePair(TOKEN_R_BRACE, "}"));
 					pos++;
 					break ;
 				case ';':
-					_tokens.push_back(makePair(TOKEN_SEMICOLON, ""));
+					_tokens.push_back(makePair(TOKEN_SEMICOLON, ";"));
 					pos++;
 					break ;
 				default :
@@ -116,8 +120,9 @@ void	ConfigParser::makeTokens( std::ifstream& file )
 					pos = i;
 			}
 		}
-		_tokens.push_back(makePair(TOKEN_NEWLINE, ""));
+		_tokens.push_back(makePair(TOKEN_NEWLINE, "\n"));
 	}
+	_tokens.push_back(makePair(TOKEN_END, ""));
 }
 
 bool	ConfigParser::analyseTokens( void ) const
@@ -137,7 +142,16 @@ VirtualHostConfig	ConfigParser::parseVirtHost( void ) const
 
 void	ConfigParser::mountConfigVec( std::vector<VirtualHostConfig> & configs )
 {
-	configs.push_back(parseVirtHost());
+	while(curr_token().first == TOKEN_NEWLINE)
+	{
+		while (curr_token().second == "server")
+			configs.push_back(parseVirtHost());
+		_pos++;
+	}
+
+	if (_tokens.size() == 1)
+		std::cerr << "Empty configuration file." << std::endl;
+
 }
 
 const std::deque< std::pair<t_file_tokens, std::string> >&	ConfigParser::getTokens( void ) const
@@ -152,8 +166,22 @@ std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens )
 
 	while (i < size)
 	{
-		out << tokens.getTokens()[i].second << " ----- ";
+		out << tokens.getTokens()[i].second << ' ';
 		i++;
 	}
 	return (out);
+}
+
+std::pair<t_file_tokens, std::string> & ConfigParser::curr_token( void )
+{
+	if (_pos > _tokens.size())
+		return (_tokens.back());
+	return(_tokens[_pos]);
+}
+
+std::pair<t_file_tokens, std::string> & ConfigParser::next_token( void )
+{
+	if (_pos + 1 >= _tokens.size())
+		return (_tokens.back());
+	return(_tokens[_pos + 1]);
 }

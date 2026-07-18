@@ -29,7 +29,8 @@ typedef enum e_tokens
 	TOKEN_R_BRACE,
 	TOKEN_SEMICOLON,
 	TOKEN_NEWLINE,
-	TOKEN_WORD
+	TOKEN_WORD,
+	TOKEN_END
 }	t_file_tokens;
 
 class ConfigParser
@@ -38,6 +39,7 @@ class ConfigParser
 		std::deque< std::pair<t_file_tokens, std::string> >	_tokens;
 		std::string											_filePath;
 		std::size_t											_pos;
+		bool												_flagErr;
 
 		void				makeTokens( std::ifstream& file );
 		bool				analyseTokens( void ) const;
@@ -45,6 +47,9 @@ class ConfigParser
 		Location			parseLocation( void ) const;
 		VirtualHostConfig	parseVirtHost( void ) const;
 		void				mountConfigVec( std::vector<VirtualHostConfig> & configs );
+
+		std::pair<t_file_tokens, std::string> & curr_token( void );
+		std::pair<t_file_tokens, std::string> & next_token( void );
 
 	public:
 		ConfigParser( void );
