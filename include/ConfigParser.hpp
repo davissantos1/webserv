@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <fstream>
 #include <deque>
+#include <map>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -36,20 +37,36 @@ typedef enum e_tokens
 class ConfigParser
 {
 	private:
+		typedef	void (ConfigParser::*ParseServer)(VirtualHostConfig&);
+		typedef	void (ConfigParser::*ParseLocation)(Location&);
+
+		std::map<std::string, ParseServer>					_parseServer;
+		std::map<std::string, ParseLocation>				_parseLocation;
 		std::deque< std::pair<t_file_tokens, std::string> >	_tokens;
 		std::string											_filePath;
 		std::size_t											_pos;
 		bool												_flagErr;
 
 		void				makeTokens( std::ifstream& file );
-		bool				analyseTokens( void ) const;
 
-		Location			parseLocation( void ) const;
-		VirtualHostConfig	parseVirtHost( void ) const;
+		VirtualHostConfig	parseVirtualHost( void );
 		void				mountConfigVec( std::vector<VirtualHostConfig> & configs );
 
 		std::pair<t_file_tokens, std::string> & curr_token( void );
 		std::pair<t_file_tokens, std::string> & next_token( void );
+
+		void	handleLocation( VirtualHostConfig& vec );
+		void	handleListen( VirtualHostConfig& vec );
+		void	handleClientMaxBodySize( VirtualHostConfig& vec );
+		void	handleErrorPage( VirtualHostConfig& vec );
+
+		void	handleLocationRoot( Location& loc );
+		void	handleLocationIndex( Location& loc );
+		void	handleLocationAllowedMethods( Location& loc );
+		void	handleLocationAutoindex( Location& loc );
+
+		bool	validateIp( const std::string& ip );
+		bool	validatePort( const std::string& port );
 
 	public:
 		ConfigParser( void );
