@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 09:15:24 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/22 21:54:49 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,14 +41,6 @@ enum FdIoType
 	CGI_WRITE
 };
 
-struct FdTask
-{
-	int fd;
-	enum FdIoType type;
-};
-
-struct 
-
 class Client
 {
 	private:
@@ -69,18 +61,20 @@ class Client
 		Client(const Client& other);
 		Client(std::string ip, uint16_t port, int fd);
 		Client&	operator=(const Client& other);
-		void	processHttpRequest();
-		void	processStaticFile(); // to be implemented
-		void	processCgi(); // to be implemented
+		int		processHttpRequest();
+		int		processHttpResponse();
 		void	destroyCgi(int fd);
-		std::vector<FdTasks> executeMethod(); // to be implemented
+		std::vector<std::pair<int, enum FdIoType> executeMethod(enum ClientStatus status);
 
-		void	getFd() { return this->_fd; }
-		void	getStatus() { return this->_status; }
-		void	getLastActivity() { return this->_lastActivity; }
-		void	getActiveFds() { return this->_activeFds; }
-		void	getPort() { return this->_port; }
-		void	getIp() { return this->_ip; }
+		int						getFd() { return this->_fd; }
+		time_t					getLastActivity() { return this->_lastActivity; }
+		uint16_t				getPort() { return this->_port; }
+		enum ClientStatus		getStatus() { return this->_status; }
+		std::vector<int>		getActiveFds() { return this->_activeFds; }
+		HttpRequestParser&		getHttpRequestParser() { return this->_httpRequestParser; }
+		HttpResponseBuilder&	getHttpResponseBuilder() { return this->_httpResponseBuilder; }
+		StaticFileHandler&		getStaticFileHandler() { return this->_staticFileHandler; }
+		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_requestBuilder.setStatusCode(code); }

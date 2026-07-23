@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 15:31:29 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/22 21:52:18 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (eventType & EPOLLIN)
 				status = client->processHttpRequest();
 			else if (eventType & EPOLLOUT)
-				status = client->sendHttpResponse();
+				status = client->processHttpResponse();
 
 			if (status == -1)
 			{
@@ -152,29 +152,29 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
 			{
 				this->_multiplexer.removeFd(fd);
-				std::vector<FdTask> tasks = client->executeMethod(clientStatus);
+				std::vector<std::pair<int, enum FdIoType> tasks = client->executeMethod(clientStatus);
 				for (int i = 0; i < tasks.size(); i++)
 				{
-					switch (tasks[i].type)
+					switch (tasks[i].second)
 					{
 						case STATIC_FILE_READ:
-							this->_staticFileMap[tasks[i].fd] = client;
-							this->_multiplexer.addFd(tasks[i].fd, EPOLLIN);
+							this->_staticFileMap[tasks[i].first] = client;
+							this->_multiplexer.addFd(tasks[i].first, EPOLLIN);
 							break;
 						case CGI_READ:
-							this->_cgiMap[tasks[i].fd] = client;
-							this->_multiplexer.addFd(tasks[i].fd, EPOLLIN);
+							this->_cgiMap[tasks[i].first] = client;
+							this->_multiplexer.addFd(tasks[i].first, EPOLLIN);
 							break;
 						case STATIC_FILE_WRITE:
-							this->_staticFileMap[tasks[i].fd] = client;
-							this->_multiplexer.addFd(tasks[i].fd, EPOLLOUT);
+							this->_staticFileMap[tasks[i].first] = client;
+							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT);
 							break;
 						case CGI_WRITE:
-							this->_cgiMap[tasks[i].fd] = client;
-							this->_multiplexer.addFd(tasks[i].fd, EPOLLOUT);
+							this->_cgiMap[tasks[i].first] = client;
+							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT);
 							break;
 					}
-					client->registerFd(tasks[i].fd);
+					client->registerFd(tasks[i].first);
 				}
 			}
 			break;
@@ -184,14 +184,15 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			Client* client = this->_staticFileMap[fd];
 			if (!client) break;
 			
-			bool isDone = client->processStaticFile(fd, eventType);
+			bool isDone = client->getStaticFileHandler().processStaticFile(fd, eventType);
 			
 			if (isDone)
 			{
 				this->_multiplexer.removeFd(fd);
 				close(fd);
 				this->_staticFileMap.erase(fd);
-				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);	
+				client->setStatus() = PREPARING_RESPONSE;
+				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			}
 			
 			break;
@@ -201,14 +202,14 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			Client* client = this->_cgiMap[fd];
 			if (!client) break;
 
-			bool isPipeDone = client->processCgi(fd, eventType);
+			bool isPipeDone = client->getCgiHandler().processCgi(fd, eventType);
 			if (isPipeDone)
 			{
 				this->_multiplexer.removeFd(fd);
 				close(fd);
 				this->_cgiMap.erase(fd);
-				if (client->getStatus() == PREPARING_RESPONSE)
-					this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);	
+				client->setStatus() = PREPARING_RESPONSE;
+				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			}
 			break;
 		}
@@ -285,7 +286,7 @@ int	Server::createClient(int sockFd)
 	}
 	Client* newClient = new Client(ipStr, port, clientFd, this->_configMap[sockFd]);
 	this->_clients.push_back(newClient);
-	this->_clientMap[sockFd] = newClient;
+	this->_clientMap[clientFd] = newClient;
 	return (clientFd);
 }
 
