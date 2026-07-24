@@ -37,6 +37,7 @@ ConfigParser::ConfigParser( void )
 	_parseServer["root"]					= &ConfigParser::handleRoot;
 	_parseServer["server_name"]				= &ConfigParser::handleServerName;
 	_parseServer["index"]					= &ConfigParser::handleIndex;
+	_parseServer["allow_methods"]			= &ConfigParser::handleAllowedMethods;
 
 	_parseLocation["root"]			= &ConfigParser::handleLocationRoot;
 	_parseLocation["index"]			= &ConfigParser::handleLocationIndex;
@@ -609,6 +610,56 @@ void	ConfigParser::handleIndex( VirtualHostConfig& vec )
 		_pos++;
 	}
 
+	if (curr_token().first != TOKEN_SEMICOLON)
+	{
+		_flagErr = true;
+		std::cerr << "Error: missing ';' at the end of 'index' directive." << std::endl;
+		return ;
+	}
+	_pos++;
+}
+
+void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
+{
+	const char							*allowed[] = {"GET", "DELETE", "POST", 0};
+	bool								flag;
+	const std::vector<std::string> &	tmp = vec.getAllowedMethods();
+
+	if (next_token().first != TOKEN_WORD)
+	{
+		_flagErr = true;
+		return ;
+	}
+
+	_pos++;
+	while (curr_token().first == TOKEN_WORD)
+	{
+		flag = false;
+		for(int i = 0; allowed[i]; i++)
+		{
+			if (curr_token().second == allowed[i])
+			{
+				flag = true;
+				for(std::size_t j = 0; j < tmp.size(); j++)
+				{
+					if (tmp[j] == allowed[i])
+					{
+						_flagErr = true;
+						std::cerr << "Error: duplicate directive in allowed_methods." << std::endl;
+						return ;
+					}
+				}
+				vec.addAllowedMethod(curr_token().second);
+			}
+		}
+		if (!flag)
+		{
+			_flagErr = true;
+			std::cerr << "Error: invalid directive in allowed_methods." << std::endl;
+			return ;
+		}
+		_pos++;
+	}
 	if (curr_token().first != TOKEN_SEMICOLON)
 	{
 		_flagErr = true;

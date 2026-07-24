@@ -64,6 +64,7 @@ class ConfigParser
 		void	handleRoot( VirtualHostConfig& vec );
 		void	handleServerName( VirtualHostConfig& vec );
 		void	handleIndex( VirtualHostConfig& vec );
+		void	handleAllowedMethods( VirtualHostConfig& loc );
 
 		void	handleLocationRoot( Location& loc );
 		void	handleLocationIndex( Location& loc );
