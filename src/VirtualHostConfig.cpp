@@ -12,11 +12,11 @@
 
 #include "VirtualHostConfig.hpp"
 
-VirtualHostConfig::VirtualHostConfig() {}
+VirtualHostConfig::VirtualHostConfig(): _maxBodySize(0) {}
 
 VirtualHostConfig::~VirtualHostConfig() {}
 
-VirtualHostConfig::VirtualHostConfig(const std::string configPath)
+VirtualHostConfig::VirtualHostConfig(const std::string configPath):_maxBodySize(0)
 {
     (void)configPath;
 }
