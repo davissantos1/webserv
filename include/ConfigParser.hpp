@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <fstream>
 #include <deque>
+#include <list>
 #include <map>
 #include <ostream>
 #include <string>
@@ -43,6 +44,7 @@ class ConfigParser
 		std::map<std::string, ParseServer>					_parseServer;
 		std::map<std::string, ParseLocation>				_parseLocation;
 		std::deque< std::pair<t_file_tokens, std::string> >	_tokens;
+		std::list<std::string>								_locationPaths;
 		std::string											_filePath;
 		std::size_t											_pos;
 		bool												_flagErr;
@@ -59,11 +61,19 @@ class ConfigParser
 		void	handleListen( VirtualHostConfig& vec );
 		void	handleClientMaxBodySize( VirtualHostConfig& vec );
 		void	handleErrorPage( VirtualHostConfig& vec );
+		void	handleRoot( VirtualHostConfig& vec );
+		void	handleServerName( VirtualHostConfig& vec );
+		void	handleIndex( VirtualHostConfig& vec );
 
 		void	handleLocationRoot( Location& loc );
 		void	handleLocationIndex( Location& loc );
 		void	handleLocationAllowedMethods( Location& loc );
 		void	handleLocationAutoindex( Location& loc );
+		void	handleLocationUploadEnable( Location& loc );
+		void	handleLocationUploadStore( Location& loc );
+		void	handleLocationCgiExtension( Location& loc );
+		void	handleLocationCgiPath( Location& loc );
+		void	handleLocationReturn( Location& loc );
 
 		bool	validateIp( const std::string& ip );
 		bool	validatePort( const std::string& port );
