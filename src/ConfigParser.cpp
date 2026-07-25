@@ -13,6 +13,8 @@
 #include "ConfigParser.hpp"
 #include "Location.hpp"
 #include "VirtualHostConfig.hpp"
+#include <bits/types/error_t.h>
+#include <cerrno>
 #include <climits>
 #include <cstddef>
 #include <cstdlib>
@@ -51,7 +53,7 @@ ConfigParser::ConfigParser( void )
 
 ConfigParser::~ConfigParser( void ) {}
 
-ConfigParser::ConfigParser(const ConfigParser& other): _tokens(other._tokens), _filePath(other._filePath), _pos(other._pos), _flagErr(other._flagErr){}
+ConfigParser::ConfigParser( const ConfigParser& other ): _tokens(other._tokens), _filePath(other._filePath), _pos(other._pos), _flagErr(other._flagErr) {}
 
 ConfigParser&	ConfigParser::operator=(const ConfigParser& other)
 {
@@ -106,9 +108,23 @@ void	ConfigParser::makeTokens( std::ifstream& file )
 		pos = 0;
 		getline(file, line);
 
-		comment_pos = line.find('#');
-		if (comment_pos != std::string::npos)
-			line.erase(comment_pos);
+		std::size_t last_pos = 0;
+		while((comment_pos = line.find('#', last_pos)) != std::string::npos)
+		{
+			bool	on_quote = false;
+			bool	on_dquote = false;
+
+			for (std::size_t k = last_pos; k < comment_pos; k++)
+			{
+				if (line[k] == '"')
+					on_dquote = !on_dquote;
+				if (line[k] == 39)
+					on_quote = !on_quote;
+			}
+			if (!on_dquote && !on_quote)
+				line.erase(comment_pos);
+			last_pos = comment_pos;
+		}
 
 		while (pos < line.length())
 		{
@@ -164,9 +180,6 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 
 	while (curr_token().first != TOKEN_R_BRACE && _flagErr == false)
 	{
-		while (curr_token().first == TOKEN_NEWLINE)
-			_pos++;
-
 		if (curr_token().first == TOKEN_WORD)
 		{
 			std::map<std::string, ParseServer>::iterator iter = _parseServer.find(curr_token().second);
@@ -180,6 +193,33 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 			_flagErr = true;
 	}
 
+	_pos++;
+
+	if (!_flagErr)
+	{
+		if (virtualHost.getAllowedMethods().empty())
+		{
+			virtualHost.addAllowedMethod("GET");
+			virtualHost.addAllowedMethod("POST");
+			virtualHost.addAllowedMethod("DELETE");
+		}
+		if (virtualHost.getVecPort().empty())
+		{
+			std::cerr << "Error: no listen directive was found to a server." << std::endl;
+			_flagErr = true;
+		}
+		// Conversar com o Davi aqui
+		// if (virtualHost.getRoot().empty())
+		// {
+		// 	std::cerr << "Error: no root directive was found to a server." << std::endl;
+		// 	_flagErr = true;
+		// }
+		// if (virtualHost.getIndex().empty())
+		// {
+		// 	std::cerr << "Error: no index directive was found to a server." << std::endl;
+		// 	_flagErr = true;
+		// }
+	}
 	return (virtualHost);
 }
 
@@ -187,30 +227,32 @@ void	ConfigParser::mountConfigVec( std::vector<VirtualHostConfig> & configs )
 {
 	while(curr_token().first != TOKEN_END)
 	{
-		if (curr_token().first == TOKEN_NEWLINE)
-		{
-			_pos++;
-			continue ;
-		}
 		if (curr_token().second == "server")
 			configs.push_back(parseVirtualHost());
 		else
 		{
-			_flagErr = false;
+			_flagErr = true;
 			break ;
 		}
 	}
-
-	if (_tokens.size() == 1)
+	if (configs.empty() && !_flagErr)
 		std::cerr << "Empty configuration file." << std::endl;
 
 	if (_flagErr)
 		configs.clear();
 }
 
-const std::deque< std::pair<t_file_tokens, std::string> >&	ConfigParser::getTokens( void ) const
+void	ConfigParser::skip_newline( void )
 {
-		return (_tokens);
+	if (_pos >= _tokens.size())
+		return ;
+	while (_tokens[_pos].first == TOKEN_NEWLINE)
+		_pos++;
+}
+
+const std::deque< std::pair<t_file_tokens, std::string> > &	ConfigParser::getTokens( void ) const
+{
+	return (_tokens);
 }
 
 std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens )
@@ -228,6 +270,7 @@ std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens )
 
 std::pair<t_file_tokens, std::string> & ConfigParser::curr_token( void )
 {
+	skip_newline();
 	if (_pos >= _tokens.size())
 		return (_tokens.back());
 	return(_tokens[_pos]);
@@ -235,9 +278,14 @@ std::pair<t_file_tokens, std::string> & ConfigParser::curr_token( void )
 
 std::pair<t_file_tokens, std::string> & ConfigParser::next_token( void )
 {
+	std::size_t i = 1;
+
+	skip_newline();
 	if (_pos + 1 >= _tokens.size())
 		return (_tokens.back());
-	return(_tokens[_pos + 1]);
+	while (_tokens[_pos + i].first == TOKEN_NEWLINE)
+		i++;
+	return(_tokens[_pos + i]);
 }
 
 
@@ -262,14 +310,8 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 	}
 	_pos++;
 
-	while (curr_token().first == TOKEN_NEWLINE)
-		_pos++;
-
 	while (curr_token().first != TOKEN_R_BRACE && _flagErr == false)
 	{
-		while (curr_token().first == TOKEN_NEWLINE)
-			_pos++;
-
 		if (curr_token().first == TOKEN_WORD)
 		{
 			std::map<std::string, ParseLocation>::iterator iter = _parseLocation.find(curr_token().second);
@@ -296,6 +338,12 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 				return ;
 			}
 			iter++;
+		}
+		if (local.getAllowedMethods().empty())
+		{
+			local.addAllowedMethod("GET");
+			local.addAllowedMethod("POST");
+			local.addAllowedMethod("DELETE");
 		}
 	}
 	_pos++;
@@ -427,7 +475,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 		else
 			_flagErr = true;
 	}
-	_pos++;
+	_pos += 2;
 }
 
 void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
@@ -445,8 +493,9 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 	_pos++;
 
 	value = curr_token().second;
+	errno = 0;
 	parsedValue = std::strtol(value.c_str(), &end, 10);
-	if (parsedValue <= 0 || std::strlen(end) > 1)
+	if (parsedValue <= 0 || std::strlen(end) > 1 || errno)
 	{
 		_flagErr = true;
 		return ;

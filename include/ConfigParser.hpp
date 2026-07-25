@@ -53,6 +53,7 @@ class ConfigParser
 
 		VirtualHostConfig	parseVirtualHost( void );
 		void				mountConfigVec( std::vector<VirtualHostConfig> & configs );
+		void				skip_newline( void );
 
 		std::pair<t_file_tokens, std::string> & curr_token( void );
 		std::pair<t_file_tokens, std::string> & next_token( void );
@@ -74,7 +75,6 @@ class ConfigParser
 		void	handleLocationUploadStore( Location& loc );
 		void	handleLocationCgiExtension( Location& loc );
 		void	handleLocationCgiPath( Location& loc );
-		void	handleLocationReturn( Location& loc );
 
 		bool	validateIp( const std::string& ip );
 		bool	validatePort( const std::string& port );
