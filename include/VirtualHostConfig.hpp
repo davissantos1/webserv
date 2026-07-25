@@ -42,7 +42,7 @@ class VirtualHostConfig
 		const std::vector<std::string> & getVecHostIp() const { return _hostIp; }
 		const std::vector<int> & getVecPort() const { return _port; }
 		const std::string& getHostIp( const int i ) const { return (_hostIp[i]); }
-		const int getPort( const int i ) const { return (_port[i]); }
+		int getPort( const int i ) const { return (_port[i]); }
 		const std::map<int, std::string>& getErrorPages() const { return _errorPages; }
 		std::size_t getMaxBodySize() const { return _maxBodySize; }
 		const std::string& getRoot() const { return _root; }
@@ -68,5 +68,7 @@ class VirtualHostConfig
 		void	addAllowedMethod( const std::string& method ) { _allowedMethods.push_back(method); }
 		void	addLocation( const Location& location ) { _locations.push_back(location); }
 };
+
+std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc );
 
 #endif

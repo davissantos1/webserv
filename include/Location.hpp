@@ -65,4 +65,6 @@ class Location
 		const std::string&					getCgiPath( void ) const { return _cgiPath; }
 };
 
+std::ostream&	operator<<( std::ostream& out, const Location& loc );
+
 #endif
