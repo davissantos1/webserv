@@ -53,4 +53,8 @@ re: fclean all
 test_tokenizer:
 	$(CC) $(CFLAGS) -Iinclude tests/tokenizer/tokenizer_runner.cpp src/ConfigParser.cpp src/Location.cpp src/VirtualHostConfig.cpp -o tests/tokenizer/runner_path.out && mv tests/tokenizer/runner_path.out .
 
+test_parser:
+	$(CC) $(CFLAGS) -g3 -Iinclude tests/parser/parser.cpp src/ConfigParser.cpp src/Location.cpp src/VirtualHostConfig.cpp -o tests/parser/parser.out && mv tests/parser/parser.out .
+
+
 .PHONY: all clean fclean re debug
