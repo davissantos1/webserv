@@ -175,7 +175,7 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 		return (virtualHost);
 	}
 
-	_pos += 2;
+	advance_token(2);
 	_locationPaths.clear();
 
 	while (curr_token().first != TOKEN_R_BRACE && _flagErr == false)
@@ -193,7 +193,7 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 			_flagErr = true;
 	}
 
-	_pos++;
+	advance_token(1);
 
 	if (!_flagErr)
 	{
@@ -288,6 +288,18 @@ std::pair<t_file_tokens, std::string> & ConfigParser::next_token( void )
 	return(_tokens[_pos + i]);
 }
 
+void	ConfigParser::advance_token( int i )
+{
+	int j;
+
+	j = 0;
+	while (j < i)
+	{
+		_pos++;
+		skip_newline();
+		j++;
+	}
+}
 
 void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 {
@@ -300,7 +312,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 	}
 
 	local.setPath(next_token().second);
-	_pos += 2;
+	advance_token(2);
 
 	if (curr_token().first != TOKEN_L_BRACE)
 	{
@@ -308,7 +320,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 		std::cerr << "Error: location block needs '{' before directives." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	while (curr_token().first != TOKEN_R_BRACE && _flagErr == false)
 	{
@@ -346,7 +358,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 			local.addAllowedMethod("DELETE");
 		}
 	}
-	_pos++;
+	advance_token(1);
 	_locationPaths.push_back(local.getPath());
 	vec.addLocation(local);
 }
@@ -423,7 +435,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 	}
 
 	std::string	listen_val = next_token().second;
-	_pos++;
+	advance_token(1);
 
 	if (next_token().first != TOKEN_SEMICOLON)
 	{
@@ -475,7 +487,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 		else
 			_flagErr = true;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
@@ -490,7 +502,7 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	value = curr_token().second;
 	errno = 0;
@@ -534,7 +546,7 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 		_flagErr = true;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 	vec.setMaxBodySize(maxBodySize * scale);
 }
 
@@ -550,7 +562,7 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 		return ;
 	}
 
-	_pos++;
+	advance_token(1);
 
 	while (true)
 	{
@@ -563,7 +575,7 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 			return ;
 		}
 		errors.push_back(static_cast<int>(num));
-		_pos++;
+		advance_token(1);
 	}
 
 	if ( errors.empty() || curr_token().first != TOKEN_WORD || next_token().first != TOKEN_SEMICOLON)
@@ -588,7 +600,7 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 		iter++;
 	}
 
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleRoot( VirtualHostConfig& vec )
@@ -605,7 +617,7 @@ void	ConfigParser::handleRoot( VirtualHostConfig& vec )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	vec.setRoot(curr_token().second);
 
@@ -615,7 +627,7 @@ void	ConfigParser::handleRoot( VirtualHostConfig& vec )
 		std::cerr << "Error: 'root' directive takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleServerName( VirtualHostConfig& vec )
@@ -626,12 +638,12 @@ void	ConfigParser::handleServerName( VirtualHostConfig& vec )
 		std::cerr << "Error: 'server_name' requires at least one argument." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	while (curr_token().first == TOKEN_WORD)
 	{
 		vec.addServerName(curr_token().second);
-		_pos++;
+		advance_token(1);
 	}
 
 	if (curr_token().first != TOKEN_SEMICOLON)
@@ -640,7 +652,7 @@ void	ConfigParser::handleServerName( VirtualHostConfig& vec )
 		std::cerr << "Error: missing ';' at the end of 'server_name' directive." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 }
 
 void	ConfigParser::handleIndex( VirtualHostConfig& vec )
@@ -651,12 +663,12 @@ void	ConfigParser::handleIndex( VirtualHostConfig& vec )
 		std::cerr << "Error: 'index' requires at least one argument." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	while (curr_token().first == TOKEN_WORD)
 	{
 		vec.addIndex(curr_token().second);
-		_pos++;
+		advance_token(1);
 	}
 
 	if (curr_token().first != TOKEN_SEMICOLON)
@@ -665,7 +677,7 @@ void	ConfigParser::handleIndex( VirtualHostConfig& vec )
 		std::cerr << "Error: missing ';' at the end of 'index' directive." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 }
 
 void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
@@ -680,7 +692,7 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 		return ;
 	}
 
-	_pos++;
+	advance_token(1);
 	while (curr_token().first == TOKEN_WORD)
 	{
 		flag = false;
@@ -707,7 +719,7 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 			std::cerr << "Error: invalid directive in allowed_methods." << std::endl;
 			return ;
 		}
-		_pos++;
+		advance_token(1);
 	}
 	if (curr_token().first != TOKEN_SEMICOLON)
 	{
@@ -715,7 +727,7 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 		std::cerr << "Error: missing ';' at the end of 'index' directive." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 }
 
 void	ConfigParser::handleLocationRoot( Location& loc )
@@ -732,7 +744,7 @@ void	ConfigParser::handleLocationRoot( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	loc.setRoot(curr_token().second);
 
@@ -742,7 +754,7 @@ void	ConfigParser::handleLocationRoot( Location& loc )
 		std::cerr << "Error: 'root' directive takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleLocationIndex( Location& loc )
@@ -752,12 +764,12 @@ void	ConfigParser::handleLocationIndex( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	while (curr_token().first == TOKEN_WORD)
 	{
 		loc.addIndex(curr_token().second);
-		_pos++;
+		advance_token(1);
 	}
 
 	if (curr_token().first != TOKEN_SEMICOLON)
@@ -765,7 +777,7 @@ void	ConfigParser::handleLocationIndex( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 }
 
 void	ConfigParser::handleLocationAllowedMethods( Location& loc )
@@ -780,7 +792,7 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 		return ;
 	}
 
-	_pos++;
+	advance_token(1);
 	while (curr_token().first == TOKEN_WORD)
 	{
 		flag = false;
@@ -807,7 +819,7 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 			std::cerr << "Error: invalid directive in allowed_methods." << std::endl;
 			return ;
 		}
-		_pos++;
+		advance_token(1);
 	}
 	if (curr_token().first != TOKEN_SEMICOLON)
 	{
@@ -815,7 +827,7 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 		std::cerr << "Error: missing ';' at the end of 'index' directive." << std::endl;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 }
 
 void	ConfigParser::handleLocationAutoindex( Location& loc )
@@ -825,7 +837,7 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	std::string state = curr_token().second;
 
@@ -846,7 +858,7 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 		std::cerr << "Error: 'autoindex' takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleLocationUploadEnable( Location& loc )
@@ -856,7 +868,7 @@ void	ConfigParser::handleLocationUploadEnable( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	std::string state = curr_token().second;
 
@@ -876,7 +888,7 @@ void	ConfigParser::handleLocationUploadEnable( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleLocationUploadStore( Location& loc )
@@ -893,7 +905,7 @@ void	ConfigParser::handleLocationUploadStore( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	loc.setUploadStore(curr_token().second);
 
@@ -903,7 +915,7 @@ void	ConfigParser::handleLocationUploadStore( Location& loc )
 		std::cerr << "Error: 'upload_store' takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleLocationCgiExtension( Location& loc )
@@ -920,7 +932,7 @@ void	ConfigParser::handleLocationCgiExtension( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	loc.setCgiExtension(curr_token().second);
 
@@ -930,7 +942,7 @@ void	ConfigParser::handleLocationCgiExtension( Location& loc )
 		std::cerr << "Error: 'cgi_extension' takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }
 
 void	ConfigParser::handleLocationCgiPath( Location& loc )
@@ -947,7 +959,7 @@ void	ConfigParser::handleLocationCgiPath( Location& loc )
 		_flagErr = true;
 		return ;
 	}
-	_pos++;
+	advance_token(1);
 
 	loc.setCgiPath(curr_token().second);
 
@@ -957,5 +969,5 @@ void	ConfigParser::handleLocationCgiPath( Location& loc )
 		std::cerr << "Error: 'cgi_path' takes exactly one argument." << std::endl;
 		return ;
 	}
-	_pos += 2;
+	advance_token(2);
 }

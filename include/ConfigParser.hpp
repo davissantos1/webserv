@@ -57,6 +57,7 @@ class ConfigParser
 
 		std::pair<t_file_tokens, std::string> & curr_token( void );
 		std::pair<t_file_tokens, std::string> & next_token( void );
+		void									advance_token( int i );
 
 		void	handleLocation( VirtualHostConfig& vec );
 		void	handleListen( VirtualHostConfig& vec );
