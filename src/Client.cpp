@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/22 21:58:11 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/28 21:58:17 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,15 +27,15 @@ Client::Client(const Client& other)
 
 Client&	Client::operator=(const Client& other)
 {
-	if (this != other)
+	if (this != &other)
 	{
 		this->_fd = other._fd;
 		this->_ip = other._ip;
 		this->_port = other._port;
-		this->_config = other._config;
+		this->_virtualHostConfig = other._virtualHostConfig;
 		this->_status = other._status;
-		this->_responseBuilder = other._responseBuilder;
-		this->_requestParser = other._requestParser;
+		this->_httpResponseBuilder = other._httpResponseBuilder;
+		this->_httpRequestParser = other._httpRequestParser;
 		this->_lastActivity = other._lastActivity;
 		this->_activeFds = other._activeFds;
 		this->_cgiHandler = other._cgiHandler;
@@ -51,19 +51,19 @@ int	Client::processHttpRequest()
 
 	while (true)
 	{
-		ernno = 0;
-		ssize_t bytes = recv(fd, tempBuffer, sizeof(tempBuffer), NULL);
+		errno = 0;
+		ssize_t bytes = recv(this->_fd, tempBuffer, sizeof(tempBuffer), 0);
 		if (bytes > 0)
 		{
 			this->_lastActivity = std::time(NULL);
-			parse.feed(tempBuffer);
+			parse.feed(tempBuffer, bytes);
 		}
 		else if (bytes == 0)
 			return (-1);
 		else
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break
+				break;
 			return (-1);
 		}
 	}
@@ -76,18 +76,44 @@ int	Client::processHttpRequest()
 
 int	Client::processHttpResponse()
 {
-	//to be implemented
+	if (this->_status == PREPARING_RESPONSE)
+	{
+		this->_httpResponseBuilder.build();
+		this->_status = WRITING_RESPONSE;
+	}
+	std::string&	responseStr = this->_httpResponseBuilder.getHttpResponse();
+	ssize_t bytesSent = this->_httpResponseBuilder.getBytesSent();
+	ssize_t bytesRemaining = responseStr.size() - bytesSent;
+	const char* res = responseStr.c_str() + bytesSent;
+	int bytes = send(this->_fd, res, bytesRemaining, 0);
+	if (bytes > 0)
+	{
+		this->_httpResponseBuilder.setBytesSent(bytesSent + bytes);
+		if (bytes == bytesRemaining)
+		{
+			this->_status = READING_REQUEST;
+			return (0);
+		}
+	}
+	else if (bytes == -1)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return (0);
+		return (-1);
+	}
+	else
+		return (-1);
 }
 
 void	Client::destroyCgi(int fd)
 {
 	this->_cgiHandler.destroyCgi(fd);
-	this->_activeFds.erase(std::remove(this->_activeFds.begin(). this->_activeFds.end(), fd). this->_activeFds.end());
+	this->_activeFds.erase(std::remove(this->_activeFds.begin(), this->_activeFds.end(), fd), this->_activeFds.end());
 }
 
-std::vector<FdTask>	Client::executeMethod(enum ClientStatus status)
+std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod(enum ClientStatus status)
 {
-	std::vector<FdTask> tasks;
+	std::vector<std::pair<int, enum FdIoType> > tasks;
 	HttpRequest& req = this->_httpRequestParser.getRequest();
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
@@ -105,7 +131,7 @@ std::vector<FdTask>	Client::executeMethod(enum ClientStatus status)
 			tasks.push_back(stat.handlePost(req.getUri()));
 		else
 		{
-			std::vector<FdTask> postFds = cgi.handlePost();
+			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost();
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
 		}
 	}

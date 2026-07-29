@@ -6,24 +6,28 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/22 21:54:49 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/28 22:11:10 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+#include <utility>
 #include <ctime>
+#include <stdint.h>
+#include <vector>
 #include <string>
 #include <iostream>
 
 class HttpRequest;
-class HttpResponse;
+class HttpRequestParser;
+class HttpResponseBuilder;
 class VirtualHostConfig;
 class CgiHandler;
 class StaticFileHandler;
 
-enum ClientStatus;
+enum ClientStatus
 {
 	READING_REQUEST,
 	PROCESSING_CGI,
@@ -59,12 +63,12 @@ class Client
 		Client();
 		~Client();
 		Client(const Client& other);
-		Client(std::string ip, uint16_t port, int fd);
+		Client(std::string ip, uint16_t port, int fd, VirtualHostConfig config);
 		Client&	operator=(const Client& other);
 		int		processHttpRequest();
 		int		processHttpResponse();
 		void	destroyCgi(int fd);
-		std::vector<std::pair<int, enum FdIoType> executeMethod(enum ClientStatus status);
+		std::vector<std::pair<int, enum FdIoType> > executeMethod(enum ClientStatus status);
 
 		int						getFd() { return this->_fd; }
 		time_t					getLastActivity() { return this->_lastActivity; }
@@ -77,7 +81,7 @@ class Client
 		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
-		void	setStatusCode(int code) { this->_requestBuilder.setStatusCode(code); }
+		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 
 		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
 
@@ -87,7 +91,8 @@ class Client
 				int	_errno;
 			public:
 				ClientException(int err): _errno(err) {}
-				const char* what() const throw { return std::strerror(_errno); }
+				virtual ~ClientException() throw() {}
+				const char* what() const throw() { return std::strerror(_errno); }
 		};	
 };
 

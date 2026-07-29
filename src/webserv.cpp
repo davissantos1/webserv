@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/04 16:08:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/13 18:46:40 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/27 19:39:12 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,16 +48,15 @@ int	main(int ac, char** av)
 	registerSignals();
 	try
 	{
-		Parser parser;
-		Server server(parser.parseConfigFile(configPath));
-		std::vector<int> listenFds = server.startServer();
+		ConfigParser configParser;
+		Server server(configParser.parse(configPath));
+		server.startServer();
 	}
 	catch (std::exception& e)
 	{
 		std::cerr	<< e.what() << std::endl;
 		return (1);
 	}
-	Multiplexer mult;
-	mult.eventLoop(&server);
+	server.runServer();
 	return (0);
 }

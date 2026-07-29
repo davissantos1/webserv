@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/22 21:52:18 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/28 21:30:51 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ Server::~Server()
 	}
 	for (int j = 0; j < this->_listenFds.size(); j++)
 		close(this->_listenFds[j]);
+	if (this->_currAddr)
+		freeaddrinfo(this->_currAddr);
 }
 
 Server&	Server::operator=(const Server& other)
@@ -51,11 +53,12 @@ Server::Server(const Server& other)
 		*this = other;
 }
 
-std::vector<int> Server::startServer()
+void	Server::startServer()
 {
 	int sockFd, status;
 	int sz = this->_configs.size();
 	struct addrinfo	hints, *res, *p;
+	int opt = 1;
 
 	for (int i = 0; i < sz; i++)
 	{
@@ -64,27 +67,33 @@ std::vector<int> Server::startServer()
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 		VirtualHostConfig v = this->_configs[i];
-		if ((status = getaddrinfo(v.getHostIp().c_str(), "http", &hints, &res)) == -1)
-			throw (ServerException(errno));
+		if ((status = getaddrinfo(v.getHost().c_str(), v.getPort().c_str(), &hints, &res)) != 0)
+			throw (ServerException(gai_strerror(status)));
+		this->_currAddr = res;
 		for (p = res; p != NULL; p = p->ai_next)
 		{
-			if ((sockFd = socket(v.getHostIp().c_str(), SOCK_STREAM, "http")) == -1)
+			if ((sockFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
 				continue;
 			break ;
 		}
 		if (sockFd == -1)
 			throw (ServerException(errno));
 		this->_listenFds.push_back(sockFd);
-		if ((status = bind(sockFd, res->ai_address, res->ai_addrlen)) == -1)
+		if ((status = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) == -1)
 			throw (ServerException(errno));
-		if ((status = listen(sockFd, BACKLOG) == -1)
+		if ((status = setsockopt(sockFd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt))) == -1)
+			throw (ServerException(errno));
+		if ((status = bind(sockFd, res->ai_addr, res->ai_addrlen)) == -1)
+			throw (ServerException(errno));
+		if ((status = listen(sockFd, BACKLOG)) == -1)
 			throw (ServerException(errno));
 		if ((status = fcntl(sockFd, F_SETFL, O_NONBLOCK)) == -1)
 			throw (ServerException(errno));
 		this->_configMap[sockFd] = v;
+		freeaddrinfo(this->_currAddr);
+		this->_currAddr = res = NULL;
 	}
 	serverRunning = 1;
-	return (this->_listenFds);
 }
 
 void	Server::runServer()
@@ -92,20 +101,28 @@ void	Server::runServer()
 	std::vector<std::pair<int, uint32_t>> fds;
 	std::vector<int>::iterator listenBegin, listenEnd, it;
 	enum FdType fdType;
-	int	fdSize;
 
 	while (serverRunning)
 	{
 		fds = this->_multiplexer.wait();
-		fdSize = fds.size();
-		for (int j = 0; j < fdSize; j++)
+		for (int j = 0; j < fds.size(); j++)
 		{
 			listenBegin = this->_listenFds.begin();
 			listenEnd = this->_listenFds.end();
 			it = std::find(listenBegin, listenEnd, fds[j].first);
+			if (it == listenEnd)
+			{
+				if (this->_clientMap.count(fds[j].first) == 0 &&
+				this->_staticFileMap.count(fds[j].first) == 0 &&
+				this->_cgiMap.count(fds[j].first) == 0)
+					continue;
+					
+			}
 			fdType = (it != listenEnd) ? SOCKET : CLIENT;
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
+			else if (this->_staticFileMap.count(fds[j].first) > 0)
+				fdType = STATIC_FILE;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
 			this->checkTimeouts();
 		}
@@ -152,7 +169,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
 			{
 				this->_multiplexer.removeFd(fd);
-				std::vector<std::pair<int, enum FdIoType> tasks = client->executeMethod(clientStatus);
+				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod(clientStatus);
 				for (int i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].second)
@@ -262,7 +279,7 @@ int	Server::createClient(int sockFd)
 {
 	std::string ipStr;
 	struct sockaddr_storage addr;
-	struct socklen_t addr_len = sizeof(addr);
+	socklen_t addr_len = sizeof(addr);
 	int clientFd, status;
 	uint16_t	port = 0;
 	uint32_t	ip = 0;
@@ -274,7 +291,7 @@ int	Server::createClient(int sockFd)
 	}
 	if (addr.ss_family == AF_INET)
 	{
-		struct sockaddr_in* addr_in = (struct sockaddr_storage*)&addr;
+		struct sockaddr_in* addr_in = reinterpret_cast<struct sockaddr_in*>&addr;
 		port = ntohs(addr_in->sin_port);
 		ip = ntohl(addr_in->sin_addr.s_addr);
 		std::stringstream ipStream;

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/17 08:54:06 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/28 22:08:04 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include "Client.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <netdb.h>
 # include <arpa/inet.h>
 # include <fcntl.h>
 # include <unistd.h>
@@ -48,25 +49,33 @@ class	Server
 		std::vector<Client*>					_clients;
 		std::vector<int>						_listenFds;
 		Multiplexer								_multiplexer;
+		struct addrinfo*						_currAddr;
 	public:
 		Server();
 		~Server();	
 		Server(const Server& other);	
 		Server&	operator=(const Server& other);
 		Server(const std::vector<VirtualHostConfig> config);
-		void				runServer()
-		std::vector<int>	startServer();
+		void				runServer();
+		void				startServer();
 		int					createClient(int sockFd);
 		void				destroyClient(int clientFd);
 		static void			printLog(const std::string& msg);
-		void				routeServer(int fd, uint32_t eventType, enum FdType fdType)
+		void				routeServer(int fd, uint32_t eventType, enum FdType fdType);
 		class ServerException: public std::exception
 		{
 			private:
-				int	_errno;
+				int			_errno;
+				const char*	_error;
 			public:
-				ServerException(int err): _errno(err) {}
-				const char* what() const throw { return std::strerror(_errno); }
+				ServerException(int err): _errno(err), _error(NULL) {}
+				ServerException(const char* error): _errno(0), _error(error){}
+				const char* what() const throw()
+				{ 
+					if (this->_error)
+						return (this->_error);
+					return std::strerror(_errno);
+				}
 		};
 };
 
