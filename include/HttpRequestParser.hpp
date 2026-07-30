@@ -6,22 +6,38 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 08:56:37 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/29 21:23:25 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPREQUESTPARSER_HPP
 # define HTTPREQUESTPARSER_HPP
 
+// deal with the connection and the transfer-encoding header
+// This parser will be fed a bit at a time and have an internal state 
+// I need to know specific states from feed to send an error if the request is malformed or filled with errors
+// I'm assuming an enum for each state, tell me if you change it, please
+// This project is draining my soul 
+
+enum RequestStatus
+{
+	REQUEST_READY,
+	REQUEST_TOO_LARGE,
+	REQUEST_PARSE_ERROR
+};
+
+// To be added Vitor
 class HttpRequestParser
 {
 	private:
-		// To be added Vitor
+		enum RequestStatus	_status;
 	public:
 		HttpRequestParser();
 		~HttpRequestParser();
 		HttpRequestParser(const HttpRequestParser& other);
 		HttpRequestParser& operator=(const HttpRequestParser& other);
+
+		enum RequestStatus	feed(char* buffer, int size);
 };
 
 #endif

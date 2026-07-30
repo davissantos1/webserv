@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 08:10:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/29 21:25:30 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ class HttpRequest
 		std::string 						_version;
 		std::map<std::string, std::string>	_headers;
 		std::string 						_body;
+		bool								_keepAlive;
 	public:
 		HttpRequest();
 		~HttpRequest();
@@ -35,6 +36,8 @@ class HttpRequest
 		std::string	getUri() { return this->_uri }
 		std::map<std::string, std::string> getHeaders() { return this->_headers }
 		std::string	getBody() { return this->_body }
+
+		std::string getLocation(); // to be added
 };
 
 #endif

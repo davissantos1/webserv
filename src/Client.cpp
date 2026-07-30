@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/28 21:58:17 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/29 21:45:47 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ Client&	Client::operator=(const Client& other)
 
 int	Client::processHttpRequest()
 {
+	enum RequestStatus status;
 	char tempBuffer[8192];
 	HttpRequestParser& parse = this->_httpRequestParser;
 
@@ -56,7 +57,7 @@ int	Client::processHttpRequest()
 		if (bytes > 0)
 		{
 			this->_lastActivity = std::time(NULL);
-			parse.feed(tempBuffer, bytes);
+			status = parse.feed(tempBuffer, bytes);
 		}
 		else if (bytes == 0)
 			return (-1);
@@ -67,11 +68,51 @@ int	Client::processHttpRequest()
 			return (-1);
 		}
 	}
-	if (parse.isRequestReady() && !parse.hasCgi())
-		this->_status = PROCESSING_STATIC_FILE;
-	if (parse.isRequestReady() && parse.hasCgi())
-		this->_status = PROCESSING_CGI;
+	this->checkRequest(status);
 	return (0);
+}
+
+void	Client::checkRequest(enum RequestStatus status)
+{
+	int status = 0;
+	switch (status)
+	{
+		case REQUEST_READY:
+		{
+			VirtualHostConfig& conf = this->_virtualHostConfig;
+			HttpRequest& req = this->_httpRequestParser.getRequest();
+
+			if (!conf.isMethodAllowed(req.getMethod(), req.getLocation()))
+			{
+				this->setStatusCode(405);
+				this->_status = PREPARING_RESPONSE;
+				return ;
+			}
+			if ((status = conf.shouldRedirect(req.getLocation())) > 0)
+			{
+				this->setStatusCode(status);
+				this->_status = PREPARING_RESPONSE;
+				return ;
+			}
+			if (parse.hasCgi())
+				this->_status = PROCESSING_CGI;
+			else
+				this->_status = PROCESSING_STATIC_FILE;
+			break;
+		}
+		case REQUEST_PARSE_ERROR:
+		{
+			this->setStatusCode(400);
+			this->_status = PREPARING_RESPONSE;
+			break;
+		}
+		case REQUEST_TOO_LARGE:
+		{
+			this->setStatusCode(413);
+			this->_status = PREPARING_RESPONSE;
+			break;
+		}
+	}
 }
 
 int	Client::processHttpResponse()
@@ -111,8 +152,10 @@ void	Client::destroyCgi(int fd)
 	this->_activeFds.erase(std::remove(this->_activeFds.begin(), this->_activeFds.end(), fd), this->_activeFds.end());
 }
 
-std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod(enum ClientStatus status)
+std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 {
+	int statusCode = 0;
+	enum ClientStatus status = this->_status;
 	std::vector<std::pair<int, enum FdIoType> > tasks;
 	HttpRequest& req = this->_httpRequestParser.getRequest();
 	StaticFileHandler& stat = this->_staticFileHandler;
@@ -121,26 +164,31 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod(enum ClientSta
 	if (req.getMethod() == "GET")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			tasks.push_back(stat.handleGet(req.getUri()));
+			std::pair<int, enum FdIoType> task = stat.handleGet(req, &statusCode);
 		else
-			tasks.push_back(cgi.handleGet(req.getUri()));
+			std::pair<int, enum FdIoType> task = cgi.handleGet(req, &statusCode);
+		if (stat.getStatusCode() == 200)
+			tasks.push_back(task);
+		else
+			this->handleMethodException(stat.getStatusCode());
 	}
 	else if (req.getMethod() == "POST")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			tasks.push_back(stat.handlePost(req.getUri()));
+			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost();
 		else
-		{
 			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost();
+		if (stat.getStatusCode() == 200)
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
-		}
+		else
+			this->handleMethodException(stat.getStatusCode());
 	}
 	else if (req.getMethod() == "DELETE")
-	{
-		if (status == PROCESSING_STATIC_FILE)
 			stat.handleDelete(req.getUri());
-		else
-			tasks.push_back(cgi.handleDelete(req.getUri()));
+	if (statusCode > 0)
+	{
+		this->setStatusCode(status);
+		this->_status = PREPARING_RESPONSE;
 	}
 	return (tasks);
 }

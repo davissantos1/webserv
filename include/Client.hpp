@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/28 22:11:10 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/29 13:41:46 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ class Client
 		int		processHttpRequest();
 		int		processHttpResponse();
 		void	destroyCgi(int fd);
-		std::vector<std::pair<int, enum FdIoType> > executeMethod(enum ClientStatus status);
+		std::vector<std::pair<int, enum FdIoType> > executeMethod();
 
 		int						getFd() { return this->_fd; }
 		time_t					getLastActivity() { return this->_lastActivity; }

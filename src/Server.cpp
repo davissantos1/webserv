@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/28 21:30:51 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/29 21:43:51 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
 			{
 				this->_multiplexer.removeFd(fd);
-				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod(clientStatus);
+				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();
 				for (int i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].second)
@@ -193,6 +193,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 					}
 					client->registerFd(tasks[i].first);
 				}
+			if (clientStatus == PREPARING_RESPONSE)
+				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			}
 			break;
 		}
