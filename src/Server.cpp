@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/29 21:43:51 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/30 19:57:37 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,7 @@ void	Server::runServer()
 				fdType = STATIC_FILE;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
 			this->checkTimeouts();
+			// check if there are no more active socket connections so serverRunning is set to false?
 		}
 	}
 }
@@ -202,34 +203,39 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		{
 			Client* client = this->_staticFileMap[fd];
 			if (!client) break;
+			StaticFileHandler& stat = client->getStaticFileHandler();
+			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
 			
-			bool isDone = client->getStaticFileHandler().processStaticFile(fd, eventType);
-			
+			bool isDone = stat.processStaticFile(fd, eventType, builder);
 			if (isDone)
 			{
 				this->_multiplexer.removeFd(fd);
-				close(fd);
 				this->_staticFileMap.erase(fd);
+				client->destroyActiveFds();
 				client->setStatus() = PREPARING_RESPONSE;
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			}
-			
+			client->setLastActivity(std::time(NULL));
 			break;
 		}
 		case CGI:
 		{
 			Client* client = this->_cgiMap[fd];
 			if (!client) break;
+			CgiHandler& cgi = client->getCgiHandler();
+			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
+			HttpRequest& req = client->getHttpRequestParser().getRequest();
 
-			bool isPipeDone = client->getCgiHandler().processCgi(fd, eventType);
+			bool isPipeDone = cgi.processCgi(fd, eventType, builder, req);
 			if (isPipeDone)
 			{
 				this->_multiplexer.removeFd(fd);
-				close(fd);
 				this->_cgiMap.erase(fd);
+				client->destroyActiveFds();
 				client->setStatus() = PREPARING_RESPONSE;
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			}
+			client->setLastActivity(std::time(NULL));
 			break;
 		}
 	}
@@ -303,7 +309,7 @@ int	Server::createClient(int sockFd)
 					<< ((ip & 0xFF));
 		ipStr = ipStream.str();
 	}
-	Client* newClient = new Client(ipStr, port, clientFd, this->_configMap[sockFd]);
+	Client* newClient = new Client(ipStr, port, clientFd, this->_configs);
 	this->_clients.push_back(newClient);
 	this->_clientMap[clientFd] = newClient;
 	return (clientFd);
