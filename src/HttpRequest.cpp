@@ -6,18 +6,15 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 08:00:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/07/30 15:54:19 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest()
-{
+HttpRequest::HttpRequest() {}
 
-}
-
-HttpRequest::~HttpRequest(){}
+HttpRequest::~HttpRequest() {}
 
 HttpRequest::HttpRequest(const HttpRequest& other)
 {
