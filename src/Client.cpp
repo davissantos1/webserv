@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/29 21:45:47 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/30 20:09:29 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@ Client::Client() {}
 
 Client::~Client() {}
 
-Client::Client(std::string ip, uint16_t port, int fd, VirtualHostConfig config):
- _ip(ip), _port(port), _fd(fd), _virtualHostConfig(config) {}
+Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>& configs):
+ _ip(ip), _port(port), _fd(fd), _configs(configs) {}
 
 Client::Client(const Client& other)
 {
@@ -72,15 +72,16 @@ int	Client::processHttpRequest()
 	return (0);
 }
 
-void	Client::checkRequest(enum RequestStatus status)
+void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConfig>& configs)
 {
 	int status = 0;
 	switch (status)
 	{
 		case REQUEST_READY:
 		{
-			VirtualHostConfig& conf = this->_virtualHostConfig;
 			HttpRequest& req = this->_httpRequestParser.getRequest();
+			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
+			VirtualHostConfig& conf = this->_virtualHostConfig;
 
 			if (!conf.isMethodAllowed(req.getMethod(), req.getLocation()))
 			{
@@ -98,6 +99,7 @@ void	Client::checkRequest(enum RequestStatus status)
 				this->_status = PROCESSING_CGI;
 			else
 				this->_status = PROCESSING_STATIC_FILE;
+			this->_httpResponseBuilder.startBuilder(req.getBody(), req.getBodySize());
 			break;
 		}
 		case REQUEST_PARSE_ERROR:
@@ -167,28 +169,48 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 			std::pair<int, enum FdIoType> task = stat.handleGet(req, &statusCode);
 		else
 			std::pair<int, enum FdIoType> task = cgi.handleGet(req, &statusCode);
-		if (stat.getStatusCode() == 200)
+		if (statusCode == 200)
 			tasks.push_back(task);
-		else
-			this->handleMethodException(stat.getStatusCode());
 	}
 	else if (req.getMethod() == "POST")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost();
+			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, &statusCode);
 		else
-			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost();
-		if (stat.getStatusCode() == 200)
+			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost(req, &statusCode);
+		if (statusCode == 200)
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
-		else
-			this->handleMethodException(stat.getStatusCode());
 	}
 	else if (req.getMethod() == "DELETE")
-			stat.handleDelete(req.getUri());
-	if (statusCode > 0)
+		stat.handleDelete(req, &statusCode);
+	if (statusCode != 200)
 	{
 		this->setStatusCode(status);
 		this->_status = PREPARING_RESPONSE;
 	}
 	return (tasks);
+}	
+
+void	Client::destroyActiveFds()
+{
+	for (int i = 0; i < this->_activeFds.size(); i++)
+	{
+		if (this->_activeFds[i] > 2)
+			close(this->_activeFds[i]);
+	}
+	this->_activeFds.clear();
+}
+
+VirtualHostConfig	Client::getCurrentConfig(std::string host)
+{
+	for (int i = 0; i < this->_configs.size(); i++)
+	{
+		std::vector<std::string> serverNames = this->_configs[i].getServerNames();
+		for (int j = 0; j < serverNames.size(); j++)
+		{
+			if (serverNames[j] == host)
+				return (serverNames[j]);	
+		}
+	}
+	return (serverNames[0]);
 }

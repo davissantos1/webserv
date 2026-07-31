@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/29 13:41:46 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/30 19:55:56 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "HttpRequestParser.hpp"
 
 class HttpRequest;
-class HttpRequestParser;
 class HttpResponseBuilder;
 class VirtualHostConfig;
 class CgiHandler;
@@ -48,27 +48,29 @@ enum FdIoType
 class Client
 {
 	private:
-		std::string			_ip;
-		uint16_t			_port;
-		int					_fd;
-		enum ClientStatus	_status;
-		VirtualHostConfig	_virtualHostConfig;
-		HttpRequestParser	_httpRequestParser;
-		HttpResponseBuilder	_httpResponseBuilder;
-		StaticFileHandler	_staticFileHandler;
-		CgiHandler			_cgiHandler;
-		std::vector<int>	_activeFds;
-		time_t				_lastActivity;
+		std::string						_ip;
+		uint16_t						_port;
+		int								_fd;
+		enum ClientStatus				_status;
+		VirtualHostConfig				_virtualHostConfig;
+		HttpRequestParser				_httpRequestParser;
+		HttpResponseBuilder				_httpResponseBuilder;
+		StaticFileHandler				_staticFileHandler;
+		CgiHandler						_cgiHandler;
+		time_t							_lastActivity;
+		std::vector<int>				_activeFds;
+		std::vector<VirtualHostConfig>&	_configs;
 	public:
 		Client();
 		~Client();
 		Client(const Client& other);
-		Client(std::string ip, uint16_t port, int fd, VirtualHostConfig config);
+		Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>& configs);
 		Client&	operator=(const Client& other);
 		int		processHttpRequest();
 		int		processHttpResponse();
 		void	destroyCgi(int fd);
 		std::vector<std::pair<int, enum FdIoType> > executeMethod();
+		void	checkRequest(enum RequestStatus status);
 
 		int						getFd() { return this->_fd; }
 		time_t					getLastActivity() { return this->_lastActivity; }
@@ -82,7 +84,9 @@ class Client
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
+		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
+		void	destroyActiveFds();
 		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
