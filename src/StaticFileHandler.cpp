@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/22 21:53:40 by davi             ###   ########.fr       */
+/*   Updated: 2026/07/30 20:09:43 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,120 +37,80 @@ StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 	return (*this);
 }
 
-bool	Client::processStaticFile(int fd, uint32_t eventType)
+bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpRequestBuilder& builder)
 {
 	ssize_t bytes;
 	char tempBuffer[8192];
-	HttpRequest& req = this->_httpRequestParser.getRequest();
-	StaticFileHandler&	stat = this->_staticFileHandler;
-	HttpRequestBuilder& builder = this->_httpRequestBuilder;
 
 	while (true)
 	{
 		ernno = 0;
 		if (eventType & EPOLLIN)
 		{
-			bytes = recv(fd, tempBuffer, sizeof(tempBuffer), 0);
+			bytes = read(fd, tempBuffer, sizeof(tempBuffer));
 			if (bytes > 0)
-			{
-				this->_lastActivity = std::time(NULL);
-				stat.feed(tempBuffer);
-			}
+				builder.feed(tempBuffer, bytes);
 			else if (bytes == 0)
 			{
-				builder.buildResponse(stat.getStatusCode(), stat.getBody());
-				this->_status = PREPARING_RESPONSE;
+				builder.setStatusCode(200);
 				return (true);
 			}
 			else
 			{
 				if (errno == EAGAIN || errno == EWOULDBLOCK)
 					break;
-				return (false);
+				builder.setStatusCode(500);
+				return (true);
 			}
 		}
 		else
 		{
-			bytes = send(fd, req.getBody(), req.getContentSize(), 0);
+			int bytesWritten = builder.getBytesWritten();
+			std::string body = builder.getBody();
+			bytes = write(fd, body.c_str() + bytesWritten, body.size() - bytesWritten);
 			if (bytes > 0)
+				builder.settBytesWritten(bytes + bytesWritten);
+			else if (bytes == body.size())
 			{
-				this->_lastActivity = std::time(NULL);
-				stat.feed(tempBuffer);
-			}
-			else if (bytes == req.getContentSize())
-			{
-				builder.buildResponse(stat.getStatusCode(), stat.getBody());
-				this->_status = PREPARING_RESPONSE;
+				builder.setStatusCode(200);
 				return (true);
 			}
 			else
 			{
 				if (errno == EAGAIN || errno == EWOULDBLOCK)
 					break;
-				return (false);
+				builder.setStatusCode(500);
+				return (true);
 			}
 		}
 	}
-	return (true);
+	return (false);
 }
 
-bool	Client::processCgi(int fd, uint32_t eventType)
+std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, int* statusCode)
 {
-	ssize_t bytes;
-	char tempBuffer[8192];
-	HttpRequest& req = this->_httpRequestParser.getRequest();
-	CgiHandler&	cgi = this->_cgiHandler;
-	HttpRequestBuilder& builder = this->_httpRequestBuilder;
+	int fd, status;
+	std::pair<int, enum FdIoType> fdBundle;
 
-	while (true)
+	fd = open();
+	if ((status = fcntl()) == -1)
 	{
-		ernno = 0;
-		if (eventType & EPOLLIN)
-		{
-			bytes = recv(fd, tempBuffer, sizeof(tempBuffer), 0);
-			if (bytes > 0)
-			{
-				this->_lastActivity = std::time(NULL);
-				cgi.feed(tempBuffer);
-			}
-			else if (bytes == 0)
-			{
-				builder.buildResponse(stat.getStatusCode(), stat.getBody());
-				this->_status = PREPARING_RESPONSE;
-				return (true);
-			}
-			else
-			{
-				if (errno == EAGAIN || errno == EWOULDBLOCK)
-					break;
-				return (false);
-			}
-		}
-		else
-		{
-			bytes = send(fd, req.getBody(), req.getContentSize(), 0);
-			if (bytes > 0)
-			{
-				this->_lastActivity = std::time(NULL);
-				cgi.feed(tempBuffer);
-			}
-			else if (bytes == req.getContentSize())
-			{
-				builder.buildResponse(cgi.getStatusCode(), cgi.getBody());
-				this->_status = PREPARING_RESPONSE;
-				return (true);
-			}
-			else
-			{
-				if (errno == EAGAIN || errno == EWOULDBLOCK)
-					break;
-				return (false);
-			}
-		}
+		*statusCode = 500;
+		return (fdBundle);
 	}
-	return (true);
 }
 
+std::vector<<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, int* statusCode)
+{
 
+}
 
-// to be added Davi
+void	StaticFileHandler::handleDelete(HttpRequest& req, int* statusCode)
+{
+
+}
+
+bool	StaticFileHandler::checkPermissions()
+{
+
+}
