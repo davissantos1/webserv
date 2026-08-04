@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 15:25:10 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/04 20:10:25 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 			VirtualHostConfig& conf = this->_virtualHostConfig;
 
-			if (!conf.isMethodAllowed(req.getMethod(), req.getLocation()))
+			if (!conf.isMethodAllowed(req.getMethod(), req.getUri()))
 			{
 				this->setStatusCode(405);
 				this->_status = PROCESSING_EXCEPTION;
@@ -96,7 +96,7 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 				this->_status = PREPARING_RESPONSE;
 				return ;
 			}
-			if (parse.hasCgi())
+			if (parse.hasCgi() && req.getMethod() != "DELETE")
 				this->_status = PROCESSING_CGI;
 			else
 				this->_status = PROCESSING_STATIC_FILE;
@@ -162,6 +162,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	enum ClientStatus status = this->_status;
 	std::vector<std::pair<int, enum FdIoType> > tasks;
 	HttpRequest& req = this->_httpRequestParser.getRequest();
+	VirtualHostConfig& conf = this->_virtualHostConfig;
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
 
@@ -172,23 +173,23 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	if (req.getMethod() == "GET")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			std::pair<int, enum FdIoType> task = stat.handleGet(req, &statusCode);
+			std::pair<int, enum FdIoType> task = stat.handleGet(req, conf, &statusCode);
 		else
-			std::pair<int, enum FdIoType> task = cgi.handleGet(req, &statusCode);
+			std::pair<int, enum FdIoType> task = cgi.handleGet(req, conf, &statusCode);
 		if (statusCode == 200)
 			tasks.push_back(task);
 	}
 	else if (req.getMethod() == "POST")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, &statusCode);
+			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, conf, &statusCode);
 		else
-			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost(req, &statusCode);
+			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost(req, conf, &statusCode);
 		if (statusCode == 200)
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
 	}
-	else if (req.getMethod() == "DELETE")
-		stat.handleDelete(req, &statusCode);
+	else if (req.getMethod() == "DELETE" && status == PROCESSING_STATIC_FILE)
+		stat.handleDelete(req, conf, &statusCode);
 	if (statusCode > 0)
 		this->setStatusCode(status);
 	if (statusCode == -1)
@@ -242,8 +243,7 @@ void	Client::handleIndex()
 			std::string uri = index[i];
 			if (uri[0] != "/")
 				uri = "/" + uri;
-			this->_httpRequestParser.setUri(uri);
-			this->_httpRequestParser.updateCgi();
+			req.setUri(uri);
 			if (this->_httpRequestParser.hasCgi())
 				this->_status = PROCESSING_CGI;
 			else
