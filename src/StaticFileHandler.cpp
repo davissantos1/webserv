@@ -6,34 +6,24 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/03 21:26:39 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/04 17:33:48 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "StaticFileHandler.hpp"
 
-StaticFileHandler::StaticFileHandler()
-{
+StaticFileHandler::StaticFileHandler() {}
 
-}
-
-StaticFileHandler::~StaticFileHandler()
-{
-
-}
+StaticFileHandler::~StaticFileHandler() {}
 
 StaticFileHandler::StaticFileHandler(const StaticFileHandler& other)
 {
-	if (this != &other)
-		*this = other;
+	(void) other;
 }
 
 StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 {
-	if (this != other)
-	{
-		// whatever
-	}
+	(void) other;
 	return (*this);
 }
 
@@ -115,7 +105,7 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 	}
 	if ((status = fcntl(fd, F_SETFL, O_NONBLOCK)) == -1)
 		*statusCode = 500;
-	if (*statusCode > 0)
+	if (*statusCode > 299)
 		return (fdBundle);
 	fdBundle = std::make_pair(fd, STATIC_FILE_READ);
 	return (fdBundle);
@@ -124,16 +114,77 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 std::vector<<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	int fd, status;
+	struct stat info;
 	std::vector<std::pair<int, enum FdIoType> > bundles;
 	std::string path = conf.getFullPath(req.getUri());
+	bool	hasUploadPath = conf.hasUploadPath(req.getUri());
 
 	errno = 0;
-	if (fd = open(path.c_str(), 
+	if (!hasUploadPath)
+	{
+		*statusCode = 405;
+		return (bundles);
+	}
+	if (stat(path.c_str(), &info) == -1)
+	{
+		if (errno == EACCES || errno == ENOENT)
+			*statusCode = 403;
+		else
+			*statusCode = 500;
+		return (bundles);
+	}
+	if (S_ISDIR(info.st_mode))
+	{
+		std::string filePath = conf.getUploadPath(req.getUri()) + req.getFilename();
+		fd = open(filePath.c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
+		if (fd < 0)
+		{
+			if (errno == EACCES)
+				*statusCode = 403;
+			else
+				*statusCode = 500;
+			return (bundles);
+		}
+		bundles.push_back(std::make_pair(fd, STATIC_FILE_WRITE));
+		return (bundles);
+	}
+	*statusCode = 403;
+	return (bundles);
 }
 
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
+	struct stat info;
+	std::string path = conf.getFullPath(req.getUri());
 
+	errno = 0;
+	if (stat(path.c_str(), &info) == -1)
+	{
+		if (errno == EACCES || errno == EPERM)
+			*statusCode = 403;
+		else if (errno == ENOENT)
+			*statusCode = 404;
+		else
+			*statusCode = 500;
+		return ;
+	}
+	if (S_ISDIR(info.st_mode))
+	{
+		*statusCode = 403;
+		return ;
+	}
+	errno = 0;
+	if(std::remove(path.c_str()) == 0)
+		*statusCode = 204;
+	else
+	{
+		if (errno == EACCES || errno == EPERM)
+			*statusCode = 403;
+		else if (errno == ENOENT)
+			*statusCode = 404;
+		else
+			*statusCode = 500;
+	}
 }
 
 std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handleException(int exception)

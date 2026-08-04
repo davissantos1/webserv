@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/01 15:21:20 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/04 16:01:28 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ class HttpRequest
 		std::map<std::string, std::string> getHeaders() { return this->_headers }
 		std::string*	getBody() { return &(this->_body) }
 		int			getBodySize() { return this->_body.size(); }
+
+		std::string	getFilename(); // to be done
 };
 
 #endif

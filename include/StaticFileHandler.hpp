@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/03 18:45:54 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/04 17:33:41 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,11 @@
 # include <ctime>
 # include <fcntl.h>
 # include <unistd.h>
-
+# include <sys/stat.h>
 
 class HttpRequest;
 class HttpResponseBuilder;
+class VirtualHostConfig;
 
 class StaticFileHandler
 {
@@ -31,10 +32,12 @@ class StaticFileHandler
 		StaticFileHandler(const StaticFileHandler& other);
 		StaticFileHandler& operator=(const StaticFileHandler& other);
 
-		std::pair<int, enum FdIoType>					handleGet(HttpRequest& req, int* statusCode);
-		std::vector<<std::pair<int, enum FdIoType> >	handlePost(HttpRequest& req, int* statusCode);
-		void											handleDelete(HttpRequest& req, int* statusCode);	
+		std::vector<std::pair<int, enum FdIoType> >		handleException(int exception);
+		std::pair<int, enum FdIoType>					handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
+		std::vector<<std::pair<int, enum FdIoType> >	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
+		void											handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);	
 		bool											processStaticFile(int fd, uint32_t eventType, HttpResponseBuilder& builder);
+		int												handleAutoindex(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);
 };
 
 #endif
