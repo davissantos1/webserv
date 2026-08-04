@@ -2,8 +2,8 @@
 
 CC= c++
 CFLAGS= -Wall -Wextra -Werror -std=c++98
-SRC= 
-SRC_TEST= 
+SRC=
+SRC_TEST=
 
 OBJ= $(SRC:.cpp=.o)
 OBJ_TEST= $(SRC_TEST:.cpp=.o)
@@ -49,5 +49,12 @@ fclean: clean
 	@rm -rf $(NAME)
 
 re: fclean all
+
+test_tokenizer:
+	$(CC) $(CFLAGS) -Iinclude tests/tokenizer/tokenizer_runner.cpp src/ConfigParser.cpp src/Location.cpp src/VirtualHostConfig.cpp -o tests/tokenizer/runner_path.out && mv tests/tokenizer/runner_path.out .
+
+test_parser:
+	$(CC) $(CFLAGS) -g3 -Iinclude tests/parser/parser.cpp src/ConfigParser.cpp src/Location.cpp src/VirtualHostConfig.cpp -o tests/parser/parser.out && mv tests/parser/parser.out .
+
 
 .PHONY: all clean fclean re debug
