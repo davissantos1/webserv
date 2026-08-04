@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/29 13:15:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 21:05:52 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,10 @@ class VirtualHostConfig
 		const std::vector<std::string>& getAllowedMethods() const { return _allowedMethods; }
 		const std::vector<Location>& getLocation() const { return _locations; }
 
-		bool	isMethodAllowed(std::string method, std::string path); // to be done
+		std::string	getFullPath(std::string uri); // to be done
+		bool		isMethodAllowed(std::string method, std::string uri); // to be done
+		bool		shouldIndex(std::string uri); // to be done
+		bool		shouldAutoindex(std::string uri); // to be done
 };
 
 #endif

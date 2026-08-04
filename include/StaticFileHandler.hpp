@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/30 14:07:05 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 18:45:54 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 
 # include <utility>
 # include <vector>
+# include <ctime>
+# include <fcntl.h>
+# include <unistd.h>
+
 
 class HttpRequest;
 class HttpResponseBuilder;

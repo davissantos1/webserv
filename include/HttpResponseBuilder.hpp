@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/30 18:05:05 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 17:35:44 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class HttpResponseBuilder
 		HttpResponseBuilder(const HttpResponseBuilder& other);
 		HttpResponseBuilder& operator=(const HttpResponseBuilder& other);
 
-		int		getStatusCode() { return this->_statusCode; }
+		int				getStatusCode() { return this->_statusCode; }
 		HttpResponse&	getResponse() { return this->_response; }
 		std::string&	getHttpResponse() { return this->_httpResponse; }
 
@@ -40,6 +40,7 @@ class HttpResponseBuilder
 		void	buildResponse();
 		void	feed(char *buffer, int size);
 		void	startBuilder(std::string httpBody, int httpBodySize);
+		void	fillResponseBody(std::string body);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/04 15:49:19 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/01 21:02:43 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,3 +39,5 @@ VirtualHostConfig::VirtualHostConfig(const VirtualHostConfig& other)
 	if (this != &other)
 		*this = other;
 }
+
+

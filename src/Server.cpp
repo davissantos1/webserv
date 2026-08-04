@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/30 19:57:37 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 17:16:47 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			}
 			
 			enum ClientStatus clientStatus = client->getStatus();
-			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI)
+			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI || clientStatus == PROCESSING_EXCEPTION)
 			{
 				this->_multiplexer.removeFd(fd);
 				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/30 19:55:56 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 17:20:44 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ enum ClientStatus
 {
 	READING_REQUEST,
 	PROCESSING_CGI,
+	PROCESSING_EXCEPTION,
 	PROCESSING_STATIC_FILE,
 	PREPARING_RESPONSE,
 	WRITING_RESPONSE,
@@ -81,6 +82,7 @@ class Client
 		HttpResponseBuilder&	getHttpResponseBuilder() { return this->_httpResponseBuilder; }
 		StaticFileHandler&		getStaticFileHandler() { return this->_staticFileHandler; }
 		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
+		int						getStatusCode() { return this->httpResponseBuilder.getStatusCode(); }
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }

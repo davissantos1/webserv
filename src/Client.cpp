@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/30 20:09:29 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/03 21:06:00 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ Client&	Client::operator=(const Client& other)
 		this->_activeFds = other._activeFds;
 		this->_cgiHandler = other._cgiHandler;
 		this->_staticFileHandler = other._staticFileHandler;
+		this->_configs = other._configs;
 	}
 	return (*this);
 }
@@ -86,7 +87,7 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 			if (!conf.isMethodAllowed(req.getMethod(), req.getLocation()))
 			{
 				this->setStatusCode(405);
-				this->_status = PREPARING_RESPONSE;
+				this->_status = PROCESSING_EXCEPTION;
 				return ;
 			}
 			if ((status = conf.shouldRedirect(req.getLocation())) > 0)
@@ -99,19 +100,20 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 				this->_status = PROCESSING_CGI;
 			else
 				this->_status = PROCESSING_STATIC_FILE;
+			this->setStatusCode(200);
 			this->_httpResponseBuilder.startBuilder(req.getBody(), req.getBodySize());
 			break;
 		}
 		case REQUEST_PARSE_ERROR:
 		{
 			this->setStatusCode(400);
-			this->_status = PREPARING_RESPONSE;
+			this->_status = PROCESSING_EXCEPTION;
 			break;
 		}
 		case REQUEST_TOO_LARGE:
 		{
 			this->setStatusCode(413);
-			this->_status = PREPARING_RESPONSE;
+			this->_status = PROCESSING_EXCEPTION;
 			break;
 		}
 	}
@@ -163,6 +165,10 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
 
+	if (this->getStatusCode() != 200)
+		return (stat->handleException(this->getStatusCode()));
+	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
+		this->handleIndex();
 	if (req.getMethod() == "GET")
 	{
 		if (status == PROCESSING_STATIC_FILE)
@@ -183,11 +189,16 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	}
 	else if (req.getMethod() == "DELETE")
 		stat.handleDelete(req, &statusCode);
-	if (statusCode != 200)
-	{
+	if (statusCode > 0)
 		this->setStatusCode(status);
-		this->_status = PREPARING_RESPONSE;
+	if (statusCode == -1)
+	{
+		statusCode = stat->handleAutoindex(this->_httpResponseBuilder);
+		if (statusCode == -1)
+			this->_status = PREPARING_RESPONSE;
 	}
+	if (statusCode != 200 && statusCode != -1)
+		return (stat->handleError(statusCode));
 	return (tasks);
 }	
 
@@ -213,4 +224,30 @@ VirtualHostConfig	Client::getCurrentConfig(std::string host)
 		}
 	}
 	return (serverNames[0]);
+}
+
+void	Client::handleIndex()
+{
+	int status;
+	HttpRequest& req = this->_httpRequestParser.getRequest();
+	std::vector<std::string> index = this->_virtualHostConfig.getIndex();
+	std::string basePath = this->_virtualHostConfig.getFullPath(req.getUri());
+	
+	for (int i = 0; i < index.size(); i++)
+	{
+		std::string path = basePath + index[i];
+		status = access(path.c_str(), F_OK);
+		if (status == 0)
+		{
+			std::string uri = index[i];
+			if (uri[0] != "/")
+				uri = "/" + uri;
+			this->_httpRequestParser.setUri(uri);
+			this->_httpRequestParser.updateCgi();
+			if (this->_httpRequestParser.hasCgi())
+				this->_status = PROCESSING_CGI;
+			else
+				this->_status = PROCESSING_STATIC_FILE;
+		}
+	}
 }
