@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/03 17:35:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/05 18:10:53 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,15 +15,16 @@
 
 # include <string>
 
+class HttpResponse;
+class HttpRequest;
+
 class HttpResponseBuilder
 {
 	private:
-		int				_statusCode;
-		int				_httpBodySize;
-		int				_writtenBytes;
-		HttpResponse	_response;
-		std::string		_httpResponse;
-		std::string		_httpBody;
+		int				_bytesWritten;
+		HttpResponse	_httpResponse;
+		HttpResponse*	_httpRequest;
+		CgiParser		_cgiParser;
 		
 	public:
 		HttpResponseBuilder();
@@ -31,16 +32,18 @@ class HttpResponseBuilder
 		HttpResponseBuilder(const HttpResponseBuilder& other);
 		HttpResponseBuilder& operator=(const HttpResponseBuilder& other);
 
-		int				getStatusCode() { return this->_statusCode; }
-		HttpResponse&	getResponse() { return this->_response; }
-		std::string&	getHttpResponse() { return this->_httpResponse; }
+		int				getStatusCode() { return this->_httpResponse.getStatusCode(); }
+		int				getBytesWritten() { return this->_bytesWritten; }
+		HttpResponse&	getHttpResponse() { return this->_httpResponse; }
+		std::string&	getHttpBody() { return this->_httpRequest.getHttpBody(); }
 
+		void			setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
 		void			setStatusCode(int statusCode) { this->_statusCode = statusCode; }
+		void			setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		
-		void	buildResponse();
-		void	feed(char *buffer, int size);
-		void	startBuilder(std::string httpBody, int httpBodySize);
-		void	fillResponseBody(std::string body);
+		void			buildResponse(); // to be done
+		void			feed(char *buffer, int size); // to be done
+		void			fillResponseBody(std::string body); // to be done
 };
 
 #endif

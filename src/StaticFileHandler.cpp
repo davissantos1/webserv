@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 17:33:48 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/06 14:54:12 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,10 @@ bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpReques
 		else
 		{
 			int bytesWritten = builder.getBytesWritten();
-			std::string body = builder.getBody();
+			std::string& body = builder.getHttpBody();
 			bytes = write(fd, body.c_str() + bytesWritten, body.size() - bytesWritten);
 			if (bytes > 0)
-				builder.settBytesWritten(bytes + bytesWritten);
+				builder.setBytesWritten(bytes + bytesWritten);
 			else if (bytes == body.size())
 			{
 				builder.setStatusCode(200);
@@ -187,29 +187,35 @@ void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, 
 	}
 }
 
-std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handleException(int exception)
+std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handleException(int exception, std::string path)
 {
 	int fd;
 	std::vector<std::pair<int, enum FdIoType> > tasks;
+	if (path.empty())
+	{
+		std::stringstream ss;
+		ss << "./www/error_pages/" << exception << ".html";
+		path = ss.str();
+	}
 	switch (exception)
 	{
 		case 400:
-			fd = open("./www/error_pages/400.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 		case 403:
-			fd = open("./www/error_pages/403.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 		case 404:
-			fd = open("./www/error_pages/404.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 		case 405:
-			fd = open("./www/error_pages/405.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 		case 413:
-			fd = open("./www/error_pages/413.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 		case 500:
-			fd = open("./www/error_pages/500.html", O_RDONLY);
+			fd = open(path.c_str(), O_RDONLY);
 			break;
 	}
 	tasks.push_back(std::make_pair(fd, STATIC_FILE_READ));

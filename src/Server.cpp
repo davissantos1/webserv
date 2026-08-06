@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/03 17:16:47 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/05 13:33:55 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
 			HttpRequest& req = client->getHttpRequestParser().getRequest();
 
-			bool isPipeDone = cgi.processCgi(fd, eventType, builder, req);
+			bool isPipeDone = cgi.processCgi(fd, eventType, builder);
 			if (isPipeDone)
 			{
 				this->_multiplexer.removeFd(fd);

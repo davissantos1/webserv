@@ -6,23 +6,18 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 17:33:41 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/06 15:07:00 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef STATICFILEHANDLER_HPP
 # define STATICFILEHANDLER_HPP
 
-# include <utility>
-# include <vector>
+# include "Client.hpp"
 # include <ctime>
 # include <fcntl.h>
 # include <unistd.h>
 # include <sys/stat.h>
-
-class HttpRequest;
-class HttpResponseBuilder;
-class VirtualHostConfig;
 
 class StaticFileHandler
 {
@@ -32,7 +27,7 @@ class StaticFileHandler
 		StaticFileHandler(const StaticFileHandler& other);
 		StaticFileHandler& operator=(const StaticFileHandler& other);
 
-		std::vector<std::pair<int, enum FdIoType> >		handleException(int exception);
+		std::vector<std::pair<int, enum FdIoType> >		handleException(int exception, std::string path);
 		std::pair<int, enum FdIoType>					handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
 		std::vector<<std::pair<int, enum FdIoType> >	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
 		void											handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);	

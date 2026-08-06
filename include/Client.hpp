@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/03 17:20:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/06 14:03:22 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,21 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "HttpRequestParser.hpp"
 
 class HttpRequest;
+class HttpRequestParser;
 class HttpResponseBuilder;
 class VirtualHostConfig;
 class CgiHandler;
 class StaticFileHandler;
+
+enum FdIoType
+{
+	STATIC_FILE_READ,
+	STATIC_FILE_WRITE,
+	CGI_READ,
+	CGI_WRITE
+};
 
 enum ClientStatus
 {
@@ -36,14 +44,6 @@ enum ClientStatus
 	PREPARING_RESPONSE,
 	WRITING_RESPONSE,
 	DISCONNECT
-};
-
-enum FdIoType
-{
-	STATIC_FILE_READ,
-	STATIC_FILE_WRITE,
-	CGI_READ,
-	CGI_WRITE
 };
 
 class Client

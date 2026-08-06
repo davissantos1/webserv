@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 20:10:25 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/06 15:09:47 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 	{
 		case REQUEST_READY:
 		{
-			HttpRequest& req = this->_httpRequestParser.getRequest();
+			HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 			VirtualHostConfig& conf = this->_virtualHostConfig;
 
@@ -101,7 +101,7 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 			else
 				this->_status = PROCESSING_STATIC_FILE;
 			this->setStatusCode(200);
-			this->_httpResponseBuilder.startBuilder(req.getBody(), req.getBodySize());
+			this->_httpResponseBuilder.setHttpRequest(&req);
 			break;
 		}
 		case REQUEST_PARSE_ERROR:
@@ -158,18 +158,19 @@ void	Client::destroyCgi(int fd)
 
 std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 {
-	int statusCode = 0;
+	int statusCode = this->getStatusCode();
 	enum ClientStatus status = this->_status;
 	std::vector<std::pair<int, enum FdIoType> > tasks;
-	HttpRequest& req = this->_httpRequestParser.getRequest();
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
 
-	if (this->getStatusCode() != 200)
-		return (stat->handleException(this->getStatusCode()));
+	if ( statusCode != 200)
+		return (stat->handleException(statusCode, conf.getErrorPage(statusCode)));
 	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
 		this->handleIndex();
+	statusCode = 0;
 	if (req.getMethod() == "GET")
 	{
 		if (status == PROCESSING_STATIC_FILE)
@@ -199,7 +200,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 			this->_status = PREPARING_RESPONSE;
 	}
 	if (statusCode != 200 && statusCode != -1)
-		return (stat->handleError(statusCode));
+		return (stat->handleException(statusCode, conf.getErrorPage(statusCode)));
 	return (tasks);
 }	
 
@@ -230,7 +231,7 @@ VirtualHostConfig	Client::getCurrentConfig(std::string host)
 void	Client::handleIndex()
 {
 	int status;
-	HttpRequest& req = this->_httpRequestParser.getRequest();
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	std::vector<std::string> index = this->_virtualHostConfig.getIndex();
 	std::string basePath = this->_virtualHostConfig.getFullPath(req.getUri());
 	

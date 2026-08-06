@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 09:08:33 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/05 13:43:36 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,4 +37,18 @@ CgiHandler&	CgiHandler::operator=(const CgiHandler& other)
 	return (*this);
 }
 
-// to be added Danilo
+std::pair<int, enum FdIoType>				CgiHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+{
+	int fds[2];
+	pid_t	pid;
+	std::pair<int, enum FdIoType> bundle;
+
+	
+
+}
+
+std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+{
+
+}
+

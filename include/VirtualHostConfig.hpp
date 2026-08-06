@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 20:21:24 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/06 15:09:30 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class VirtualHostConfig
 		const std::vector<std::string>& getAllowedMethods() const { return _allowedMethods; }
 		const std::vector<Location>& getLocation() const { return _locations; }
 
+		std::string	getErrorPage(int error); // to be done
 		std::string	getFullPath(std::string uri); // to be done
 		bool		isMethodAllowed(std::string method, std::string uri); // to be done
 		bool		shouldIndex(std::string uri); // to be done
