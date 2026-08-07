@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 20:03:41 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 16:06:07 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,17 @@
 # define HTTPREQUEST_HPP
 
 # include <string>
+# include <stdint.h>
 # include <map>
 
 class HttpRequest
 {
 	private:
+		std::string							_serverName;
+		uint16_t							_serverPort;
+		std::string							_clientIp;
 		std::string 						_method;
+		std::string							_query;
 		std::string 						_uri;
 		std::string 						_version;
 		std::map<std::string, std::string>	_headers;
@@ -31,18 +36,25 @@ class HttpRequest
 		HttpRequest(const HttpRequest& other);
 		HttpRequest& operator=(const HttpRequest& other);
 
-		std::string	getMethod() { return this->_method }
-		std::string	getVersion() { return this->_version }
-		std::string	getUri() { return this->_uri }
-		std::map<std::string, std::string> getHeaders() { return this->_headers }
-		std::string*	getBody() { return &(this->_body) }
-		int			getBodySize() { return this->_body.size(); }
+		std::string	getMethod() { return this->_method; }
+		std::string	getVersion() { return this->_version; }
+		std::string	getUri() { return this->_uri; }
+		std::map<std::string, std::string> getHeaders() { return this->_headers; }
+		std::string*	getBody() { return &(this->_body); }
+		std::string	getQuery() { return this->_query; }
+		std::string	getServerName() { return this->_serverName; }
+		std::string	getServerPort() { return this->_serverPort; }
+		std::string	getClientIp() { return this->_clientIp; }
+		int	getBodySize() { return this->_body.size(); }
 
 		void	setMethod(std::string method) { this->_method = method; }
 		void	setUri(std::string uri) { this->_uri = uri; }
 		void	setVersion(std::string version) { this->_version = version; }
 		void	setHeaders(std::map<std::string, std::string> headers) { this->_headers = headers; }
 		void	setBody(std::string body) { this->_body = body; }
+		void	setServerName(std::string serverName) { this->_serverName = serverName; }
+		void	setServerPort(uint16_t serverPort) { this->_serverPort = serverPort; }
+		void	setClientIp(std::string clientIp) { this->_clientIp = clientIp; }
 		void	setKeepAlive(bool keepAlive) { this->_keepAlive = keepAlive; }
 
 		std::string	getFilename(); // to be done

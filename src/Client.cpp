@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/06 15:09:47 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 16:07:34 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,8 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 			HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 			VirtualHostConfig& conf = this->_virtualHostConfig;
+			req.setServerPort(this->_port);
+			req.setClientIp(this->_ip);
 
 			if (!conf.isMethodAllowed(req.getMethod(), req.getUri()))
 			{
@@ -216,15 +218,20 @@ void	Client::destroyActiveFds()
 
 VirtualHostConfig	Client::getCurrentConfig(std::string host)
 {
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	for (int i = 0; i < this->_configs.size(); i++)
 	{
 		std::vector<std::string> serverNames = this->_configs[i].getServerNames();
 		for (int j = 0; j < serverNames.size(); j++)
 		{
 			if (serverNames[j] == host)
+			{
+				req.setServerName(serverNames[j]);
 				return (serverNames[j]);	
+			}
 		}
 	}
+	req.setServerName(serverNames[0]);
 	return (serverNames[0]);
 }
 

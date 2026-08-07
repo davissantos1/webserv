@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 13:12:36 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 16:10:39 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 	{
 		std::string interpreterPath = conf.getCgiInterpreterPath(req.getUri());
 		std::string scriptPath = conf.getCgiScriptPath(req.getUri());
-		const char** env = this->_cgiEnvironment.getEnvironment();
+		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
 			interpreterPath.c_str(),
@@ -112,7 +112,7 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 			*statusCode = 500;
 			break;
 		}
-		execve(path.c_str(), args, env);
+		execve(path.c_str(), args, &env[0]);
 		*statusCode = 500;
 		return (bundle);
 	}
@@ -148,7 +148,7 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 	{
 		std::string interpreterPath = conf.getCgiInterpreterPath(req.getUri());
 		std::string scriptPath = conf.getCgiScriptPath(req.getUri());
-		const char** env = this->_cgiEnvironment.getEnvironment();
+		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
 			interpreterPath.c_str(),
@@ -165,7 +165,7 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 			*statusCode = 500;
 			break;
 		}
-		execve(path.c_str(), args, env);
+		execve(path.c_str(), args, &env[0]);
 		*statusCode = 500;
 		return (bundles);
 	}
