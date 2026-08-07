@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/05 18:10:53 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 12:46:44 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class HttpResponseBuilder
 		std::string&	getHttpBody() { return this->_httpRequest.getHttpBody(); }
 
 		void			setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
-		void			setStatusCode(int statusCode) { this->_statusCode = statusCode; }
+		void			setStatusCode(int statusCode) { this->_httpResponse->setStatusCode(statusCode); }
 		void			setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		
 		void			buildResponse(); // to be done

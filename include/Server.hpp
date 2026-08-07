@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/28 22:08:04 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 13:48:32 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,10 +58,13 @@ class	Server
 		Server(const std::vector<VirtualHostConfig> config);
 		void				runServer();
 		void				startServer();
+		void				checkTimeouts();
 		int					createClient(int sockFd);
 		void				destroyClient(int clientFd);
 		static void			printLog(const std::string& msg);
 		void				routeServer(int fd, uint32_t eventType, enum FdType fdType);
+		void				handleProcessedFile(Client* client, int statusCode, enum FdType type);
+		void				handleError(int fd, enum FdType fdType);
 		class ServerException: public std::exception
 		{
 			private:

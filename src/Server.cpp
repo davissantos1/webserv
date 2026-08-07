@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/05 13:33:55 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 13:45:17 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,19 +177,19 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 					{
 						case STATIC_FILE_READ:
 							this->_staticFileMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLIN);
+							this->_multiplexer.addFd(tasks[i].first, EPOLLIN | EPOLLRDHUP);
 							break;
 						case CGI_READ:
 							this->_cgiMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLIN);
+							this->_multiplexer.addFd(tasks[i].first, EPOLLIN | EPOLLRDHUP);
 							break;
 						case STATIC_FILE_WRITE:
 							this->_staticFileMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT);
+							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT | EPOLLRDHUP);
 							break;
 						case CGI_WRITE:
 							this->_cgiMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT);
+							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT | EPOLLRDHUP);
 							break;
 					}
 					client->registerFd(tasks[i].first);
@@ -208,13 +208,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			
 			bool isDone = stat.processStaticFile(fd, eventType, builder);
 			if (isDone)
-			{
-				this->_multiplexer.removeFd(fd);
-				this->_staticFileMap.erase(fd);
-				client->destroyActiveFds();
-				client->setStatus() = PREPARING_RESPONSE;
-				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
-			}
+				this->handleProcessedFile(client, builder.getStatusCode(), STATIC_FILE);
 			client->setLastActivity(std::time(NULL));
 			break;
 		}
@@ -224,20 +218,43 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if (!client) break;
 			CgiHandler& cgi = client->getCgiHandler();
 			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
-			HttpRequest& req = client->getHttpRequestParser().getRequest();
 
 			bool isPipeDone = cgi.processCgi(fd, eventType, builder);
 			if (isPipeDone)
-			{
-				this->_multiplexer.removeFd(fd);
-				this->_cgiMap.erase(fd);
-				client->destroyActiveFds();
-				client->setStatus() = PREPARING_RESPONSE;
-				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
-			}
+				this->handleProcessedFile(client, builder.getStatusCode(), CGI);
 			client->setLastActivity(std::time(NULL));
 			break;
 		}
+	}
+}
+
+void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType type)
+{
+	std::pair<int, enum FdIoType> errorFd;
+	StaticFileHandler& stat = client->getStaticFileHandler();
+	VirtualHostConfig& conf = client->getVirtualHostConfig();
+	std::vector<int> activeFds = client->getActiveFds();
+	for (int i = 0; i < activeFds.size(); i++)
+	{
+		this->_multiplexer.removeFd(activeFds[i]);
+		if (type == CGI)
+			this->_cgiMap.erase(activeFds[i]);
+		else
+			this->_staticFileMap.erase(activeFds[i]);
+	}
+	client->destroyActiveFds();
+	if (statusCode > 299)
+	{
+		client->setStatus() = PROCESSING_STATIC_FILE;
+		errorFd = stat->handleException(statusCode, conf.getErrorPage(statusCode)); 
+		this->_multiplexer.addFd(errorFd.first, EPOLLIN | EPOLLRDHUP);
+		this->staticFileMap[errorFd.first] = client;
+		client->registerFd(errorFd.first);
+	}	
+	else
+	{
+		client->setStatus() = PREPARING_RESPONSE;
+		this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 	}
 }
 
