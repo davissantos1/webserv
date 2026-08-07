@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 12:46:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/07 16:21:42 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,8 @@ class HttpResponseBuilder
 		void			setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		
 		void			buildResponse(); // to be done
-		void			feed(char *buffer, int size); // to be done
+		void			feedCgi(char *buffer, int size); // to be done
+		void			feedStaticFile(char *buffer, int size); // to be done
 		void			fillResponseBody(std::string body); // to be done
 };
 
