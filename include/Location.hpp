@@ -14,6 +14,7 @@
 # define LOCATION_HPP
 
 #include <string>
+#include <utility>
 #include <vector>
 
 class Location
@@ -32,6 +33,8 @@ class Location
 		std::string					_cgiExtension;
 		std::string					_cgiPath;
 
+		std::pair<int, std::string>	_return;
+
 	public:
 		Location( void );
 		~Location( void );
@@ -47,6 +50,7 @@ class Location
 		void	setUploadStore( const std::string& uploadStore ) { _uploadStore = uploadStore; }
 		void	setCgiExtension( const std::string& cgiExtension ) { _cgiExtension = cgiExtension; }
 		void	setCgiPath( const std::string& cgiPath ) { _cgiPath = cgiPath; }
+		void	setReturn( const std::pair<int, std::string> & ret ) { _return = ret; } ;
 
 		void	addIndex( const std::string& index ) { _index.push_back(index); }
 		void	addAllowedMethod( const std::string& method ) { _allowedMethods.push_back(method); }
@@ -55,14 +59,12 @@ class Location
 		const std::string&					getRoot( void ) const { return _root; }
 		const std::vector<std::string> &	getIndex( void ) const { return _index; }
 		const std::vector<std::string> &	getAllowedMethods( void ) const { return _allowedMethods; }
-
 		bool								getAutoindex( void ) const { return _autoindex; }
-
 		bool								getUploadEnable( void ) const { return _uploadEnable; }
 		const std::string&					getUploadStore( void ) const { return _uploadStore; }
-
 		const std::string&					getCgiExtension( void ) const { return _cgiExtension; }
 		const std::string&					getCgiPath( void ) const { return _cgiPath; }
+		const std::pair<int, std::string> &	getReturn( void ) const { return(_return); };
 };
 
 std::ostream&	operator<<( std::ostream& out, const Location& loc );

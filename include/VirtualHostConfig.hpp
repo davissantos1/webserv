@@ -15,6 +15,7 @@
 
 #include <string>
 #include <map>
+#include <utility>
 #include <vector>
 #include "Location.hpp"
 
@@ -30,6 +31,7 @@ class VirtualHostConfig
 		std::vector<std::string>	_index;
 		std::vector<std::string>	_allowedMethods;
 		std::vector<Location>		_locations;
+		std::pair<int, std::string>	_return;
 
 	public:
 		VirtualHostConfig();
@@ -49,6 +51,7 @@ class VirtualHostConfig
 		const std::vector<std::string>& getIndex() const { return _index; }
 		const std::vector<std::string>& getAllowedMethods() const { return _allowedMethods; }
 		const std::vector<Location>& getLocation() const { return _locations; }
+		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 
 		std::string	getCgiInterpreterPath(std::string uri); // to be done
 		std::string	getCgiScriptPath(std::string uri); // to be done
@@ -67,6 +70,7 @@ class VirtualHostConfig
 		void	setIndex( const std::vector<std::string> & index ) { _index = index; }
 		void	setAllowedMethods( const std::vector<std::string> & allowedMethods ) { _allowedMethods = allowedMethods; }
 		void	setLocations( const std::vector<Location> & locations ) { _locations = locations; }
+		void	setReturn( const std::pair<int, std::string> & ret ) { _return = ret; };
 
 		void	addServerName( const std::string& name ) { _serverNames.push_back(name); }
 		void	addHostIp( const std::string& hostIp ) { _hostIp.push_back(hostIp); }
