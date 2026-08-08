@@ -1,4 +1,5 @@
 #include "ConfigParser.hpp"
+#include <exception>
 #include <iostream>
 
 int main(int argc, char **argv)
@@ -12,25 +13,35 @@ int main(int argc, char **argv)
 	ConfigParser parser;
 
 	// O parsing começa aqui chamando o método público que você criou
-	std::vector<VirtualHostConfig> servers = parser.parse(argv[1]);
+	try {
+		std::vector<VirtualHostConfig> servers = parser.parse(argv[1]);
+		if (servers.empty())
+		{
+			std::cerr << "Erro: Arquivo de configuracao invalido ou vazio." << std::endl;
+			return 1;
+		}
 
-	// Se a flag de erro no ConfigParser for setada, você limpa o vetor lá dentro,
-	// então sabemos que falhou se estiver vazio.
-	if (servers.empty())
-	{
-		std::cerr << "Erro: Arquivo de configuracao invalido ou vazio." << std::endl;
-		return 1;
+		std::cout << "\n[ PARSEAMENTO CONCLUÍDO COM SUCESSO ]\n\n";
+
+		for (std::size_t i = 0; i < servers.size(); ++i)
+		{
+			std::cout << "========================================\n";
+			std::cout << " SERVIDOR #" << (i + 1) << "\n";
+			std::cout << "========================================\n";
+			std::cout << servers[i] << "\n";
+		}
+
+		std::set<std::pair<std::string, int> > tuples = ConfigParser::extractLinten(servers);
+		std::set<std::pair<std::string, int> >::iterator it;
+
+
+		std::cout << "====HOSTS====" << std::endl;
+		for (it = tuples.begin(); it != tuples.end(); ++it)
+			std::cout << "Host: " << it->first << " | Port: " << it->second << std::endl;
 	}
-
-	std::cout << "\n[ PARSEAMENTO CONCLUÍDO COM SUCESSO ]\n\n";
-
-	for (std::size_t i = 0; i < servers.size(); ++i)
+	catch( std::exception& e )
 	{
-		std::cout << "========================================\n";
-		std::cout << " SERVIDOR #" << (i + 1) << "\n";
-		std::cout << "========================================\n";
-		std::cout << servers[i] << "\n";
+		std::cout << e.what() << std::endl;
 	}
-
 	return 0;
 }
