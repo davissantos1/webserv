@@ -36,6 +36,7 @@ Location&	Location::operator=( const Location& other )
 		this->_uploadStore = other._uploadStore;
 		this->_cgiExtension = other._cgiExtension;
 		this->_cgiPath = other._cgiPath;
+		this->_return = other._return;
 	}
 	return (*this);
 }
@@ -64,6 +65,12 @@ std::ostream&	operator<<( std::ostream& out, const Location& loc )
 	{
 		out << "    CGI Extension: " << loc.getCgiExtension() << "\n";
 		out << "    CGI Path: " << loc.getCgiPath() << "\n";
+	}
+
+	if (loc.getReturn().first != 0)
+	{
+		out <<  "    Return code: " << loc.getReturn().first << "\n";
+		out <<  "    Return URL: " << loc.getReturn().second << "\n";
 	}
 	return out;
 }

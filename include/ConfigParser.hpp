@@ -21,6 +21,7 @@
 #include <list>
 #include <map>
 #include <ostream>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -47,7 +48,6 @@ class ConfigParser
 		std::list<std::string>								_locationPaths;
 		std::string											_filePath;
 		std::size_t											_pos;
-		bool												_flagErr;
 
 		void				makeTokens( std::ifstream& file );
 
@@ -66,7 +66,8 @@ class ConfigParser
 		void	handleRoot( VirtualHostConfig& vec );
 		void	handleServerName( VirtualHostConfig& vec );
 		void	handleIndex( VirtualHostConfig& vec );
-		void	handleAllowedMethods( VirtualHostConfig& loc );
+		void	handleAllowedMethods( VirtualHostConfig& vec );
+		void	handleReturn( VirtualHostConfig& vec );
 
 		void	handleLocationRoot( Location& loc );
 		void	handleLocationIndex( Location& loc );
@@ -76,6 +77,7 @@ class ConfigParser
 		void	handleLocationUploadStore( Location& loc );
 		void	handleLocationCgiExtension( Location& loc );
 		void	handleLocationCgiPath( Location& loc );
+		void	handleLocationReturn( Location& loc );
 
 		bool	validateIp( const std::string& ip );
 		bool	validatePort( const std::string& port );
@@ -88,6 +90,8 @@ class ConfigParser
 
 		std::vector<VirtualHostConfig> parse( const std::string& path );
 		const std::deque< std::pair<t_file_tokens, std::string> >&	getTokens( void ) const;
+		static std::set<std::pair<std::string, int> >	extractLinten( std::vector<VirtualHostConfig> & conf );
+
 };
 
 std::ostream&	operator<<( std::ostream& out, const ConfigParser & tokens );

@@ -35,6 +35,7 @@ VirtualHostConfig&	VirtualHostConfig::operator=(const VirtualHostConfig& other)
 		this->_index = other._index;
 		this->_locations = other._locations;
 		this->_allowedMethods = other._allowedMethods;
+		this->_return = other._return;
 	}
 	return (*this);
 }
@@ -79,5 +80,11 @@ std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )
 	for (std::size_t i = 0; i < vhc.getLocation().size(); ++i)
 		out << vhc.getLocation()[i] << "\n";
 
+	out << "  Return:\n";
+	if (vhc.getReturn().first != 0)
+	{
+		out <<  "    Return code: " << vhc.getReturn().first << "\n";
+		out <<  "    Return URL: " << vhc.getReturn().second << "\n";
+	}
 	return out;
 }
