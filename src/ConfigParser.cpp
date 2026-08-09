@@ -208,6 +208,9 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 		throw std::runtime_error("Error: no 'index' directive was found in server block.");
 	if (virtualHost.getMaxBodySize() == 0)
 		virtualHost.setMaxBodySize(1 << 21);
+
+	_locationPaths.clear();
+
 	return (virtualHost);
 }
 

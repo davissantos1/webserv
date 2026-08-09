@@ -36,16 +36,16 @@ class HttpRequest
 		HttpRequest(const HttpRequest& other);
 		HttpRequest& operator=(const HttpRequest& other);
 
-		std::string	getMethod() { return this->_method; }
-		std::string	getVersion() { return this->_version; }
-		std::string	getUri() { return this->_uri; }
-		std::map<std::string, std::string> getHeaders() { return this->_headers; }
-		std::string*	getBody() { return &(this->_body); }
-		std::string	getQuery() { return this->_query; }
-		std::string	getServerName() { return this->_serverName; }
-		std::string	getServerPort() { return this->_serverPort; }
-		std::string	getClientIp() { return this->_clientIp; }
-		int	getBodySize() { return this->_body.size(); }
+		std::string	getMethod( void ) const { return this->_method; }
+		std::string	getVersion( void ) const { return this->_version; }
+		std::string	getUri( void ) const { return this->_uri; }
+		std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
+		std::string*	getBody( void ) { return &(this->_body); }
+		std::string	getQuery( void ) const { return this->_query; }
+		std::string	getServerName( void ) const { return this->_serverName; }
+		uint16_t	getServerPort( void ) const { return this->_serverPort; }
+		std::string	getClientIp( void ) const { return this->_clientIp; }
+		int	getBodySize( void ) const { return this->_body.size(); }
 
 		void	setMethod(std::string method) { this->_method = method; }
 		void	setUri(std::string uri) { this->_uri = uri; }
