@@ -70,6 +70,10 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 	return (_requestStatus);
 }
 
+static std::string cleanUp_uri( const std::string& uri)
+{
+	return (normalize_str(decode_str(uri)));
+}
 
 void	HttpRequestParser::handleRequestLine( const std::string& str )
 {
@@ -82,7 +86,7 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 	}
 
 	_httpRequest.setMethod(splited[0]);
-	_httpRequest.setUri(splited[1]); // Validar aqui buscando ..
+	_httpRequest.setUri(cleanUp_uri(splited[1]));
 	_httpRequest.setVersion(splited[2]);
 
 	if (splited[2] != "HTTP/1.1" && splited[2] != "HTTP/1.0")
