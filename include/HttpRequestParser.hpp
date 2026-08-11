@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/05 18:10:49 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 16:58:32 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 // I need to know specific states from feed to send an error if the request is malformed or filled with errors
 // I'm assuming an enum for each state, tell me if you change it, please
 // This project is draining my soul
+// Please include PARSING_ERROR and REQUEST_TOO_LARGE statuses for error handling, I need that.
 
 #include "HttpRequest.hpp"
 #include <cstddef>
@@ -30,7 +31,6 @@ enum RequestStatus {
 	ERROR
 };
 
-// To be added Vitor
 class HttpRequestParser
 {
 	private:

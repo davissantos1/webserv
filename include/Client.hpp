@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/06 14:03:22 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 21:01:50 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,11 +67,11 @@ class Client
 		Client(const Client& other);
 		Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>& configs);
 		Client&	operator=(const Client& other);
-		int		processHttpRequest();
-		int		processHttpResponse();
-		void	destroyCgi(int fd);
+		void				destroyCgi(int fd);
+		enum ClientStatus	processHttpRequest();
+		enum ClientStatus	processHttpResponse();
+		enum ClientStatus	checkRequest(enum RequestStatus status);
 		std::vector<std::pair<int, enum FdIoType> > executeMethod();
-		void	checkRequest(enum RequestStatus status);
 
 		int						getFd() { return this->_fd; }
 		time_t					getLastActivity() { return this->_lastActivity; }

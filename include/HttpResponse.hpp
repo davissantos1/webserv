@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 08:09:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/10 18:34:26 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,12 @@ class HttpResponse
 		std::string	getReasonPhrase() { return this->_reasonPhrase }
 		std::map<std::string, std::string> getHeaders() { return this->_headers }
 		std::string	getBody() { return this->_body }
+		int	getBodySize() { return this->_body.size() }
+
+		void	setVersion(std::string version) { this->_body = body; }
+		void	setReasonPhrase(std::string body) { this->_body = body; }
+		void	setHeaders(std::string body) { this->_body = body; }
+		void	setBody(std::string body) { this->_body = body; }
 };
 
 #endif

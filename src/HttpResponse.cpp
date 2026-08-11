@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 08:05:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/10 18:10:58 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 HttpResponse::HttpResponse()
 {
-
+	this->_version = "HTTP/1.1";
 }
 
 HttpResponse::~HttpResponse()
@@ -39,4 +39,51 @@ HttpResponse&	HttpResponse::operator=(const HttpResponse& other)
 		this->_body = other._body;
 	}
 	return (*this);
+}
+
+void	HttpResponse::setStatusCode(int statusCode)
+{
+	this->_statusCode = statusCode;
+	switch (statusCode)
+	{
+		case 200:
+			this->_reasonPhrase = "OK";
+			break;
+		case 201:
+			this->_reasonPhrase = "Created";
+			break;
+		case 204:
+			this->_reasonPhrase = "No content";
+			break;
+		case 301:
+			this->_reasonPhrase = "Moved Permanently";
+			break;
+		case 302:
+			this->_reasonPhrase = "Found";
+			break;
+		case 307:
+			this->_reasonPhrase = "Temporary Redirect";
+			break;
+		case 308:
+			this->_reasonPhrase = "Permanent Redirect";
+			break;
+		case 400:
+			this->_reasonPhrase = "Bad Request";
+			break;
+		case 403:
+			this->_reasonPhrase = "Forbidden";
+			break;
+		case 404:
+			this->_reasonPhrase = "Not Found";
+			break;
+		case 405:
+			this->_reasonPhrase = "Method Not Allowed";
+			break;
+		case 413:
+			this->_reasonPhrase = "Payload Too Large";
+			break;
+		case 500:
+			this->_reasonPhrase = "Internal Server Error";
+			break;
+	}
 }

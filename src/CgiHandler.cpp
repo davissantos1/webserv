@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 16:10:39 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 17:46:46 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			if (bytes >= 0)
 			{
 				if (bytes > 0)
-					builder.feed(tmp, bytes);
+					builder.feedCgi(tmp, bytes);
 				else
 					return (true);
 			}
@@ -53,8 +53,8 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 		else if (eventType & EPOLLOUT)
 		{
 			int bytesWritten = builder.getBytesWritten();
-			std::string body = builder.getHttpBody();
-			bytes  = write(fd, body.c_str() + bytesWritten, body.size() - bytesWritten);
+			std::string* body = builder.getHttpRequestBody();
+			bytes  = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes >= 0)
 			{
 				if (bytes == 0)

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 16:07:34 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 21:23:59 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,10 @@ Client&	Client::operator=(const Client& other)
 	return (*this);
 }
 
-int	Client::processHttpRequest()
+enum ClientStatus	Client::processHttpRequest()
 {
-	enum RequestStatus status;
+	enum ClientStatus	clientStatus;
+	enum RequestStatus	requestStatus;
 	char tempBuffer[8192];
 	HttpRequestParser& parse = this->_httpRequestParser;
 
@@ -58,22 +59,22 @@ int	Client::processHttpRequest()
 		if (bytes > 0)
 		{
 			this->_lastActivity = std::time(NULL);
-			status = parse.feed(tempBuffer, bytes);
+			requestStatus = parse.feed(tempBuffer, bytes);
 		}
 		else if (bytes == 0)
-			return (-1);
+			return (DISCONNECT);
 		else
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break;
-			return (-1);
+			return (DISCONNECT);
 		}
 	}
-	this->checkRequest(status);
-	return (0);
+	clientStatus = this->checkRequest(requestStatus);
+	return (clientStatus);
 }
 
-void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConfig>& configs)
+enum ClientStatus	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConfig>& configs)
 {
 	int status = 0;
 	switch (status)
@@ -90,66 +91,82 @@ void	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConf
 			{
 				this->setStatusCode(405);
 				this->_status = PROCESSING_EXCEPTION;
-				return ;
+				return (PROCESSING_EXCEPTION);
 			}
 			if ((status = conf.shouldRedirect(req.getLocation())) > 0)
 			{
 				this->setStatusCode(status);
 				this->_status = PREPARING_RESPONSE;
-				return ;
+				return (PREPARING_RESPONSE);
 			}
-			if (parse.hasCgi() && req.getMethod() != "DELETE")
-				this->_status = PROCESSING_CGI;
-			else
-				this->_status = PROCESSING_STATIC_FILE;
 			this->setStatusCode(200);
 			this->_httpResponseBuilder.setHttpRequest(&req);
-			break;
+			if (parse.hasCgi() && req.getMethod() != "DELETE")
+			{
+				this->_status = PROCESSING_CGI;
+				return (PROCESSING_CGI);
+			}
+			else
+			{
+				this->_status = PROCESSING_STATIC_FILE;
+				return (PROCESSING_STATIC_FILE);
+			}
 		}
 		case REQUEST_PARSE_ERROR:
 		{
 			this->setStatusCode(400);
 			this->_status = PROCESSING_EXCEPTION;
-			break;
+			return (PROCESSING_EXCEPTION);
 		}
 		case REQUEST_TOO_LARGE:
 		{
 			this->setStatusCode(413);
 			this->_status = PROCESSING_EXCEPTION;
-			break;
+			return (PROCESSING_EXCEPTION);
 		}
 	}
 }
 
-int	Client::processHttpResponse()
+enum ClientStatus	Client::processHttpResponse()
 {
+	const char*	res;
+	int bytes, bytesSent, bytesRemaining, headSize;
+	HttpResponse& build = this->_httpResponseBuilder;
+	std::string& responseStr;
+
 	if (this->_status == PREPARING_RESPONSE)
 	{
 		this->_httpResponseBuilder.build();
 		this->_status = WRITING_RESPONSE;
 	}
-	std::string&	responseStr = this->_httpResponseBuilder.getHttpResponse();
-	ssize_t bytesSent = this->_httpResponseBuilder.getBytesSent();
-	ssize_t bytesRemaining = responseStr.size() - bytesSent;
-	const char* res = responseStr.c_str() + bytesSent;
-	int bytes = send(this->_fd, res, bytesRemaining, 0);
-	if (bytes > 0)
+	while (true)
 	{
-		this->_httpResponseBuilder.setBytesSent(bytesSent + bytes);
-		if (bytes == bytesRemaining)
+		errno = 0;
+		bytesSent = build.getBytesSent();
+		headSize = build.getHttpResponseHeadSize();
+		bytesRemaining = build.getTotalBytes - bytesSent;
+		responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
+		res = responseStr.c_str() + bytesSent;
+		bytes = send(this->_fd, res, bytesRemaining, 0);
+		if (bytes >= 0)
 		{
-			this->_status = READING_REQUEST;
-			return (0);
+			this->_httpResponseBuilder.setBytesSent(bytesSent + bytes);
+			if (bytes == bytesRemaining)
+			{
+				this->_status = SENT_REQUEST;
+				this->_httpRequestParser.reset();
+				this->_httpResponseBuilder.reset();
+				return (SENT_REQUEST);
+			}
+		}
+		else
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break ;
+			return (DISCONNECT);
 		}
 	}
-	else if (bytes == -1)
-	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			return (0);
-		return (-1);
-	}
-	else
-		return (-1);
+	return (WRITING_RESPONSE);
 }
 
 void	Client::destroyCgi(int fd)
@@ -185,7 +202,12 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	else if (req.getMethod() == "POST")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, conf, &statusCode);
+		{
+			if (req.getBodySize == 0)
+				*statusCode = 400;
+			else
+				std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, conf, &statusCode);
+		}
 		else
 			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost(req, conf, &statusCode);
 		if (statusCode == 200)

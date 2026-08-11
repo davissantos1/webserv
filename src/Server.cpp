@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 13:45:17 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 21:31:18 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,7 @@ void	Server::runServer()
 
 void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 {
-	int status = 0;
+	enum ClientStatus	status;
 
 	if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
 	{
@@ -143,6 +143,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 	switch (fdType)
 	{
 		case SOCKET:
+		{
 			if (eventType & EPOLLIN)
 			{
 				int newClient = this->createClient(fd);
@@ -150,6 +151,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 					this->_multiplexer.addFd(newClient, (EPOLLIN | EPOLLRDHUP));		
 			}
 			break;
+		}
 		case CLIENT:
 		{
 			Client* client = this->_clientMap[fd];
@@ -160,16 +162,15 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			else if (eventType & EPOLLOUT)
 				status = client->processHttpResponse();
 
-			if (status == -1)
+			if (status == DISCONNECT)
 			{
 				this->destroyClient(fd);
 				return ;
 			}
 			
-			enum ClientStatus clientStatus = client->getStatus();
-			if (clientStatus == PROCESSING_STATIC_FILE || clientStatus == PROCESSING_CGI || clientStatus == PROCESSING_EXCEPTION)
+			if (status == PROCESSING_STATIC_FILE || status == PROCESSING_CGI || status == PROCESSING_EXCEPTION)
 			{
-				this->_multiplexer.removeFd(fd);
+				this->_multiplexer.removeFd(client->getFd());
 				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();
 				for (int i = 0; i < tasks.size(); i++)
 				{
@@ -194,8 +195,16 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 					}
 					client->registerFd(tasks[i].first);
 				}
-			if (clientStatus == PREPARING_RESPONSE)
+			}
+			status = client->getStatus();
+			if (status == PREPARING_RESPONSE)
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
+			if (status == SENT_REQUEST)
+			{
+				client->setStatus = READING_REQUEST;
+				this->_multiplexer.removeFd(client->getFd());
+				this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
+
 			}
 			break;
 		}

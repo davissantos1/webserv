@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 17:30:46 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 14:17:04 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 # define CGIPARSER_HPP
 
 # include <string>
+# include <iostream>
+# include <sstream>
 # include <map>
 
 enum CgiParserStatus
@@ -26,6 +28,7 @@ enum CgiParserStatus
 class CgiParser
 {
 	private:
+		int									_bodySize;
 		enum CgiParserStatus				_status;
 		std::map<std::string, std::string>	_headers;
 		std::string 						_body;

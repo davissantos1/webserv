@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/06 14:54:12 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/10 17:57:08 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpReques
 		{
 			bytes = read(fd, tempBuffer, sizeof(tempBuffer));
 			if (bytes > 0)
-				builder.feed(tempBuffer, bytes);
+				builder.feedStaticFile(tempBuffer, bytes);
 			else if (bytes == 0)
 			{
 				builder.setStatusCode(200);
@@ -56,8 +56,8 @@ bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpReques
 		else
 		{
 			int bytesWritten = builder.getBytesWritten();
-			std::string& body = builder.getHttpBody();
-			bytes = write(fd, body.c_str() + bytesWritten, body.size() - bytesWritten);
+			std::string* body = builder.getHttpRequestBody();
+			bytes = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes > 0)
 				builder.setBytesWritten(bytes + bytesWritten);
 			else if (bytes == body.size())
@@ -288,6 +288,6 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 
 	if (closedir(stream) == -1)
 		return (500);
-	build.fillResponseBody(html.str());
+	build.setHttpResponseBody(html.str());
 	return (-1);
 }
