@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 19:07:08 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 19:48:24 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <string>
 
+class CgiParser;
 class HttpResponse;
 class HttpRequest;
 
@@ -48,9 +49,9 @@ class HttpResponseBuilder
 		void			setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		void			setHttpResponseBody(std::string body) { this->_httpResponse.setBody(body); }
 		
-		void			buildResponse(); // to be done
-		void			feedCgi(char *buffer, int size); // to be done
-		void			feedStaticFile(char *buffer, int size); // to be done
+		void			buildResponse();
+		void			feedCgi(char *buffer, int size);
+		void			feedStaticFile(char *buffer, int size);
 };
 
 #endif

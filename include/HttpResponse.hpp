@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 18:34:26 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 19:51:48 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define HTTPRESPONSE_HPP
 
 # include <string>
+# include <map>
 
 class HttpResponse
 {
@@ -40,6 +41,8 @@ class HttpResponse
 		void	setReasonPhrase(std::string body) { this->_body = body; }
 		void	setHeaders(std::string body) { this->_body = body; }
 		void	setBody(std::string body) { this->_body = body; }
+
+		void	feedBody(std::string data) { this->_body += data; }
 };
 
 #endif

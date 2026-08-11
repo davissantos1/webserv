@@ -6,21 +6,15 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 14:24:51 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 19:47:23 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponseBuilder.hpp"
 
-HttpResponseBuilder::HttpResponseBuilder()
-{
+HttpResponseBuilder::HttpResponseBuilder() {}
 
-}
-
-HttpResponseBuilder::~HttpResponseBuilder()
-{
-
-}
+HttpResponseBuilder::~HttpResponseBuilder() {}
 
 HttpResponseBuilder::HttpResponseBuilder(const HttpResponseBuilder& other)
 {
@@ -43,7 +37,7 @@ HttpResponseBuilder&	HttpResponseBuilder::operator=(const HttpResponseBuilder& o
 	return (*this);
 }
 
-void			HttpResponseBuilder::buildResponse()
+void	HttpResponseBuilder::buildResponse()
 {
 	std::stringstream ss;
 	HttpResponse& res = this->_httpResponse;
@@ -63,12 +57,16 @@ void			HttpResponseBuilder::buildResponse()
 	this->_totalBytes = this->_httpResponseHead.size() + res.getBodySize();
 }
 
-void			HttpResponseBuilder::feedCgi(char *buffer, int size)
+void	HttpResponseBuilder::feedCgi(char *buffer, int size)
 {
-
+	if (!(this->_cgiParser.isCgiDone()))
+		this->_cgiParser.feed(buffer, size);
 }
 
-void			HttpResponseBuilder::feedStaticFile(char *buffer, int size)
+void	HttpResponseBuilder::feedStaticFile(char *buffer, int size)
 {
-
+	std::string stringBuffer;
+	for (int i = 0; i < size; i++)
+		stringBuffer += buffer[i];
+	this->_httpResponse.feedBody(stringBuffer);
 }
