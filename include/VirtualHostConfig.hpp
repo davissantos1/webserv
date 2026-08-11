@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/06 18:03:41 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 15:19:50 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,13 +53,15 @@ class VirtualHostConfig
 		const std::vector<Location>& getLocation() const { return _locations; }
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 
-		std::string	getCgiInterpreterPath(std::string uri); // to be done
-		std::string	getCgiScriptPath(std::string uri); // to be done
+		int			getReturnCode(std::string endpoint); // to be done
 		std::string	getErrorPage(int error); // to be done
-		std::string	getFullPath(std::string uri); // to be done
-		bool		isMethodAllowed(std::string method, std::string uri); // to be done
-		bool		shouldIndex(std::string uri); // to be done
-		bool		shouldAutoindex(std::string uri); // to be done
+		std::string	getCgiInterpreterPath(std::string filename, std::string endpoint); // to be done
+		std::string	getCgiScriptPath(std::string filename, std::string endpoint); // to be done
+		std::string	getFullPath(std::string filename, std::string endpoint); // to be done
+		bool		isMethodAllowed(std::string method, std::string endpoint); // to be done
+		bool		shouldIndex(std::string endpoint); // to be done
+		bool		shouldAutoindex(std::string endpoint); // to be done
+		bool		shouldRedirect(std::string endpoint); // to be done
 
 		void	setServerNames( const std::vector<std::string> & serverNames ) { _serverNames = serverNames; }
 		void	setHostIp( const std::vector<std::string> & hostIp ) { _hostIp = hostIp; }

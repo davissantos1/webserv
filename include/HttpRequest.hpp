@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 16:06:07 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 15:12:32 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,8 @@ class HttpRequest
 		void	setKeepAlive(bool keepAlive) { this->_keepAlive = keepAlive; }
 
 		std::string	getFilename(); // to be done
+		std::string	getEndpoint(); // to be done
+		std::string getHeader(std::string header); // to be done
 };
 
 #endif
