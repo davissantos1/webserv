@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 21:23:59 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 15:22:59 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ enum ClientStatus	Client::processHttpRequest()
 	return (clientStatus);
 }
 
-enum ClientStatus	Client::checkRequest(enum RequestStatus status, std::vector<VirtualHostConfig>& configs)
+enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 {
 	int status = 0;
 	switch (status)
@@ -87,15 +87,15 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status, std::vector<Vi
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
 
-			if (!conf.isMethodAllowed(req.getMethod(), req.getUri()))
+			if (!conf.isMethodAllowed(req.getMethod(), req.getEndpoint()))
 			{
 				this->setStatusCode(405);
 				this->_status = PROCESSING_EXCEPTION;
 				return (PROCESSING_EXCEPTION);
 			}
-			if ((status = conf.shouldRedirect(req.getLocation())) > 0)
+			if (conf.shouldRedirect(req.getEndpoint()))
 			{
-				this->setStatusCode(status);
+				this->setStatusCode(conf.getReturnCode(req.getEndpoint()));
 				this->_status = PREPARING_RESPONSE;
 				return (PREPARING_RESPONSE);
 			}
@@ -185,7 +185,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
 
-	if ( statusCode != 200)
+	if (statusCode != 200)
 		return (stat->handleException(statusCode, conf.getErrorPage(statusCode)));
 	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
 		this->handleIndex();

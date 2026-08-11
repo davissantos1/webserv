@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 19:07:08 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 14:24:51 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,13 @@ HttpResponseBuilder&	HttpResponseBuilder::operator=(const HttpResponseBuilder& o
 {
 	if (this != other)
 	{
-		// whatever
+		this->_bytesWritten = other._bytesWritten;
+		this->_totalBytes = other._totalBytes;
+		this->_bytesSent = other._bytesSent;
+		this->_httpResponse = other._httpResponse;
+		this->_httpRequest = other._httpRequest;
+		this->_cgiParser = other._cgiParser;
+		this->_httpResponseHead = other._httpResponseHead;
 	}
 	return (*this);
 }
