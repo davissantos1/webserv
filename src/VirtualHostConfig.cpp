@@ -11,7 +11,12 @@
 /* ************************************************************************** */
 
 #include "VirtualHostConfig.hpp"
+#include "Location.hpp"
+#include <algorithm>
+#include <cstddef>
 #include <ostream>
+#include <string>
+#include <vector>
 
 VirtualHostConfig::VirtualHostConfig(): _maxBodySize(0) {}
 
@@ -44,6 +49,92 @@ VirtualHostConfig::VirtualHostConfig(const VirtualHostConfig& other)
 {
 	if (this != &other)
 		*this = other;
+}
+
+bool VirtualHostConfig::findLocation( std::string& path, Location& loc ) const
+{
+	for(size_t i = 0; i < _locations.size(); i++)
+	{
+		if (_locations[i].getPath() == path)
+		{
+			loc = _locations[i];
+			return (true);
+		}
+	}
+	return (false);
+}
+
+std::string	VirtualHostConfig::getCgiInterpreterPath( std::string& filename, std::string& endpoint )
+{
+
+}
+
+std::pair<int, std::string> VirtualHostConfig::getReturn( std::string& endpoint )
+{
+	Location local;
+
+	if (findLocation(endpoint, local))
+	{
+		if (local.getReturn().first != 0)
+			return (local.getReturn());
+	}
+	return (_return);
+}
+
+std::string	VirtualHostConfig::getErrorPage( int error, std::string& endpoint )
+{
+
+}
+
+std::string	VirtualHostConfig::getCgiScriptPath( std::string& filename, std::string& endpoint )
+{
+
+}
+
+std::string	VirtualHostConfig::getFullPath( std::string& filename, std::string& endpoint)
+{
+
+}
+
+bool		VirtualHostConfig::isMethodAllowed( std::string& method, std::string& endpoint )
+{
+	Location	local;
+
+	if (findLocation(endpoint, local))
+	{
+		return (std::find(local.getAllowedMethods().begin(),
+			local.getAllowedMethods().end(), method)
+			!= local.getAllowedMethods().end());
+	}
+	return (std::find(_allowedMethods.begin(), _allowedMethods.end(), method)
+		!= _allowedMethods.end());
+}
+
+bool		VirtualHostConfig::shouldIndex( std::string& endpoint )
+{
+	Location local;
+
+	if (findLocation(endpoint, local))
+	{
+		return (!local.getIndex().empty());
+	}
+	return (false);
+}
+
+bool		VirtualHostConfig::shouldAutoindex( std::string& endpoint )
+{
+	Location local;
+
+	if (findLocation(endpoint, local))
+	{
+		return (local.getAutoindex());
+	}
+	return (false);
+}
+
+bool		VirtualHostConfig::shouldRedirect( std::string& endpoint )
+{
+
 }
 
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )
