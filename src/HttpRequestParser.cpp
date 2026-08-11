@@ -75,7 +75,7 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 {
 	std::vector<std::string> splited = split(str, ' ');
 
-	if (splited.size() != 4 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
+	if (splited.size() != 3 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
 	{
 		_requestStatus = ERROR;
 		return ;
@@ -96,7 +96,9 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 
 void	HttpRequestParser::handleHeaders( const std::string& str )
 {
-	//essa aqui acho q vai ser trampo aqui
+	std::vector<std::string> splited = split(str, '\n');
+
+
 }
 
 void	HttpRequestParser::handleBody( const std::string& str )
