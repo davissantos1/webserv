@@ -11,10 +11,11 @@
 /* ************************************************************************** */
 
 #include <cstddef>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
-std::vector<std::string> split( const std::string& str, const char spliter )
+std::vector<std::string>	split( const std::string& str, const char spliter )
 {
 	std::vector<std::string>	splited;
 	std::size_t					i = 0;
@@ -31,7 +32,7 @@ std::vector<std::string> split( const std::string& str, const char spliter )
 	return (splited);
 }
 
-void trimStr( std::string& src )
+void	trimStr( std::string& src )
 {
 	const std::string&	blank = "\t\n\v\f\r ";
 	int					start = 0;
@@ -47,4 +48,30 @@ void trimStr( std::string& src )
 		src.clear();
 	else
 		src.assign(src.substr(start, len));
+}
+
+std::string	decode_str( const std::string& str )
+{
+	std::string ret;
+	std::size_t	k = str.length();
+	std::string	set;
+
+	ret.reserve(k);
+	set.reserve(2);
+	for(size_t i = 0; i < k; i++)
+	{
+		if (str[i] == '%' && i + 2 < k)
+		{
+			char	*end;
+
+			set[0] = str[i + 1];
+			set[1] = str[i + 2];
+			ret += static_cast<char>(strtol(set.c_str(), &end, 16));
+		}
+		else if (str[i] == '+')
+			ret += ' ';
+		else
+			ret += str[i];
+	}
+	return (ret);
 }

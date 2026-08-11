@@ -17,3 +17,4 @@
 
 std::vector<std::string>	split( const std::string& str, const char spliter );
 void						trimStr( std::string& src );
+std::string					decode_str( const std::string& str );
