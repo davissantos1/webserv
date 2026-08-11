@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequestParser.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/07 09:08:33 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/09 18:47:01 by vitosant         ###    ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 		{
 			std::string param = _buffer.substr(0, i);
 
-			if (_requestStatus)
+			if (_requestStatus == PARSING_REQUEST_LINE)
 				handleRequestLine(param);
 			else
 				handleHeaders(param);
@@ -70,19 +70,23 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 	return (_requestStatus);
 }
 
+static std::string cleanUp_uri( const std::string& uri)
+{
+	return (normalize_str(decode_str(uri)));
+}
 
 void	HttpRequestParser::handleRequestLine( const std::string& str )
 {
 	std::vector<std::string> splited = split(str, ' ');
 
-	if (splited.size() != 4 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
+	if (splited.size() != 3 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
 	{
 		_requestStatus = ERROR;
 		return ;
 	}
 
 	_httpRequest.setMethod(splited[0]);
-	_httpRequest.setUri(splited[1]); // Validar aqui buscando ..
+	_httpRequest.setUri(cleanUp_uri(splited[1]));
 	_httpRequest.setVersion(splited[2]);
 
 	if (splited[2] != "HTTP/1.1" && splited[2] != "HTTP/1.0")
@@ -96,7 +100,9 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 
 void	HttpRequestParser::handleHeaders( const std::string& str )
 {
-	//essa aqui acho q vai ser trampo aqui
+	std::vector<std::string> splited = split(str, '\n');
+
+
 }
 
 void	HttpRequestParser::handleBody( const std::string& str )

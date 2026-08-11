@@ -11,27 +11,46 @@
 /* ************************************************************************** */
 
 #include <cstddef>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
-std::vector<std::string> split( const std::string& str, const char spliter )
+std::vector<std::string>	split( const std::string& str, const char splitter )
 {
 	std::vector<std::string>	splited;
 	std::size_t					i = 0;
 	std::size_t					pos = 0;
 
-	while ((i = str.find(spliter, pos)) != std::string::npos)
+	if (str.empty())
+		return (splited);
+	while ((i = str.find(splitter, pos)) != std::string::npos)
 	{
 		splited.push_back(str.substr(pos, i - pos));
 		pos = i;
-		while (pos < str.length() && str[pos] == spliter)
+		while (pos < str.length() && str[pos] == splitter)
 			pos++;
 	}
-	splited.push_back(str.substr(pos));
+	if (i + 1 < str.length())
+		splited.push_back(str.substr(pos));
 	return (splited);
 }
 
-void trimStr( std::string& src )
+std::string	reverse_split( const std::vector<std::string> & vec, const char splitter )
+{
+	std::string	result;
+
+	if (vec.empty())
+		return (result);
+	for (std::size_t i = 0; i < vec.size(); ++i)
+	{
+		result += vec[i];
+		if (splitter != '\0' && i != vec.size() - 1)
+			result += splitter;
+	}
+	return (result);
+}
+
+void	trimStr( std::string& src )
 {
 	const std::string&	blank = "\t\n\v\f\r ";
 	int					start = 0;
@@ -47,4 +66,55 @@ void trimStr( std::string& src )
 		src.clear();
 	else
 		src.assign(src.substr(start, len));
+}
+
+std::string	decode_str( const std::string& str )
+{
+	std::string ret;
+	std::size_t	k = str.length();
+	std::string	set;
+
+	ret.reserve(k);
+	set.reserve(2);
+	for(size_t i = 0; i < k; i++)
+	{
+		if (str[i] == '%' && i + 2 < k)
+		{
+			char	*end;
+
+			set[0] = str[i + 1];
+			set[1] = str[i + 2];
+			ret += static_cast<char>(strtol(set.c_str(), &end, 16));
+		}
+		else if (str[i] == '+')
+			ret += ' ';
+		else
+			ret += str[i];
+	}
+	return (ret);
+}
+
+std::string normalize_str( const std::string& raw )
+{
+	std::string					finalStr("/");
+	std::vector<std::string>	splited = split(raw, '/');
+	std::vector<std::string>	parts;
+
+
+	if (raw.empty())
+		return (finalStr);
+	for (size_t i = 0; i < splited.size(); i++)
+	{
+		if (splited[i] == ".." && parts.size() > 0)
+				parts.pop_back();
+		else if (splited[i] == ".")
+			continue ;
+		else
+			parts.push_back(splited[i]);
+	}
+	for (size_t i = 0; i < splited.size(); i++)
+		finalStr += parts[i] + "/";
+	if (raw.length() > 1 && raw[raw.length() - 1] != '/' && finalStr != "/")
+		finalStr.erase(finalStr.length() - 1);
+	return (finalStr);
 }
