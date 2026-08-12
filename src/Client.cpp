@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 14:55:27 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 18:35:01 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,18 +184,20 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 	StaticFileHandler& stat = this->_staticFileHandler;
 	CgiHandler& cgi = this->_cgiHandler;
+	std::pair<int, enum FdIoType> task;
+	std::vector<std::pair<int, enum FdIoType> > postFds;
 
 	if (statusCode != 200)
-		return (stat->handleException(statusCode, conf.getErrorPage(statusCode)));
+		return (stat.handleException(statusCode, conf.getErrorPage(statusCode)));
 	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
 		this->handleIndex();
 	statusCode = 0;
 	if (req.getMethod() == "GET")
 	{
 		if (status == PROCESSING_STATIC_FILE)
-			std::pair<int, enum FdIoType> task = stat.handleGet(req, conf, &statusCode);
+			task = stat.handleGet(req, conf, &statusCode);
 		else
-			std::pair<int, enum FdIoType> task = cgi.handleGet(req, conf, &statusCode);
+			task = cgi.handleGet(req, conf, &statusCode);
 		if (statusCode == 200)
 			tasks.push_back(task);
 	}
@@ -203,13 +205,13 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	{
 		if (status == PROCESSING_STATIC_FILE)
 		{
-			if (req.getBodySize == 0)
-				*statusCode = 400;
+			if (req.getBodySize() == 0)
+				statusCode = 400;
 			else
-				std::vector<std::pair<int, enum FdIoType> > postFds = stat.handlePost(req, conf, &statusCode);
+				postFds = stat.handlePost(req, conf, &statusCode);
 		}
 		else
-			std::vector<std::pair<int, enum FdIoType> > postFds = cgi.handlePost(req, conf, &statusCode);
+			postFds = cgi.handlePost(req, conf, &statusCode);
 		if (statusCode == 200)
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
 	}
@@ -219,12 +221,12 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 		this->setStatusCode(status);
 	if (statusCode == -1)
 	{
-		statusCode = stat->handleAutoindex(this->_httpResponseBuilder);
+		statusCode = stat.handleAutoindex(this->_httpResponseBuilder);
 		if (statusCode == -1)
 			this->_status = PREPARING_RESPONSE;
 	}
 	if (statusCode != 200 && statusCode != -1)
-		return (stat->handleException(statusCode, conf.getErrorPage(statusCode)));
+		return (stat.handleException(statusCode, conf.getErrorPage(statusCode)));
 	return (tasks);
 }	
 
@@ -240,11 +242,12 @@ void	Client::destroyActiveFds()
 
 VirtualHostConfig	Client::getCurrentConfig(std::string host)
 {
+	const std::vector<std::string> serverNames;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-	for (int i = 0; i < this->_configs.size(); i++)
+	for (size_t i = 0; i < this->_configs.size(); i++)
 	{
-		std::vector<std::string> serverNames = this->_configs[i].getServerNames();
-		for (int j = 0; j < serverNames.size(); j++)
+		serverNames = this->_configs[i].getServerNames();
+		for (size_t j = 0; j < serverNames.size(); j++)
 		{
 			if (serverNames[j] == host)
 			{
@@ -261,17 +264,17 @@ void	Client::handleIndex()
 {
 	int status;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-	std::vector<std::string> index = this->_virtualHostConfig.getIndex();
-	std::string basePath = this->_virtualHostConfig.getFullPath(req.getUri());
+	const std::vector<std::string> index = this->_virtualHostConfig.getIndex();
+	const std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
 	
-	for (int i = 0; i < index.size(); i++)
+	for (size_t i = 0; i < index.size(); i++)
 	{
 		std::string path = basePath + index[i];
 		status = access(path.c_str(), F_OK);
 		if (status == 0)
 		{
 			std::string uri = index[i];
-			if (uri[0] != "/")
+			if (uri[0] != '/')
 				uri = "/" + uri;
 			req.setUri(uri);
 			if (this->_httpRequestParser.hasCgi())

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 16:00:21 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 18:09:10 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,18 +39,18 @@ class HttpRequest
 		HttpRequest(const HttpRequest& other);
 		HttpRequest& operator=(const HttpRequest& other);
 
-		std::string&	getMethod( void ) const { return this->_method; }
-		std::string&	getVersion( void ) const { return this->_version; }
-		std::string&	getUri( void ) const { return this->_uri; }
-		std::string*	getBody( void ) { return &(this->_body); }
-		std::string&	getQuery( void ) const { return this->_query; }
-		std::string&	getServerName( void ) const { return this->_serverName; }
+		const std::string&	getMethod( void ) const { return this->_method; }
+		const std::string&	getVersion( void ) const { return this->_version; }
+		const std::string&	getUri( void ) const { return this->_uri; }
+		const std::string*	getBody( void ) { return &(this->_body); }
+		const std::string&	getQuery( void ) const { return this->_query; }
+		const std::string&	getServerName( void ) const { return this->_serverName; }
 		uint16_t		getServerPort( void ) const { return this->_serverPort; }
-		std::string&	getClientIp( void ) const { return this->_clientIp; }
+		const std::string&	getClientIp( void ) const { return this->_clientIp; }
 		int				getBodySize( void ) const { return this->_body.size(); }
-		std::string&	getFilename( void ) const { return this->_filename; }
-		std::string&	getEndpoint( void ) const { return this->_endpoint; }
-		std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
+		const std::string&	getFilename( void ) const { return this->_filename; }
+		const std::string&	getEndpoint( void ) const { return this->_endpoint; }
+		const std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
 
 		void	setMethod(std::string method) { this->_method = method; }
 		void	setUri(std::string uri) { this->_uri = uri; }

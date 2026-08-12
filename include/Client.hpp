@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 15:01:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 18:10:47 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,7 @@ class Client
 
 		void	destroyActiveFds();
 		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
+		void	handleIndex();
 
 		class	ClientException: public std::exception
 		{
