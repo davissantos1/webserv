@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 15:22:59 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 14:55:27 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ Client::Client() {}
 
 Client::~Client() {}
 
-Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>& configs):
+Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs):
  _ip(ip), _port(port), _fd(fd), _configs(configs) {}
 
 Client::Client(const Client& other)
@@ -76,10 +76,9 @@ enum ClientStatus	Client::processHttpRequest()
 
 enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 {
-	int status = 0;
 	switch (status)
 	{
-		case REQUEST_READY:
+		case DONE:
 		{
 			HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
@@ -112,19 +111,20 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PROCESSING_STATIC_FILE);
 			}
 		}
-		case REQUEST_PARSE_ERROR:
+		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
 		}
-		case REQUEST_TOO_LARGE:
+		case ERROR_REQUEST_TOO_LARGE:
 		{
 			this->setStatusCode(413);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
 		}
 	}
+	return (this->_status);
 }
 
 enum ClientStatus	Client::processHttpResponse()
@@ -153,10 +153,10 @@ enum ClientStatus	Client::processHttpResponse()
 			this->_httpResponseBuilder.setBytesSent(bytesSent + bytes);
 			if (bytes == bytesRemaining)
 			{
-				this->_status = SENT_REQUEST;
+				this->_status = SENT_RESPONSE;
 				this->_httpRequestParser.reset();
 				this->_httpResponseBuilder.reset();
-				return (SENT_REQUEST);
+				return (SENT_RESPONSE);
 			}
 		}
 		else

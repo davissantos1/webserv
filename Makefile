@@ -1,14 +1,33 @@
 # Variables
 
 CC= c++
-CFLAGS= -Wall -Wextra -Werror -std=c++98
-SRC=
+CFLAGS= -Wall -Wextra -Werror -std=c++98 -Iinclude
+
+SRC=	src/webserv.cpp \
+		src/Client.cpp \
+		src/Server.cpp \
+		src/Session.cpp \
+		src/Location.cpp \
+		src/Multiplexer.cpp \
+		src/VirtualHostConfig.cpp \
+		src/ConfigParser.cpp \
+		src/StaticFileHandler.cpp \
+		src/CgiHandler.cpp \
+		src/CgiEnvironment.cpp \
+		src/CgiParser.cpp \
+		src/HttpResponse.cpp \
+		src/HttpRequest.cpp \
+		src/HttpResponse.cpp \
+		src/HttpRequestParser.cpp \
+		src/HttpResponseBuilder.cpp \
+		src/string_utils.cpp \
+		
 SRC_TEST=
 
 OBJ= $(SRC:.cpp=.o)
 OBJ_TEST= $(SRC_TEST:.cpp=.o)
+
 NAME= webserv
-NAME= webserv_test
 
 # Makeflags
 MAKEFLAGS += --no-print-directory

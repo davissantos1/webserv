@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 21:31:18 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 20:26:13 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,7 +199,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			status = client->getStatus();
 			if (status == PREPARING_RESPONSE)
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
-			if (status == SENT_REQUEST)
+			if (status == SENT_RESPONSE)
 			{
 				client->setStatus = READING_REQUEST;
 				this->_multiplexer.removeFd(client->getFd());

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:21:25 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/11 22:13:33 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 # define MULTIPLEXER_HPP
 
 # define MAX_EVENTS 10
-# define _GNU_SOURCE
 
 # include "webserv.hpp"
 # include <sys/epoll.h> 
 # include <stdint.h> 
+# include <cstring> 
+# include <cerrno> 
 
 class Multiplexer
 {
@@ -32,14 +33,16 @@ class Multiplexer
 		void	deleteFd(int fd);
 		void	addFd(int fd, uint32_t event);
 		void	modifyFd(int fd, uint32_t event);
-		std::vector<std::pair<int, uint32_t>>	wait();
-		class MultiplexerException: public std::exception
+		std::vector<std::pair<int, uint32_t> >	wait();
+
+		class	MultiplexerException: public std::exception
 		{
 			private:
 				int	_errno;
 			public:
 				MultiplexerException(int err): _errno(err) {}
-				const char* what() const throw { return std::strerror(_errno); }
+				virtual ~MultiplexerException() throw() {}
+				const char* what() const throw() { return std::strerror(_errno); }
 		};
 };
 

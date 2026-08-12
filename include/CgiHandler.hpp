@@ -6,25 +6,29 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/06 17:54:06 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 14:46:06 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CGIHANDLER_HPP
 # define CGIHANDLER_HPP
 
-# include "Client.hpp"
+# include "webserv.hpp"
+# include "CgiEnvironment.hpp"
+# include <stdint.h>
 # include <fcntl.h>
 # include <unistd.h>
 # include <sys/stat.h>
 # include <sys/wait.h>
 
-class CgiEnvironment;
+class VirtualHostConfig;
+class HttpResponseBuilder;
+class HttpRequest;
 
 class CgiHandler
 {
 	private:
-		CgiEnviroment	_cgiEnviroment;
+		CgiEnvironment	_cgiEnvironment;
 		int				_stat_loc;
 	public:
 		CgiHandler();

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 16:58:32 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 16:16:26 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,10 +55,10 @@ class HttpRequestParser
 		enum RequestStatus	getRequestStatus() { return this->_requestStatus; }
 		HttpRequest&		getHttpRequest() { return this->_httpRequest; }
 		HttpRequest*		getHttpRequestPointer() { return &this->_httpRequest; }
+		void				splitRequestUri();
 
 		enum RequestStatus	feed( const char* buffer, size_t size ); // to be done
 		bool				hasCgi(); // to be done
-
 };
 
 #endif

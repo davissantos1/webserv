@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/09 18:47:01 by vitosant         ###    ########.fr      */
+/*   Updated: 2026/08/12 16:11:43 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,4 +108,44 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 void	HttpRequestParser::handleBody( const std::string& str )
 {
 	// minha nossa como eu amo parsear, eu sou o maior parseador desse mundo, faço 2050 parseadas num sentada. aqui
+	// Lá ele, numa sentada só ainda KKKKKKKK
+	// eu tava construindo esse metodo para o HttpRequest e vi que ele faz mais sentido no proprio parser assim que a URI tiver pronta
+}
+
+void	HttpRequestParser::splitRequestUri()
+{
+	std::string	filename, endpoint, queryString;
+	std::string uri	= this->_httpRequest.getUri();
+	size_t		dot = uri.rfind('.');
+	size_t		slash = uri.rfind('/');
+	size_t		query = uri.rfind('?');
+
+	filename = endpoint = queryString = uri;
+	if (query != std::string::npos)
+	{
+		filename.erase(query);
+		endpoint.erase(query);
+		queryString.erase(queryString.begin(), query + 1);
+		if (dot != std::string::npos)
+		{
+			endpoint.erase(slash + 1);
+			filename.erase(filename.begin(), slash + 1);
+		}
+		else
+			filename.clear();
+	}
+	else
+	{
+		queryString.clear();
+		if (dot != std::string::npos)
+		{
+			endpoint.erase(slash + 1);
+			filename.erase(filename.begin(), slash + 1);
+		}
+		else
+			filename.clear();
+	}
+	this->_httpRequest.setQuery(queryString);
+	this->_httpRequest.setFilename(filename);
+	this->_httpRequest.setEndpoint(endpoint);
 }

@@ -6,13 +6,14 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 15:12:32 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 16:00:21 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPREQUEST_HPP
 # define HTTPREQUEST_HPP
 
+# include "string_utils.hpp"
 # include <string>
 # include <stdint.h>
 # include <map>
@@ -23,6 +24,8 @@ class HttpRequest
 		std::string							_serverName;
 		uint16_t							_serverPort;
 		std::string							_clientIp;
+		std::string							_filename;
+		std::string							_endpoint;
 		std::string 						_method;
 		std::string							_query;
 		std::string 						_uri;
@@ -36,16 +39,18 @@ class HttpRequest
 		HttpRequest(const HttpRequest& other);
 		HttpRequest& operator=(const HttpRequest& other);
 
-		std::string	getMethod( void ) const { return this->_method; }
-		std::string	getVersion( void ) const { return this->_version; }
-		std::string	getUri( void ) const { return this->_uri; }
-		std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
+		std::string&	getMethod( void ) const { return this->_method; }
+		std::string&	getVersion( void ) const { return this->_version; }
+		std::string&	getUri( void ) const { return this->_uri; }
 		std::string*	getBody( void ) { return &(this->_body); }
-		std::string	getQuery( void ) const { return this->_query; }
-		std::string	getServerName( void ) const { return this->_serverName; }
-		uint16_t	getServerPort( void ) const { return this->_serverPort; }
-		std::string	getClientIp( void ) const { return this->_clientIp; }
-		int	getBodySize( void ) const { return this->_body.size(); }
+		std::string&	getQuery( void ) const { return this->_query; }
+		std::string&	getServerName( void ) const { return this->_serverName; }
+		uint16_t		getServerPort( void ) const { return this->_serverPort; }
+		std::string&	getClientIp( void ) const { return this->_clientIp; }
+		int				getBodySize( void ) const { return this->_body.size(); }
+		std::string&	getFilename( void ) const { return this->_filename; }
+		std::string&	getEndpoint( void ) const { return this->_endpoint; }
+		std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
 
 		void	setMethod(std::string method) { this->_method = method; }
 		void	setUri(std::string uri) { this->_uri = uri; }
@@ -56,10 +61,11 @@ class HttpRequest
 		void	setServerPort(uint16_t serverPort) { this->_serverPort = serverPort; }
 		void	setClientIp(std::string clientIp) { this->_clientIp = clientIp; }
 		void	setKeepAlive(bool keepAlive) { this->_keepAlive = keepAlive; }
+		void	setQuery(std::string query) { this->_query = query; }
+		void	setFilename(std::string filename) { this->_filename = filename; }
+		void	setEndpoint(std::string endpoint) { this->_endpoint = endpoint; }
 
-		std::string	getFilename(); // to be done
-		std::string	getEndpoint(); // to be done
-		std::string getHeader(std::string header); // to be done
+		std::string getHeader(std::string header);
 };
 
 #endif

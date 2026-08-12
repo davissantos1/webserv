@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/04 16:08:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/27 19:39:12 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 21:53:47 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include "Server.hpp"
-#include "Multiplexer.hpp"
+#include "ConfigParser.hpp"
 #include <iostream>
 #include <string>
 
@@ -34,6 +34,7 @@ void	registerSignals()
 
 int	main(int ac, char** av)
 {
+	std::string configPath;
 	if (ac > 2)
 	{
 		std::cerr	<< "Wrong number of arguments!\n"
@@ -42,21 +43,21 @@ int	main(int ac, char** av)
 		return (1);
 	}
 	if (ac == 1)
-		std::string configPath("/usr/local/etc/webserv.conf");
+		configPath = "/usr/local/etc/webserv.conf";
 	else
-		std::string configPath(av[1]);
+		configPath = av[1];
 	registerSignals();
 	try
 	{
 		ConfigParser configParser;
 		Server server(configParser.parse(configPath));
 		server.startServer();
+		server.runServer();
 	}
 	catch (std::exception& e)
 	{
 		std::cerr	<< e.what() << std::endl;
 		return (1);
 	}
-	server.runServer();
 	return (0);
 }

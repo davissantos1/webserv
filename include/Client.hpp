@@ -6,34 +6,32 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 21:01:50 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 15:01:44 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-#include <utility>
-#include <ctime>
-#include <stdint.h>
-#include <vector>
-#include <string>
-#include <iostream>
+# include "webserv.hpp"
+# include "CgiHandler.hpp"
+# include "StaticFileHandler.hpp"
+# include "HttpResponseBuilder.hpp"
+# include "HttpRequestParser.hpp"
+# include "VirtualHostConfig.hpp"
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <utility>
+# include <ctime>
+# include <cstring>
+# include <cerrno>
+# include <stdint.h>
+# include <vector>
+# include <string>
+# include <iostream>
+# include <algorithm>
 
 class HttpRequest;
-class HttpRequestParser;
-class HttpResponseBuilder;
-class VirtualHostConfig;
-class CgiHandler;
-class StaticFileHandler;
-
-enum FdIoType
-{
-	STATIC_FILE_READ,
-	STATIC_FILE_WRITE,
-	CGI_READ,
-	CGI_WRITE
-};
 
 enum ClientStatus
 {
@@ -43,6 +41,7 @@ enum ClientStatus
 	PROCESSING_STATIC_FILE,
 	PREPARING_RESPONSE,
 	WRITING_RESPONSE,
+	SENT_RESPONSE,
 	DISCONNECT
 };
 
@@ -60,12 +59,12 @@ class Client
 		CgiHandler						_cgiHandler;
 		time_t							_lastActivity;
 		std::vector<int>				_activeFds;
-		std::vector<VirtualHostConfig>&	_configs;
+		std::vector<VirtualHostConfig>*	_configs;
 	public:
 		Client();
 		~Client();
 		Client(const Client& other);
-		Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>& configs);
+		Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs);
 		Client&	operator=(const Client& other);
 		void				destroyCgi(int fd);
 		enum ClientStatus	processHttpRequest();
@@ -82,7 +81,8 @@ class Client
 		HttpResponseBuilder&	getHttpResponseBuilder() { return this->_httpResponseBuilder; }
 		StaticFileHandler&		getStaticFileHandler() { return this->_staticFileHandler; }
 		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
-		int						getStatusCode() { return this->httpResponseBuilder.getStatusCode(); }
+		int						getStatusCode() { return this->_httpResponseBuilder.getStatusCode(); }
+		VirtualHostConfig		getCurrentConfig(std::string host);
 
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
@@ -99,7 +99,7 @@ class Client
 				ClientException(int err): _errno(err) {}
 				virtual ~ClientException() throw() {}
 				const char* what() const throw() { return std::strerror(_errno); }
-		};	
+		};
 };
 
 #endif

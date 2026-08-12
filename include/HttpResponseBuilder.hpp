@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 19:48:24 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 22:18:42 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,9 @@
 # define HTTPRESPONSEBUILDER_HPP
 
 # include <string>
-
-class CgiParser;
-class HttpResponse;
-class HttpRequest;
+# include "CgiParser.hpp"
+# include "HttpResponse.hpp"
+# include "HttpRequest.hpp"
 
 class HttpResponseBuilder
 {
@@ -45,7 +44,7 @@ class HttpResponseBuilder
 		int				getHttpResponseHeadSize() { return this->_httpResponseHead.size(); }
 
 		void			setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
-		void			setStatusCode(int statusCode) { this->_httpResponse->setStatusCode(statusCode); }
+		void			setStatusCode(int statusCode) { this->_httpResponse.setStatusCode(statusCode); }
 		void			setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		void			setHttpResponseBody(std::string body) { this->_httpResponse.setBody(body); }
 		

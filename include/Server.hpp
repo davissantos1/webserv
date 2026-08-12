@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/07 13:48:32 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/11 22:02:17 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 # include "webserv.hpp"
 # include "Client.hpp"
+# include "Multiplexer.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <netdb.h>
