@@ -47,7 +47,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 	std::size_t	i;
 
 	_buffer.append(buffer, len);
-	while (_requestStatus != DONE && _requestStatus != ERROR)
+	while (_requestStatus != DONE && _requestStatus != ERROR_BAD_REQUEST && _requestStatus != ERROR_REQUEST_TOO_LARGE)
 	{
 		i = _buffer.find("\r\n");
 		if (i == std::string::npos)
@@ -81,7 +81,7 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 
 	if (splited.size() != 3 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
 	{
-		_requestStatus = ERROR;
+		_requestStatus = ERROR_BAD_REQUEST;
 		return ;
 	}
 
@@ -91,10 +91,11 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 
 	if (splited[2] != "HTTP/1.1" && splited[2] != "HTTP/1.0")
 	{
-		_requestStatus = ERROR;
+		_requestStatus = ERROR_BAD_REQUEST;
 		return ;
 	}
 
+	splitRequestUri();
 	_requestStatus = PARSING_HEADERS;
 }
 
@@ -125,11 +126,11 @@ void	HttpRequestParser::splitRequestUri()
 	{
 		filename.erase(query);
 		endpoint.erase(query);
-		queryString.erase(queryString.begin(), query + 1);
+		queryString.erase(0, query + 1);
 		if (dot != std::string::npos)
 		{
 			endpoint.erase(slash + 1);
-			filename.erase(filename.begin(), slash + 1);
+			filename.erase(0, slash + 1);
 		}
 		else
 			filename.clear();
@@ -140,7 +141,7 @@ void	HttpRequestParser::splitRequestUri()
 		if (dot != std::string::npos)
 		{
 			endpoint.erase(slash + 1);
-			filename.erase(filename.begin(), slash + 1);
+			filename.erase(0, slash + 1);
 		}
 		else
 			filename.clear();

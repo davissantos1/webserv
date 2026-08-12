@@ -55,7 +55,7 @@ class VirtualHostConfig
 		const std::vector<Location>& getLocation() const { return _locations; }
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 
-		std::pair<int, std::string> getReturn( std::string& endpoint ); // to be done
+		std::pair<int, std::string> getReturnCode( std::string& endpoint ); // to be done
 		std::string	getErrorPage( int error, std::string& endpoint ); // to be done
 		std::string	getCgiInterpreterPath( std::string& filename, std::string& endpoint ); // to be done
 		std::string	getCgiScriptPath( std::string& filename, std::string& endpoint ); // to be done excolhe 1

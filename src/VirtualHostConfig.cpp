@@ -69,7 +69,7 @@ std::string	VirtualHostConfig::getCgiInterpreterPath( std::string& filename, std
 
 }
 
-std::pair<int, std::string> VirtualHostConfig::getReturn( std::string& endpoint )
+std::pair<int, std::string> VirtualHostConfig::getReturnCode( std::string& endpoint )
 {
 	Location local;
 
