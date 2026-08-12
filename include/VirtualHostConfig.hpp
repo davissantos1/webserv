@@ -33,6 +33,8 @@ class VirtualHostConfig
 		std::vector<Location>		_locations;
 		std::pair<int, std::string>	_return;
 
+		bool findLocation( std::string& path, Location& loc ) const;
+
 	public:
 		VirtualHostConfig();
 		~VirtualHostConfig();
@@ -53,15 +55,15 @@ class VirtualHostConfig
 		const std::vector<Location>& getLocation() const { return _locations; }
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 
-		int			getReturnCode(std::string endpoint); // to be done
-		std::string	getErrorPage(int error); // to be done
-		std::string	getCgiInterpreterPath(std::string filename, std::string endpoint); // to be done
-		std::string	getCgiScriptPath(std::string filename, std::string endpoint); // to be done
-		std::string	getFullPath(std::string filename, std::string endpoint); // to be done
-		bool		isMethodAllowed(std::string method, std::string endpoint); // to be done
-		bool		shouldIndex(std::string endpoint); // to be done
-		bool		shouldAutoindex(std::string endpoint); // to be done
-		bool		shouldRedirect(std::string endpoint); // to be done
+		std::pair<int, std::string> getReturn( std::string& endpoint ); // to be done
+		std::string	getErrorPage( int error, std::string& endpoint ); // to be done
+		std::string	getCgiInterpreterPath( std::string& filename, std::string& endpoint ); // to be done
+		std::string	getCgiScriptPath( std::string& filename, std::string& endpoint ); // to be done excolhe 1
+		std::string	getFullPath( std::string& filename, std::string& endpoint); // to be done aqui exolhe 1
+		bool		isMethodAllowed( std::string& method, std::string& endpoint ); // to be done
+		bool		shouldIndex( std::string& endpoint ); // to be done
+		bool		shouldAutoindex( std::string& endpoint ); // to be done
+		bool		shouldRedirect( std::string& endpoint ); // to be done
 
 		void	setServerNames( const std::vector<std::string> & serverNames ) { _serverNames = serverNames; }
 		void	setHostIp( const std::vector<std::string> & hostIp ) { _hostIp = hostIp; }

@@ -28,7 +28,8 @@ enum RequestStatus {
 	PARSING_HEADERS,
 	PARSING_BODY,
 	DONE,
-	ERROR
+	ERROR_BAD_REQUEST,
+	ERROR_REQUEST_TOO_LARGE
 };
 
 class HttpRequestParser
