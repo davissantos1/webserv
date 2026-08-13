@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 16:20:34 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:40:26 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,19 @@ std::string HttpRequest::getHeader(std::string header)
 	if (header.empty() || this->_headers.count(header))
 		return ("");
 	return (this->_headers[header]);
+}
+
+std::string	HttpRequest::extractSessionId()
+{
+	size_t idStart, idEnd;
+	std::string sessionId;
+
+	if (!this->_headers.count("Cookie"))
+		return ("");
+	sessionId = this->_headers["Cookie"];
+	idStart = sessionId.find('=');
+	idEnd = sessionId.find(';');
+	if (idStart == std::string::npos || idEnd == std::string::npos)
+		return ("");
+	return (sessionId.substr(idStart, idEnd - idStart);
 }

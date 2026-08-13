@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 19:47:23 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 21:48:40 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,3 +70,11 @@ void	HttpResponseBuilder::feedStaticFile(char *buffer, int size)
 		stringBuffer += buffer[i];
 	this->_httpResponse.feedBody(stringBuffer);
 }
+
+void	HttpResponseBuilder::addHeader(std::string key, std::string value)
+{
+	std::map<std::string, std::string>& headers = this->_httpResponse.getHeaders();
+	
+	headers[key] = value;
+}
+

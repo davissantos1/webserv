@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 22:02:17 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:07:17 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define SERVER_HPP
 
 # define BACKLOG 20
+# define SESSION_TIMEOUT 10000
 
 # include "webserv.hpp"
 # include "Client.hpp"
@@ -39,6 +40,8 @@ enum FdType
 	CGI
 };
 
+class Session;
+
 class	Server
 {
 	private:
@@ -47,6 +50,8 @@ class	Server
 		std::map<int, Client*>					_clientMap;
 		std::map<int, Client*>					_cgiMap;
 		std::map<int, Client*>					_staticFileMap;
+		std::map<std::string, Session*>			_sessionMap;
+		std::map<Session*, Client*>				_sessionClientMap;
 		std::vector<Client*>					_clients;
 		std::vector<int>						_listenFds;
 		Multiplexer								_multiplexer;

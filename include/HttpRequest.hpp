@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 18:09:10 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:32:55 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ class HttpRequest
 		void	setEndpoint(std::string endpoint) { this->_endpoint = endpoint; }
 
 		std::string getHeader(std::string header);
+		std::string	extractSessionId();
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 20:26:13 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:56:01 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ Server::Server(const std::vector<VirtualHostConfig> config): _configs(config) {}
 
 Server::~Server() 
 {
+	std::map<std::string, Session*>::iterator it;
+
 	for (int i = 0; i < this->_clients.size(); i++)
 	{
 		Client* curr = this->_clients[i];
@@ -29,6 +31,8 @@ Server::~Server()
 	}
 	for (int j = 0; j < this->_listenFds.size(); j++)
 		close(this->_listenFds[j]);
+	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end(); it++)
+		delete(it.second);
 	if (this->_currAddr)
 		freeaddrinfo(this->_currAddr);
 }
@@ -125,7 +129,6 @@ void	Server::runServer()
 				fdType = STATIC_FILE;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
 			this->checkTimeouts();
-			// check if there are no more active socket connections so serverRunning is set to false?
 		}
 	}
 }
@@ -172,6 +175,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			{
 				this->_multiplexer.removeFd(client->getFd());
 				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();
+				if (status == PROCESSING_STATIC_FILE || status == PROCESSING_CGI)
+					this->handleSession(client);
 				for (int i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].second)
@@ -348,6 +353,7 @@ void	Server::destroyClient(int clientFd)
 
 	this->_multiplexer.removeFd(clientFd);
 	this->_clientMap.erase(clientFd);
+	this->_sessionClientMap.erase(client);
 	this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), client), this->_clients.end());
 	std::vector<int> activeFds = client->getActiveFds();
 	for (size_t i = 0; i < activeFds.size(); i++)
@@ -365,17 +371,63 @@ void	Server::destroyClient(int clientFd)
 void	Server::checkTimeouts()
 {
 	std::time_t currentTime = std::time(NULL);
+	std::map<std::string, Session*>::iterator it;
+	Session* currentSession;
+	Client* currentClient;
+	double secondsIdle;
 
 	for (int i = 0; i < this->_clients.size(); i++)
 	{
-		Client* currentClient = this->_clients[i];
-		double secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
+		currentClient = this->_clients[i];
+		secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
 
 		if (secondsIdle > TIMEOUT)
 		{
 			Server::printLog("client timed out!");
 			this->destroyClient(currentClient->getFd());
 		}
+	}
+	currentTime = std::time(NULL);
+	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end(); it++)
+	{
+		Session* currentSession = it.second;
+		secondsIdle = std::difftime(currentTime, currentSession->getLastActivity());
+		
+		if (secondsIdle > SESSION_TIMEOUT)
+		{
+			currentClient = this->_sessionClientMap[currentSession];
+
+			Server::printLog("session expired!");
+			currentClient->setSession(NULL);
+			this->_sessionMap.erase(it.first);
+			delete (currentSession);
+		}		
+	}
+}
+
+void	Server::handleSession(Client* client)
+{
+	HttpRequest& req = client->getHttpRequest();
+	HttpResponseBuilder& build = client->getHttpResponseBuilder();
+	std::string sessionId = client->findSessionId();
+
+	if (sessionId.empty() || !this->_sessionMap.count(sessionId))
+	{
+		std::string newCookie;
+		Session* newSession = new Session;
+		newCookie = "session_id=" + newSession->getSessionId() + "; Max-Age=1800; Path=/";
+
+		this->_sessionMap[newSession->getSessionId()] = newSession;
+		this->_sessionClientMap[newSession] = client;
+		build.addHeader("Set-Cookie", newCookie);
+		client->setSession(newSession);
+	}
+	else
+	{
+		Session* currentSession = this->_sessionMap[sessionId];
+		client->setSession(currentSession);
+		this->_sessionClientMap[currentSession] = client;
+		currentSession->extractCookies(req.getHeader("Cookie"));
 	}
 }
 

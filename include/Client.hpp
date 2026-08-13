@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 18:10:47 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:52:03 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define CLIENT_HPP
 
 # include "webserv.hpp"
+# include "Session.hpp"
 # include "CgiHandler.hpp"
 # include "StaticFileHandler.hpp"
 # include "HttpResponseBuilder.hpp"
@@ -57,6 +58,7 @@ class Client
 		HttpResponseBuilder				_httpResponseBuilder;
 		StaticFileHandler				_staticFileHandler;
 		CgiHandler						_cgiHandler;
+		Session*						_session;
 		time_t							_lastActivity;
 		std::vector<int>				_activeFds;
 		std::vector<VirtualHostConfig>*	_configs;
@@ -83,14 +85,18 @@ class Client
 		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
 		int						getStatusCode() { return this->_httpResponseBuilder.getStatusCode(); }
 		VirtualHostConfig		getCurrentConfig(std::string host);
+		Session*				getSession() { return this->_session; }
+		HttpRequest&			getHttpRequest() { return this->_httpRequestParser.getHttpRequest(); }
 
+		void	setSession(Session* session) { this->_session = session; }
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
-		void	destroyActiveFds();
-		void	registerFd(int fd) { this->_activeFds.push_back(fd); }
-		void	handleIndex();
+		std::string		findSessionId();
+		void			destroyActiveFds();
+		void			handleIndex();
+		void			registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
 		{

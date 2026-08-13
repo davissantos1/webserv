@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 18:35:01 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/12 23:32:07 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,4 +283,17 @@ void	Client::handleIndex()
 				this->_status = PROCESSING_STATIC_FILE;
 		}
 	}
+}
+
+std::string	Client::findSessionId()
+{
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
+	if (!this->_session)
+	{
+		std::string sessionId = req.extractSessionId();
+		if (sessionId.empty())
+			return ("");
+		return (sessionId);
+	}
+	return (this->_session->getSessionId());
 }
