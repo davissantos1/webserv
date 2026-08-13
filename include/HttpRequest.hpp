@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:32:55 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:06:44 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ class HttpRequest
 
 		std::string getHeader(std::string header);
 		std::string	extractSessionId();
+		void		reset();
 };
 
 #endif

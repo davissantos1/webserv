@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 16:17:45 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:14:28 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,7 @@ void	HttpResponseBuilder::feedCgi(char *buffer, int size)
 		HttpResponse& res = this->_httpResponse;
 		res.setHeaders(this->_cgiParser.getHeaders());
 		res.setBody(this->_cgiParser.getBody());
+		this->_cgiParser.reset();
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 14:46:41 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:19:11 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,6 +138,7 @@ enum ClientStatus	Client::processHttpResponse()
 	{
 		this->_httpResponseBuilder.buildHeaders();
 		this->_httpResponseBuilder.buildResponse();
+		this->_httpRequestParser.cleanHttpRequest();
 		this->_status = WRITING_RESPONSE;
 	}
 	while (true)
@@ -155,8 +156,7 @@ enum ClientStatus	Client::processHttpResponse()
 			if (bytes == bytesRemaining)
 			{
 				this->_status = SENT_RESPONSE;
-				this->_httpRequestParser.reset();
-				this->_httpResponseBuilder.reset();
+				this->_httpResponseBuilder.cleanHttpResponse();
 				return (SENT_RESPONSE);
 			}
 		}

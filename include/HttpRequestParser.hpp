@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 16:16:26 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:16:03 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ class HttpRequestParser
 
 		enum RequestStatus	feed( const char* buffer, size_t size ); // to be done
 		bool				hasCgi(); // to be done
+		void				cleanHttpRequest() { this->_httpRequest.reset(); }
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 14:17:04 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:15:02 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class CgiParser
 
 		bool	isCgiDone();
 		void	feed(char *buffer, int size);
+		void	reset();
 };
 
 #endif

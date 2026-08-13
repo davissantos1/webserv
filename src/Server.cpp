@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:56:01 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 16:56:57 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,19 +59,20 @@ Server::Server(const Server& other)
 
 void	Server::startServer()
 {
-	int sockFd, status;
-	int sz = this->_configs.size();
-	struct addrinfo	hints, *res, *p;
 	int opt = 1;
+	int sockFd, status;
+	struct addrinfo	hints, *res, *p;
+	std::set<std::pair<std::string, std::string> > interface;
+	std::set<std::pair<std::string, std::string> >::iterator it;
 
-	for (int i = 0; i < sz; i++)
+	interface = ConfigParser::extractLinten(this->_configs);
+	for (it = interface.begin(); it != interface.end(); it++)
 	{
 		std::memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
-		VirtualHostConfig v = this->_configs[i];
-		if ((status = getaddrinfo(v.getHost().c_str(), v.getPort().c_str(), &hints, &res)) != 0)
+		if ((status = getaddrinfo(it.first.c_str(), it.second.c_str(), &hints, &res)) != 0)
 			throw (ServerException(gai_strerror(status)));
 		this->_currAddr = res;
 		for (p = res; p != NULL; p = p->ai_next)

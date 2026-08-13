@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 22:19:54 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:07:07 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class HttpResponse
 		void	setBody(std::string body) { this->_body = body; }
 
 		void	feedBody(std::string data) { this->_body += data; }
+		void	reset();
 };
 
 #endif

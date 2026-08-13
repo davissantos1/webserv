@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 16:04:49 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:12:12 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,4 +78,20 @@ std::string	getMimeType()
 			return (mime[i]);
 	}
 	return ("text/plain");
+}
+
+void	HttpRequest::reset()
+{
+	this->_serverName.clear();
+	this->_serverPort = 0;
+	this->_clientIp.clear();
+	this->_filename.clear();
+	this->_endpoint.clear();
+	this->_method.clear();
+	this->_query.clear();
+	this->_uri.clear();
+	this->_version.clear();
+	this->_headers.clear();
+	this->_body.clear();
+	this->_keepAlive = false;
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 14:55:16 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:13:45 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ class HttpResponseBuilder
 		void				feedCgi(char *buffer, int size);
 		void				feedStaticFile(char *buffer, int size);
 		void				addHeader(std::string key, std::string value);
+		void				cleanHttpResponse() { this->_httpResponse.reset(); }
 };
 
 #endif

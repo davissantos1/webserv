@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/12 15:40:51 by vitosant         ###    ########.fr      */
+/*   Updated: 2026/08/13 16:49:45 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include "Location.hpp"
 #include "VirtualHostConfig.hpp"
+#include <sstream>
 #include <cstddef>
 #include <fstream>
 #include <deque>
@@ -90,7 +91,7 @@ class ConfigParser
 
 		std::vector<VirtualHostConfig> parse( const std::string& path );
 		const std::deque< std::pair<t_file_tokens, std::string> >&	getTokens( void ) const;
-		static std::set<std::pair<std::string, int> >	extractLinten( std::vector<VirtualHostConfig> & conf );
+		static std::set<std::pair<std::string, std::string> >	extractLinten( std::vector<VirtualHostConfig> & conf );
 
 };
 

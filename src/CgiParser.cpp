@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 14:20:24 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:14:42 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void	CgiParser::feed(char *buffer, int size)
 	}
 }
 
-void	CgiParser::resetParser()
+void	CgiParser::reset()
 {
 	this->_bodySize = 0;
 	this->_status = BUILDING_HEADERS;

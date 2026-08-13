@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:07:17 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 16:39:45 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 # include <sstream>
 # include <vector>
 # include <map>
+# include <set>
 # include <iostream>
 
 enum FdType

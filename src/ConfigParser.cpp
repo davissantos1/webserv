@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/24 08:41:18 by vitosant         ###    ########.fr      */
+/*   Updated: 2026/08/13 16:49:29 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -862,7 +862,8 @@ void	ConfigParser::handleLocationReturn( Location& loc )
 
 std::set<std::pair<std::string, int> >	ConfigParser::extractLinten( std::vector<VirtualHostConfig> & conf )
 {
-	std::set<std::pair<std::string, int> >	listens;
+	std::stringstream						ss;
+	std::set<std::pair<std::string, std::string> >	listens;
 	std::string								ip;
 	int										port;
 
@@ -873,7 +874,8 @@ std::set<std::pair<std::string, int> >	ConfigParser::extractLinten( std::vector<
 		{
 			ip = conf[i].getHostIp(j);
 			port = conf[i].getPort(j);
-			listens.insert(std::make_pair(ip, port));
+			ss << port;
+			listens.insert(std::make_pair(ip, ss.str()));
 		}
 	}
 	return (listens);

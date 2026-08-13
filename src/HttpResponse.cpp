@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 18:10:58 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 17:09:29 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,4 +86,13 @@ void	HttpResponse::setStatusCode(int statusCode)
 			this->_reasonPhrase = "Internal Server Error";
 			break;
 	}
+}
+
+void	HttpResponse::reset()
+{
+	this->_statusCode = 0;
+	this->_version.clear();
+	this->_reasonPhrase.clear();
+	this->_headers.clear();
+	this->_body.clear();
 }
