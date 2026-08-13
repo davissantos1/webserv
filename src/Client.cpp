@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:32:07 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 14:46:41 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,8 @@ enum ClientStatus	Client::processHttpResponse()
 
 	if (this->_status == PREPARING_RESPONSE)
 	{
-		this->_httpResponseBuilder.build();
+		this->_httpResponseBuilder.buildHeaders();
+		this->_httpResponseBuilder.buildResponse();
 		this->_status = WRITING_RESPONSE;
 	}
 	while (true)

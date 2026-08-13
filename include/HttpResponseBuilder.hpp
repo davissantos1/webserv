@@ -6,17 +6,18 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 21:46:19 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/13 14:55:16 by davi             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPRESPONSEBUILDER_HPP
 # define HTTPRESPONSEBUILDER_HPP
 
-# include <string>
 # include "CgiParser.hpp"
 # include "HttpResponse.hpp"
 # include "HttpRequest.hpp"
+# include <string>
+# include <ctime>
 
 class HttpResponseBuilder
 {
