@@ -204,8 +204,6 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 		throw std::runtime_error("Error: no 'listen' directive was found in server block.");
 	if (virtualHost.getRoot().empty())
 			throw std::runtime_error("Error: no 'root' directive was found in server block.");
-	if (virtualHost.getIndex().empty())
-		throw std::runtime_error("Error: no 'index' directive was found in server block.");
 	if (virtualHost.getMaxBodySize() == 0)
 		virtualHost.setMaxBodySize(1 << 21);
 
@@ -843,8 +841,9 @@ void	ConfigParser::handleLocationCgiExtension( Location& loc )
 
 	advance_token(1);
 
+	if (curr_token().second != ".py" && curr_token().second != ".php")
+		throw std::runtime_error("Error: invalid CGI extension, only '.php' and '.py' are accepted.");
 	loc.setCgiExtension(curr_token().second);
-
 	if (next_token().first != TOKEN_SEMICOLON)
 		throw std::runtime_error("Error: 'cgi_extension' takes exactly one argument or is missing ';'.");
 

@@ -52,7 +52,7 @@ VirtualHostConfig::VirtualHostConfig(const VirtualHostConfig& other)
 		*this = other;
 }
 
-bool VirtualHostConfig::findLocation( std::string& path, Location& loc ) const
+bool VirtualHostConfig::findLocation( const std::string& path, Location& loc ) const
 {
 	for(size_t i = 0; i < _locations.size(); i++)
 	{
@@ -65,12 +65,42 @@ bool VirtualHostConfig::findLocation( std::string& path, Location& loc ) const
 	return (false);
 }
 
-std::string	VirtualHostConfig::getCgiInterpreterPath( std::string& filename, std::string& endpoint )
-{
 
+static bool checkFileExtension( const std::string& filename )
+{
+	size_t		i;
+	std::string	extension;
+
+	i = filename.rfind('.');
+	extension = filename.substr(i);
+	return (extension == ".py" || extension == ".php");
 }
 
-std::pair<int, std::string> VirtualHostConfig::getReturnCode( std::string& endpoint )
+
+// Essa daqui vai retornar "" se não achar o endpoint ou a extensão do arquivo não for válida
+std::string	VirtualHostConfig::getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const
+{
+	Location local;
+
+	if (findLocation(endpoint, local))
+	{
+		if (checkFileExtension(filename))
+		{
+			if (local.getPath().empty())
+			{
+				if (local.getCgiExtension() == ".py")
+					return ("/usr/bin/python3");
+				else
+					return ("/usr/bin/php");
+			}
+			else
+				return (local.getCgiPath());
+		}
+	}
+	return (std::string());
+}
+
+std::pair<int, std::string> VirtualHostConfig::getReturn( const std::string& endpoint ) const
 {
 	Location local;
 
@@ -82,7 +112,7 @@ std::pair<int, std::string> VirtualHostConfig::getReturnCode( std::string& endpo
 	return (_return);
 }
 
-std::string	VirtualHostConfig::getErrorPage( int error, std::string& endpoint )
+std::string	VirtualHostConfig::getErrorPage( const int error, const std::string& endpoint ) const
 {
 	Location local;
 	std::map<int, std::string>::const_iterator it;
@@ -103,17 +133,22 @@ std::string	VirtualHostConfig::getErrorPage( int error, std::string& endpoint )
 	return (std::string());
 }
 
-std::string	VirtualHostConfig::getCgiScriptPath( std::string& filename, std::string& endpoint )
-{
 
+std::string	VirtualHostConfig::getFullPath( const std::string& filename, const std::string& endpoint ) const
+{
+	Location	local;
+
+	if (!checkFileExtension(filename))
+		return (std::string());
+	if (findLocation(endpoint, local))
+	{
+		if (!local.getRoot().empty())
+			return (local.getRoot() + filename);
+	}
+	return (getRoot() + filename);
 }
 
-std::string	VirtualHostConfig::getFullPath( std::string& filename, std::string& endpoint)
-{
-
-}
-
-bool		VirtualHostConfig::isMethodAllowed( std::string& method, std::string& endpoint )
+bool		VirtualHostConfig::isMethodAllowed( const std::string& method, const std::string& endpoint ) const
 {
 	Location	local;
 
@@ -127,7 +162,7 @@ bool		VirtualHostConfig::isMethodAllowed( std::string& method, std::string& endp
 		!= _allowedMethods.end());
 }
 
-bool		VirtualHostConfig::shouldIndex( std::string& endpoint )
+bool		VirtualHostConfig::shouldIndex( const std::string& endpoint ) const
 {
 	Location local;
 
@@ -135,23 +170,26 @@ bool		VirtualHostConfig::shouldIndex( std::string& endpoint )
 	{
 		return (!local.getIndex().empty());
 	}
-	return (false);
+	return (!getIndex().empty());
 }
 
-bool		VirtualHostConfig::shouldAutoindex( std::string& endpoint )
+bool		VirtualHostConfig::shouldAutoindex( const std::string& endpoint ) const
+{
+	Location local;
+
+	return (findLocation(endpoint, local) && local.getAutoindex());
+}
+
+bool		VirtualHostConfig::shouldRedirect( const std::string& endpoint ) const
 {
 	Location local;
 
 	if (findLocation(endpoint, local))
 	{
-		return (local.getAutoindex());
+		if (local.getReturn().first != 0)
+			return (true);
 	}
-	return (false);
-}
-
-bool		VirtualHostConfig::shouldRedirect( std::string& endpoint )
-{
-
+	return (getReturn().first != 0);
 }
 
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )
