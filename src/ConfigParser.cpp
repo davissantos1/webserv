@@ -732,6 +732,45 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 	advance_token(1);
 }
 
+void	ConfigParser::handleLocationErrorPage( Location& local )
+{
+	char				*end;
+	long				num;
+	std::list<int>		errors;
+
+	if (next_token().first != TOKEN_WORD)
+		throw std::runtime_error("Error: 'error_page' directive needs a value.");
+
+	advance_token(1);
+
+	while (true)
+	{
+		num = std::strtol(curr_token().second.c_str(), &end, 10);
+		if (*end != '\0' || curr_token().first != TOKEN_WORD)
+			break ;
+		if (num < 300 || num > 599)
+			throw std::runtime_error("Error: invalid error code in 'error_page' directive.");
+
+		errors.push_back(static_cast<int>(num));
+		advance_token(1);
+	}
+
+	if ( errors.empty() || curr_token().first != TOKEN_WORD || next_token().first != TOKEN_SEMICOLON)
+		throw std::runtime_error("Error in 'error_page' directive.");
+
+	std::list<int>::iterator iter = errors.begin();
+	while (iter != errors.end())
+	{
+		if (local.getErrorPages().find(*iter) == local.getErrorPages().end())
+			local.addErrorPage(*iter, curr_token().second);
+		else
+			throw std::runtime_error("It looks like there is a duplicate value.");
+		iter++;
+	}
+
+	advance_token(2);
+}
+
 void	ConfigParser::handleLocationAutoindex( Location& loc )
 {
 	if (next_token().first != TOKEN_WORD)
@@ -860,7 +899,7 @@ void	ConfigParser::handleLocationReturn( Location& loc )
 	advance_token(1);
 }
 
-std::set<std::pair<std::string, int> >	ConfigParser::extractLinten( std::vector<VirtualHostConfig> & conf )
+std::set<std::pair<std::string, std::string> >	ConfigParser::extractLinten( std::vector<VirtualHostConfig> & conf )
 {
 	std::stringstream						ss;
 	std::set<std::pair<std::string, std::string> >	listens;

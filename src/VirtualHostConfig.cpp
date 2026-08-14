@@ -14,6 +14,7 @@
 #include "Location.hpp"
 #include <algorithm>
 #include <cstddef>
+#include <map>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -83,7 +84,23 @@ std::pair<int, std::string> VirtualHostConfig::getReturnCode( std::string& endpo
 
 std::string	VirtualHostConfig::getErrorPage( int error, std::string& endpoint )
 {
+	Location local;
+	std::map<int, std::string>::const_iterator it;
 
+	if (findLocation(endpoint, local))
+	{
+		if (!_errorPages.empty())
+		{
+			it = local.getErrorPages().find(error);
+			if (it != _errorPages.end())
+				return (it->second);
+		}
+	}
+
+	it = getErrorPages().find(error);
+	if (it != getErrorPages().end())
+		return (it->second);
+	return (std::string());
 }
 
 std::string	VirtualHostConfig::getCgiScriptPath( std::string& filename, std::string& endpoint )
