@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 16:56:57 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:02:05 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,19 @@ Server::~Server()
 {
 	std::map<std::string, Session*>::iterator it;
 
-	for (int i = 0; i < this->_clients.size(); i++)
+	for (size_t i = 0; i < this->_clients.size(); i++)
 	{
 		Client* curr = this->_clients[i];
 		if (curr)
 		{
-			close(curr->_fd);
+			close(curr->getFd());
 			delete(curr);
 		}
 	}
-	for (int j = 0; j < this->_listenFds.size(); j++)
+	for (size_t j = 0; j < this->_listenFds.size(); j++)
 		close(this->_listenFds[j]);
 	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end(); it++)
-		delete(it.second);
+		delete(it->second);
 	if (this->_currAddr)
 		freeaddrinfo(this->_currAddr);
 }
@@ -42,11 +42,15 @@ Server&	Server::operator=(const Server& other)
 	if (this != &other)
 	{
 		this->_configs = other._configs;
-		this->_serverMap = other._serverMap;
-		this->_listenFds = other._listenFds;
 		this->_clientMap = other._clientMap;
 		this->_cgiMap = other._cgiMap;
+		this->_staticFileMap = other._staticFileMap;
+		this->_sessionMap = other._sessionMap;
+		this->_sessionClientMap = other._sessionClientMap;
 		this->_clients = other._clients;
+		this->_listenFds = other._listenFds;
+		this->_multiplexer = other._multiplexer;
+		this->_currAddr = other._currAddr;
 	}
 	return (*this);
 }
@@ -72,7 +76,7 @@ void	Server::startServer()
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
-		if ((status = getaddrinfo(it.first.c_str(), it.second.c_str(), &hints, &res)) != 0)
+		if ((status = getaddrinfo(it->first.c_str(), it->second.c_str(), &hints, &res)) != 0)
 			throw (ServerException(gai_strerror(status)));
 		this->_currAddr = res;
 		for (p = res; p != NULL; p = p->ai_next)
@@ -94,7 +98,6 @@ void	Server::startServer()
 			throw (ServerException(errno));
 		if ((status = fcntl(sockFd, F_SETFL, O_NONBLOCK)) == -1)
 			throw (ServerException(errno));
-		this->_configMap[sockFd] = v;
 		freeaddrinfo(this->_currAddr);
 		this->_currAddr = res = NULL;
 	}
@@ -103,14 +106,14 @@ void	Server::startServer()
 
 void	Server::runServer()
 {
-	std::vector<std::pair<int, uint32_t>> fds;
+	std::vector<std::pair<int, uint32_t> > fds;
 	std::vector<int>::iterator listenBegin, listenEnd, it;
 	enum FdType fdType;
 
 	while (serverRunning)
 	{
 		fds = this->_multiplexer.wait();
-		for (int j = 0; j < fds.size(); j++)
+		for (size_t j = 0; j < fds.size(); j++)
 		{
 			listenBegin = this->_listenFds.begin();
 			listenEnd = this->_listenFds.end();
@@ -161,6 +164,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			Client* client = this->_clientMap[fd];
 			if (!client) break;
 
+			status = client->getStatus();
 			if (eventType & EPOLLIN)
 				status = client->processHttpRequest();
 			else if (eventType & EPOLLOUT)
@@ -178,7 +182,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();
 				if (status == PROCESSING_STATIC_FILE || status == PROCESSING_CGI)
 					this->handleSession(client);
-				for (int i = 0; i < tasks.size(); i++)
+				for (size_t i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].second)
 					{
@@ -207,7 +211,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			if (status == SENT_RESPONSE)
 			{
-				client->setStatus = READING_REQUEST;
+				client->setStatus(READING_REQUEST);
 				this->_multiplexer.removeFd(client->getFd());
 				this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
 
@@ -245,11 +249,12 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 
 void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType type)
 {
-	std::pair<int, enum FdIoType> errorFd;
+	HttpRequest& req = client->getHttpRequest();
+	std::vector<std::pair<int, enum FdIoType> > errorFd;
 	StaticFileHandler& stat = client->getStaticFileHandler();
 	VirtualHostConfig& conf = client->getVirtualHostConfig();
 	std::vector<int> activeFds = client->getActiveFds();
-	for (int i = 0; i < activeFds.size(); i++)
+	for (size_t i = 0; i < activeFds.size(); i++)
 	{
 		this->_multiplexer.removeFd(activeFds[i]);
 		if (type == CGI)
@@ -260,15 +265,15 @@ void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType typ
 	client->destroyActiveFds();
 	if (statusCode > 299)
 	{
-		client->setStatus() = PROCESSING_STATIC_FILE;
-		errorFd = stat->handleException(statusCode, conf.getErrorPage(statusCode)); 
-		this->_multiplexer.addFd(errorFd.first, EPOLLIN | EPOLLRDHUP);
-		this->staticFileMap[errorFd.first] = client;
-		client->registerFd(errorFd.first);
+		client->setStatus(PROCESSING_STATIC_FILE);
+		errorFd = stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint())); 
+		this->_multiplexer.addFd(errorFd[0].first, EPOLLIN | EPOLLRDHUP);
+		this->_staticFileMap[errorFd[0].first] = client;
+		client->registerFd(errorFd[0].first);
 	}	
 	else
 	{
-		client->setStatus() = PREPARING_RESPONSE;
+		client->setStatus(PREPARING_RESPONSE);
 		this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 	}
 }
@@ -320,7 +325,7 @@ int	Server::createClient(int sockFd)
 	std::string ipStr;
 	struct sockaddr_storage addr;
 	socklen_t addr_len = sizeof(addr);
-	int clientFd, status;
+	int clientFd;
 	uint16_t	port = 0;
 	uint32_t	ip = 0;
 
@@ -331,7 +336,7 @@ int	Server::createClient(int sockFd)
 	}
 	if (addr.ss_family == AF_INET)
 	{
-		struct sockaddr_in* addr_in = reinterpret_cast<struct sockaddr_in*>&addr;
+		struct sockaddr_in* addr_in = reinterpret_cast<struct sockaddr_in*>(&addr);
 		port = ntohs(addr_in->sin_port);
 		ip = ntohl(addr_in->sin_addr.s_addr);
 		std::stringstream ipStream;
@@ -341,7 +346,7 @@ int	Server::createClient(int sockFd)
 					<< ((ip & 0xFF));
 		ipStr = ipStream.str();
 	}
-	Client* newClient = new Client(ipStr, port, clientFd, this->_configs);
+	Client* newClient = new Client(ipStr, port, clientFd, &this->_configs);
 	this->_clients.push_back(newClient);
 	this->_clientMap[clientFd] = newClient;
 	return (clientFd);
@@ -354,7 +359,7 @@ void	Server::destroyClient(int clientFd)
 
 	this->_multiplexer.removeFd(clientFd);
 	this->_clientMap.erase(clientFd);
-	this->_sessionClientMap.erase(client);
+	this->_sessionClientMap.erase(client->getSession());
 	this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), client), this->_clients.end());
 	std::vector<int> activeFds = client->getActiveFds();
 	for (size_t i = 0; i < activeFds.size(); i++)
@@ -377,7 +382,7 @@ void	Server::checkTimeouts()
 	Client* currentClient;
 	double secondsIdle;
 
-	for (int i = 0; i < this->_clients.size(); i++)
+	for (size_t i = 0; i < this->_clients.size(); i++)
 	{
 		currentClient = this->_clients[i];
 		secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
@@ -391,7 +396,7 @@ void	Server::checkTimeouts()
 	currentTime = std::time(NULL);
 	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end(); it++)
 	{
-		Session* currentSession = it.second;
+		currentSession = it->second;
 		secondsIdle = std::difftime(currentTime, currentSession->getLastActivity());
 		
 		if (secondsIdle > SESSION_TIMEOUT)
@@ -400,7 +405,7 @@ void	Server::checkTimeouts()
 
 			Server::printLog("session expired!");
 			currentClient->setSession(NULL);
-			this->_sessionMap.erase(it.first);
+			this->_sessionMap.erase(it->first);
 			delete (currentSession);
 		}		
 	}

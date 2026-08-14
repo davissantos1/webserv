@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:19:11 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:02:07 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	{
 		case DONE:
 		{
+			HttpRequestParser& parse = this->_httpRequestParser;
 			HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 			VirtualHostConfig& conf = this->_virtualHostConfig;
@@ -94,7 +95,8 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 			}
 			if (conf.shouldRedirect(req.getEndpoint()))
 			{
-				this->setStatusCode(conf.getReturnCode(req.getEndpoint()));
+				std::pair<int, std::string> ret = conf.getReturn(req.getEndpoint());
+				this->setStatusCode(ret.first);
 				this->_status = PREPARING_RESPONSE;
 				return (PREPARING_RESPONSE);
 			}
@@ -131,7 +133,7 @@ enum ClientStatus	Client::processHttpResponse()
 {
 	const char*	res;
 	int bytes, bytesSent, bytesRemaining, headSize;
-	HttpResponse& build = this->_httpResponseBuilder;
+	HttpResponseBuilder& build = this->_httpResponseBuilder;
 	std::string& responseStr;
 
 	if (this->_status == PREPARING_RESPONSE)

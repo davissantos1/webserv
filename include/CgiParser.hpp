@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:15:02 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 16:13:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ class CgiParser
 		std::map<std::string, std::string>	getHeaders() { return this->_headers; }
 		std::string	getBody() { return this->_body; }
 
+		void	reset();
 		bool	isCgiDone();
 		void	feed(char *buffer, int size);
-		void	reset();
 };
 
 #endif

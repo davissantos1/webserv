@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:52:03 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:02:06 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,6 @@ class Client
 		Client(const Client& other);
 		Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs);
 		Client&	operator=(const Client& other);
-		void				destroyCgi(int fd);
-		enum ClientStatus	processHttpRequest();
-		enum ClientStatus	processHttpResponse();
-		enum ClientStatus	checkRequest(enum RequestStatus status);
-		std::vector<std::pair<int, enum FdIoType> > executeMethod();
 
 		int						getFd() { return this->_fd; }
 		time_t					getLastActivity() { return this->_lastActivity; }
@@ -82,6 +77,7 @@ class Client
 		HttpRequestParser&		getHttpRequestParser() { return this->_httpRequestParser; }
 		HttpResponseBuilder&	getHttpResponseBuilder() { return this->_httpResponseBuilder; }
 		StaticFileHandler&		getStaticFileHandler() { return this->_staticFileHandler; }
+		VirtualHostConfig&		getVirtualHostConfig() { return this->_virtualHostConfig; }
 		CgiHandler&				getCgiHandler() { return this->_cgiHandler; }
 		int						getStatusCode() { return this->_httpResponseBuilder.getStatusCode(); }
 		VirtualHostConfig		getCurrentConfig(std::string host);
@@ -93,10 +89,15 @@ class Client
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
-		std::string		findSessionId();
-		void			destroyActiveFds();
-		void			handleIndex();
-		void			registerFd(int fd) { this->_activeFds.push_back(fd); }
+		void										destroyCgi(int fd);
+		void										destroyActiveFds();
+		void										handleIndex();
+		std::string									findSessionId();
+		enum ClientStatus							processHttpRequest();
+		enum ClientStatus							processHttpResponse();
+		enum ClientStatus							checkRequest(enum RequestStatus status);
+		std::vector<std::pair<int, enum FdIoType> > executeMethod();
+		void				registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
 		{
