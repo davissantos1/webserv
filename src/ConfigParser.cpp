@@ -41,13 +41,13 @@ ConfigParser::ConfigParser( void )
 	_parseServer["index"]					= &ConfigParser::handleIndex;
 	_parseServer["allow_methods"]			= &ConfigParser::handleAllowedMethods;
 	_parseServer["return"]					= &ConfigParser::handleReturn;
+	_parseServer["upload_path"]				= &ConfigParser::handleUploadPath;
 
 	_parseLocation["root"]			= &ConfigParser::handleLocationRoot;
 	_parseLocation["index"]			= &ConfigParser::handleLocationIndex;
 	_parseLocation["allow_methods"]	= &ConfigParser::handleLocationAllowedMethods;
 	_parseLocation["autoindex"]		= &ConfigParser::handleLocationAutoindex;
-	_parseLocation["upload_enable"]	= &ConfigParser::handleLocationUploadEnable;
-	_parseLocation["upload_store"]	= &ConfigParser::handleLocationUploadStore;
+	_parseLocation["upload_path"]	= &ConfigParser::handleLocationUploadPath;
 	_parseLocation["cgi_extension"]	= &ConfigParser::handleLocationCgiExtension;
 	_parseLocation["cgi_path"]		= &ConfigParser::handleLocationCgiPath;
 	_parseLocation["return"]		= &ConfigParser::handleLocationReturn;
@@ -323,6 +323,8 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 		local.addAllowedMethod("POST");
 		local.addAllowedMethod("DELETE");
 	}
+	if (local.getCgiExtension().empty() != local.getCgiPath().empty())
+		throw std::runtime_error("Error: both 'cgi_extension' and 'cgi_path' must be assigned.");
 	advance_token(1);
 	_locationPaths.push_back(local.getPath());
 	vec.addLocation(local);
@@ -655,6 +657,23 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 		throw std::runtime_error("Error: missing ';' at the end of 'allow_methods' directive in server block.");
 	advance_token(1);
 }
+void	ConfigParser::handleUploadPath( VirtualHostConfig& vec )
+{
+	if (!vec.getUploadPath().empty())
+		throw std::runtime_error("Error: duplicate 'upload_path' directive in server block.");
+
+	if (next_token().first != TOKEN_WORD)
+		throw std::runtime_error("Error: 'upload_path' directive requires a valid argument.");
+
+	advance_token(1);
+
+	vec.setUploadPath(curr_token().second);
+
+	if (next_token().first != TOKEN_SEMICOLON)
+		throw std::runtime_error("Error: 'upload_path' takes exactly one argument or is missing ';'.");
+
+	advance_token(2);
+}
 
 void	ConfigParser::handleLocationRoot( Location& loc )
 {
@@ -791,42 +810,20 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 	advance_token(2);
 }
 
-void	ConfigParser::handleLocationUploadEnable( Location& loc )
+void	ConfigParser::handleLocationUploadPath( Location& loc )
 {
+	if (!loc.getUploadPath().empty())
+		throw std::runtime_error("Error: duplicate 'upload_path' directive.");
+
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'upload_enable' directive requires a valid argument.");
+		throw std::runtime_error("Error: 'upload_path' directive requires a valid argument.");
 
 	advance_token(1);
 
-	std::string state = curr_token().second;
-
-	if (state == "on")
-		loc.setUploadEnable(true);
-	else if (state == "off")
-		loc.setUploadEnable(false);
-	else
-		throw std::runtime_error("Error: 'upload_enable' must be 'on' or 'off'.");
+	loc.setUploadPath(curr_token().second);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'upload_enable' takes exactly one argument or is missing ';'.");
-
-	advance_token(2);
-}
-
-void	ConfigParser::handleLocationUploadStore( Location& loc )
-{
-	if (!loc.getUploadStore().empty())
-		throw std::runtime_error("Error: duplicate 'upload_store' directive.");
-
-	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'upload_store' directive requires a valid argument.");
-
-	advance_token(1);
-
-	loc.setUploadStore(curr_token().second);
-
-	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'upload_store' takes exactly one argument or is missing ';'.");
+		throw std::runtime_error("Error: 'upload_path' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }

@@ -26,13 +26,9 @@ class Location
 		std::vector<std::string>	_index;
 		std::vector<std::string>	_allowedMethods;
 		std::map<int, std::string>	_errorPages;
-
+		std::string					_uploadPath;
 
 		bool						_autoindex;
-
-		bool						_uploadEnable;
-		std::string					_uploadStore;
-
 		std::string					_cgiExtension;
 		std::string					_cgiPath;
 
@@ -49,8 +45,7 @@ class Location
 		void	setIndex( const std::vector<std::string> & index ) { _index = index; }
 		void	setAllowedMethods( const std::vector<std::string> & allowedMethods ) { _allowedMethods = allowedMethods; }
 		void	setAutoindex( bool autoindex ) { _autoindex = autoindex; }
-		void	setUploadEnable( bool uploadEnable ) { _uploadEnable = uploadEnable; }
-		void	setUploadStore( const std::string& uploadStore ) { _uploadStore = uploadStore; }
+		void	setUploadPath( const std::string& uploadPath ) { _uploadPath = uploadPath; }
 		void	setCgiExtension( const std::string& cgiExtension ) { _cgiExtension = cgiExtension; }
 		void	setCgiPath( const std::string& cgiPath ) { _cgiPath = cgiPath; }
 		void	setReturn( const std::pair<int, std::string> & ret ) { _return = ret; } ;
@@ -65,8 +60,7 @@ class Location
 		const std::vector<std::string> &	getIndex( void ) const { return _index; }
 		const std::vector<std::string> &	getAllowedMethods( void ) const { return _allowedMethods; }
 		bool								getAutoindex( void ) const { return _autoindex; }
-		bool								getUploadEnable( void ) const { return _uploadEnable; }
-		const std::string&					getUploadStore( void ) const { return _uploadStore; }
+		const std::string&					getUploadPath( void ) const { return _uploadPath; }
 		const std::string&					getCgiExtension( void ) const { return _cgiExtension; }
 		const std::string&					getCgiPath( void ) const { return _cgiPath; }
 		const std::pair<int, std::string> &	getReturn( void ) const { return(_return); };

@@ -42,6 +42,7 @@ VirtualHostConfig&	VirtualHostConfig::operator=(const VirtualHostConfig& other)
 		this->_locations = other._locations;
 		this->_allowedMethods = other._allowedMethods;
 		this->_return = other._return;
+		this->_uploadPath = other._uploadPath;
 	}
 	return (*this);
 }
@@ -192,6 +193,18 @@ bool		VirtualHostConfig::shouldRedirect( const std::string& endpoint ) const
 	return (getReturn().first != 0);
 }
 
+std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) const
+{
+	Location	local;
+
+	if (findLocation(endpoint, local))
+	{
+		if (local.getUploadPath().empty())
+			return (local.getUploadPath());
+	}
+	return (getUploadPath());
+}
+
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )
 {
 	out << "  Server Names: ";
@@ -232,5 +245,9 @@ std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )
 		out <<  "    Return code: " << vhc.getReturn().first << "\n";
 		out <<  "    Return URL: " << vhc.getReturn().second << "\n";
 	}
+
+	if (!vhc.getUploadPath().empty())
+		out << "    Upload Path: " << vhc.getUploadPath() << "\n";
+
 	return out;
 }

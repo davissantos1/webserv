@@ -69,14 +69,14 @@ class ConfigParser
 		void	handleIndex( VirtualHostConfig& vec );
 		void	handleAllowedMethods( VirtualHostConfig& vec );
 		void	handleReturn( VirtualHostConfig& vec );
+		void	handleUploadPath( VirtualHostConfig& vec );
 
 		void	handleLocationRoot( Location& loc );
 		void	handleLocationIndex( Location& loc );
 		void	handleLocationAllowedMethods( Location& loc );
 		void	handleLocationErrorPage( Location& local );
 		void	handleLocationAutoindex( Location& loc );
-		void	handleLocationUploadEnable( Location& loc );
-		void	handleLocationUploadStore( Location& loc );
+		void	handleLocationUploadPath( Location& loc );
 		void	handleLocationCgiExtension( Location& loc );
 		void	handleLocationCgiPath( Location& loc );
 		void	handleLocationReturn( Location& loc );

@@ -32,6 +32,7 @@ class VirtualHostConfig
 		std::vector<std::string>	_allowedMethods;
 		std::vector<Location>		_locations;
 		std::pair<int, std::string>	_return;
+		std::string					_uploadPath;
 
 		bool findLocation( const std::string& path, Location& loc ) const;
 
@@ -54,11 +55,13 @@ class VirtualHostConfig
 		const std::vector<std::string>& getAllowedMethods() const { return _allowedMethods; }
 		const std::vector<Location>& getLocation() const { return _locations; }
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
+		const std::string&					getUploadPath( void ) const { return _uploadPath; }
 
 		std::pair<int, std::string> getReturn( const std::string& endpoint ) const; // to be done
 		std::string	getErrorPage( const int error, const std::string& endpoint ) const; // to be done
 		std::string	getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const; // to be done
 		std::string	getFullPath( const std::string& filename, const std::string& endpoint ) const; // to be done aqui exolhe 1
+		std::string	getUploadPath( const std::string& endpoint ) const;
 		bool		isMethodAllowed( const std::string& method, const std::string& endpoint ) const; // to be done
 		bool		shouldIndex( const std::string& endpoint ) const; // to be done
 		bool		shouldAutoindex( const std::string& endpoint ) const; // to be done
@@ -74,6 +77,7 @@ class VirtualHostConfig
 		void	setAllowedMethods( const std::vector<std::string> & allowedMethods ) { _allowedMethods = allowedMethods; }
 		void	setLocations( const std::vector<Location> & locations ) { _locations = locations; }
 		void	setReturn( const std::pair<int, std::string> & ret ) { _return = ret; };
+		void	setUploadPath( const std::string& uploadPath ) { _uploadPath = uploadPath; }
 
 		void	addServerName( const std::string& name ) { _serverNames.push_back(name); }
 		void	addHostIp( const std::string& hostIp ) { _hostIp.push_back(hostIp); }

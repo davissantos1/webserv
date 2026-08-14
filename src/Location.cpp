@@ -13,7 +13,7 @@
 #include "Location.hpp"
 #include <ostream>
 
-Location::Location( void ): _autoindex(false), _uploadEnable(false) {}
+Location::Location( void ): _autoindex(false) {}
 
 Location::~Location( void ) {}
 
@@ -32,8 +32,7 @@ Location&	Location::operator=( const Location& other )
 		this->_path = other._path;
 		this->_allowedMethods = other._allowedMethods;
 		this->_autoindex = other._autoindex;
-		this->_uploadEnable = other._uploadEnable;
-		this->_uploadStore = other._uploadStore;
+		this->_uploadPath = other._uploadPath;
 		this->_cgiExtension = other._cgiExtension;
 		this->_cgiPath = other._cgiPath;
 		this->_return = other._return;
@@ -57,9 +56,8 @@ std::ostream&	operator<<( std::ostream& out, const Location& loc )
 		out << loc.getAllowedMethods()[i] << " ";
 	out << "\n";
 
-	out << "    Upload Enable: " << (loc.getUploadEnable() ? "on" : "off") << "\n";
-	if (!loc.getUploadStore().empty())
-		out << "    Upload Store: " << loc.getUploadStore() << "\n";
+	if (!loc.getUploadPath().empty())
+		out << "    Upload Path: " << loc.getUploadPath() << "\n";
 
 	if (!loc.getCgiExtension().empty())
 	{
