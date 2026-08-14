@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 14:46:06 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 19:40:36 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,18 @@
 # define CGIHANDLER_HPP
 
 # include "webserv.hpp"
+# include "HttpRequest.hpp"
+# include "VirtualHostConfig.hpp"
+# include "HttpResponseBuilder.hpp"
 # include "CgiEnvironment.hpp"
+# include <cerrno>
 # include <stdint.h>
+# include <unistd.h>
 # include <fcntl.h>
 # include <unistd.h>
 # include <sys/stat.h>
 # include <sys/wait.h>
+# include <sys/epoll.h>
 
 class VirtualHostConfig;
 class HttpResponseBuilder;

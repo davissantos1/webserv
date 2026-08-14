@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:33:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 19:23:54 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,11 @@ bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpRespon
 		else
 		{
 			int bytesWritten = builder.getBytesWritten();
-			std::string* body = builder.getHttpRequestBody();
+			const std::string* body = builder.getHttpRequestBody();
 			bytes = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes > 0)
 				builder.setBytesWritten(bytes + bytesWritten);
-			else if (bytes == body->size())
+			else if ((size_t)bytes == body->size())
 			{
 				builder.setStatusCode(200);
 				return (true);
@@ -117,10 +117,10 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRe
 	struct stat info;
 	std::vector<std::pair<int, enum FdIoType> > bundles;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
-	bool	hasUploadPath = conf.hasUploadPath(req.getUri());
+	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
 
 	errno = 0;
-	if (!hasUploadPath)
+	if (uploadPath.empty())
 	{
 		*statusCode = 405;
 		return (bundles);
@@ -135,7 +135,7 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRe
 	}
 	if (S_ISDIR(info.st_mode))
 	{
-		std::string filePath = conf.getUploadPath(req.getUri()) + req.getFilename();
+		std::string filePath = uploadPath + req.getFilename();
 		fd = open(filePath.c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
 		if (fd < 0)
 		{

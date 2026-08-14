@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:29:29 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 19:25:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 # include <sys/epoll.h>
 # include <sys/types.h>
 # include <dirent.h>
-#include <cstdio>
+# include <cstdio>
 
 class StaticFileHandler
 {

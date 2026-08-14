@@ -8,7 +8,6 @@ SRC=	src/webserv.cpp \
 		src/Location.cpp \
 		src/Multiplexer.cpp \
 		src/ConfigParser.cpp \
-		src/StaticFileHandler.cpp \
 		src/CgiHandler.cpp \
 		src/CgiEnvironment.cpp \
 		src/CgiParser.cpp \
@@ -21,6 +20,7 @@ SRC=	src/webserv.cpp \
 		src/Client.cpp \
 		src/Server.cpp \
 		src/VirtualHostConfig.cpp \
+		src/StaticFileHandler.cpp \
 		
 SRC_TEST=
 

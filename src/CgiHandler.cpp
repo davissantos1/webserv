@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 17:46:46 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 19:45:23 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ CgiHandler::CgiHandler(const CgiHandler& other)
 
 CgiHandler&	CgiHandler::operator=(const CgiHandler& other)
 {
-	if (this != other)
+	if (this != &other)
 	{
 		this->_cgiEnvironment = other._cgiEnvironment;
 		this->_stat_loc = other._stat_loc;
@@ -53,7 +53,7 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 		else if (eventType & EPOLLOUT)
 		{
 			int bytesWritten = builder.getBytesWritten();
-			std::string* body = builder.getHttpRequestBody();
+			const std::string* body = builder.getHttpRequestBody();
 			bytes  = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes >= 0)
 			{
@@ -90,11 +90,11 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 		*statusCode = 500;
 		return (bundle);
 	}
-	this->_cgiEnvironment.startEnviroment(req);
+	this->_cgiEnvironment.startEnvironment(req);
 	if (pid == 0)
 	{
-		std::string interpreterPath = conf.getCgiInterpreterPath(req.getUri());
-		std::string scriptPath = conf.getCgiScriptPath(req.getUri());
+		std::string interpreterPath = conf.getCgiInterpreterPath(req.getFilename(), req.getEndpoint());
+		std::string scriptPath = conf.getFullPath(req.getFilename(), req.getEndpoint());
 		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
@@ -102,17 +102,17 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 			scriptPath.c_str(),
 			NULL
 		};
-		if (fcntl(fds[1], F_DUPFD, 1) < 0);
+		if (fcntl(fds[1], F_DUPFD, 1) < 0)
 		{
 			*statusCode = 500;
-			break;
+			return (bundle);
 		}
-		if ((close(fds[0]) < 0) || (close(fds[1] < 0));
+		if ((close(fds[0]) < 0) || (close(fds[1] < 0)))
 		{
 			*statusCode = 500;
-			break;
+			return (bundle);
 		}
-		execve(path.c_str(), args, &env[0]);
+		execve(scriptPath.c_str(), const_cast<char **>(args), &env[0]);
 		*statusCode = 500;
 		return (bundle);
 	}
@@ -124,7 +124,7 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 	if (((waitpid(pid, &this->_stat_loc, WNOHANG)) < 0) || (*statusCode == 500))
 	{
 		*statusCode = 500;
-		kill(pid, SIGTERM)
+		kill(pid, SIGTERM);
 		return (bundle);
 	}
 	*statusCode = 200;
@@ -141,13 +141,13 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 	if ((pipe(fds) < 0) || ((pid = fork()) < 0))
 	{
 		*statusCode = 500;
-		return (bundle);
+		return (bundles);
 	}
-	this->_cgiEnvironment.startEnviroment(req);
+	this->_cgiEnvironment.startEnvironment(req);
 	if (pid == 0)
 	{
-		std::string interpreterPath = conf.getCgiInterpreterPath(req.getUri());
-		std::string scriptPath = conf.getCgiScriptPath(req.getUri());
+		std::string interpreterPath = conf.getCgiInterpreterPath(req.getFilename(), req.getEndpoint());
+		std::string scriptPath = conf.getFullPath(req.getFilename(), req.getEndpoint());
 		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
@@ -158,21 +158,21 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 		if ((fcntl(fds[1], F_DUPFD, 1) < 0) || (fcntl(fds[0], F_DUPFD, 0) < 0))
 		{
 			*statusCode = 500;
-			break;
+			return (bundles);
 		}
 		if ((close(fds[0]) < 0) || (close(fds[1] < 0)))
 		{
 			*statusCode = 500;
-			break;
+			return (bundles);
 		}
-		execve(path.c_str(), args, &env[0]);
+		execve(scriptPath.c_str(), const_cast<char**>(args), &env[0]);
 		*statusCode = 500;
 		return (bundles);
 	}
 	if (((waitpid(pid, &this->_stat_loc, WNOHANG)) < 0) || (*statusCode == 500))
 	{
 		*statusCode = 500;
-		kill(pid, SIGTERM)
+		kill(pid, SIGTERM);
 		return (bundles);
 	}
 	*statusCode = 200;
