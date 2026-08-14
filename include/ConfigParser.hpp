@@ -15,7 +15,6 @@
 
 #include "Location.hpp"
 #include "VirtualHostConfig.hpp"
-#include <sstream>
 #include <cstddef>
 #include <fstream>
 #include <deque>
@@ -92,7 +91,7 @@ class ConfigParser
 
 		std::vector<VirtualHostConfig> parse( const std::string& path );
 		const std::deque< std::pair<t_file_tokens, std::string> >&	getTokens( void ) const;
-		static std::set<std::pair<std::string, std::string> >	extractLinten( std::vector<VirtualHostConfig> & conf );
+		static std::set<std::pair<std::string, std::string> >	extractListen( std::vector<VirtualHostConfig> & conf );
 
 };
 

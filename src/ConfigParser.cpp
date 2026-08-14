@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -895,7 +896,7 @@ void	ConfigParser::handleLocationReturn( Location& loc )
 	advance_token(1);
 }
 
-std::set<std::pair<std::string, std::string> >	ConfigParser::extractLinten( std::vector<VirtualHostConfig> & conf )
+std::set<std::pair<std::string, std::string> >	ConfigParser::extractListen( std::vector<VirtualHostConfig> & conf )
 {
 	std::stringstream						ss;
 	std::set<std::pair<std::string, std::string> >	listens;
@@ -911,6 +912,8 @@ std::set<std::pair<std::string, std::string> >	ConfigParser::extractLinten( std:
 			port = conf[i].getPort(j);
 			ss << port;
 			listens.insert(std::make_pair(ip, ss.str()));
+			ss.str("");
+			ss.clear();
 		}
 	}
 	return (listens);

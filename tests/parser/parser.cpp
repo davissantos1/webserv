@@ -1,6 +1,7 @@
 #include "ConfigParser.hpp"
 #include <exception>
 #include <iostream>
+#include <string>
 
 int main(int argc, char **argv)
 {
@@ -31,8 +32,8 @@ int main(int argc, char **argv)
 			std::cout << servers[i] << "\n";
 		}
 
-		std::set<std::pair<std::string, int> > tuples = ConfigParser::extractLinten(servers);
-		std::set<std::pair<std::string, int> >::iterator it;
+		std::set<std::pair<std::string, std::string> > tuples = ConfigParser::extractLinten(servers);
+		std::set<std::pair<std::string, std::string> >::iterator it;
 
 
 		std::cout << "====HOSTS====" << std::endl;
