@@ -4,12 +4,9 @@ CC= c++
 CFLAGS= -Wall -Wextra -Werror -std=c++98 -Iinclude
 
 SRC=	src/webserv.cpp \
-		src/Client.cpp \
-		src/Server.cpp \
 		src/Session.cpp \
 		src/Location.cpp \
 		src/Multiplexer.cpp \
-		src/VirtualHostConfig.cpp \
 		src/ConfigParser.cpp \
 		src/StaticFileHandler.cpp \
 		src/CgiHandler.cpp \
@@ -21,6 +18,9 @@ SRC=	src/webserv.cpp \
 		src/HttpRequestParser.cpp \
 		src/HttpResponseBuilder.cpp \
 		src/string_utils.cpp \
+		src/Client.cpp \
+		src/Server.cpp \
+		src/VirtualHostConfig.cpp \
 		
 SRC_TEST=
 

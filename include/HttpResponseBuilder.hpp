@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:13:45 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:36:37 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ class HttpResponseBuilder
 		std::string&		getHttpResponseHead() { return this->_httpResponseHead; }
 		std::string&		getHttpResponseBody() { return this->_httpResponse.getBody(); }
 		int					getHttpResponseHeadSize() { return this->_httpResponseHead.size(); }
-		const std::string*	getHttpRequestBody() { return this->_httpRequest->getBody(); }
+		std::string*	getHttpRequestBody() { return this->_httpRequest->getBody(); }
 
 		void				setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
 		void				setStatusCode(int statusCode) { this->_httpResponse.setStatusCode(statusCode); }

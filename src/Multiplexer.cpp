@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/07/16 06:20:46 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 18:05:58 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,11 +33,11 @@ Multiplexer&	Multiplexer::operator=(const Multiplexer& other)
 	return (*this);
 }
 
-std::vector<std::pair<int, uint32_t>>	Multiplexer::wait()
+std::vector<std::pair<int, uint32_t> >	Multiplexer::wait()
 {
 	int eventQuantity, currentFd;
-	struct epoll_event event, readyEvents[MAX_EVENTS];
-	std::vector<std::pair<int, uint32_t>>	fds;
+	struct epoll_event readyEvents[MAX_EVENTS];
+	std::vector<std::pair<int, uint32_t> >	fds;
 	uint32_t	eventType;
 
 	eventQuantity = epoll_wait(this->_epollFd, readyEvents, MAX_EVENTS, EPOLL_WAIT);
@@ -75,6 +75,9 @@ void	Multiplexer::removeFd(int fd)
 
 void	Multiplexer::modifyFd(int fd, uint32_t event)
 {
+	int		status;
+	struct	epoll_event ev;
+
 	errno = 0;
 	ev.data.fd = fd;
 	ev.events = event;

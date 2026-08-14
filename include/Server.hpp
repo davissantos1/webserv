@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 16:39:45 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:16:41 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # define SESSION_TIMEOUT 10000
 
 # include "webserv.hpp"
+# include "ConfigParser.hpp"
 # include "Client.hpp"
 # include "Multiplexer.hpp"
 # include <sys/socket.h>
@@ -47,7 +48,6 @@ class	Server
 {
 	private:
 		std::vector<VirtualHostConfig>			_configs;
-		std::map<int, VirtualHostConfig>		_configMap;
 		std::map<int, Client*>					_clientMap;
 		std::map<int, Client*>					_cgiMap;
 		std::map<int, Client*>					_staticFileMap;
@@ -72,6 +72,7 @@ class	Server
 		void				routeServer(int fd, uint32_t eventType, enum FdType fdType);
 		void				handleProcessedFile(Client* client, int statusCode, enum FdType type);
 		void				handleError(int fd, enum FdType fdType);
+		void				handleSession(Client* client);
 		class ServerException: public std::exception
 		{
 			private:

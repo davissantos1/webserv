@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 00:15:40 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:02:00 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Session::Session(const Session& other)
 
 Session&	Session::operator=(const Session& other)
 {
-	if (this != other)
+	if (this != &other)
 	{
 		this->_sessionId = other._sessionId;
 		this->_lastActivity = other._lastActivity;

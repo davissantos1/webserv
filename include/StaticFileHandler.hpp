@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 14:46:40 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:29:29 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,22 @@
 # define STATICFILEHANDLER_HPP
 
 # include "webserv.hpp"
+# include "HttpRequest.hpp"
+# include "HttpResponseBuilder.hpp"
+# include "VirtualHostConfig.hpp"
+# include <string>
 # include <stdint.h>
 # include <utility>
 # include <vector>
+# include <cerrno>
 # include <ctime>
 # include <fcntl.h>
 # include <unistd.h>
 # include <sys/stat.h>
+# include <sys/epoll.h>
+# include <sys/types.h>
+# include <dirent.h>
+#include <cstdio>
 
 class StaticFileHandler
 {

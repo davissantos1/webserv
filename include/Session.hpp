@@ -6,14 +6,17 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 23:50:28 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:01:59 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SESSION_HPP
 # define SESSION_HPP
 
+# include <cstdlib>
+# include <sstream>
 # include <string>
+# include <map>
 # include <ctime>
 
 class Session

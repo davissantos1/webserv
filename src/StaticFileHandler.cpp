@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/10 17:57:08 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 18:33:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,14 +27,14 @@ StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 	return (*this);
 }
 
-bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpRequestBuilder& builder)
+bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpResponseBuilder& builder)
 {
 	ssize_t bytes;
 	char tempBuffer[8192];
 
 	while (true)
 	{
-		ernno = 0;
+		errno = 0;
 		if (eventType & EPOLLIN)
 		{
 			bytes = read(fd, tempBuffer, sizeof(tempBuffer));
@@ -60,7 +60,7 @@ bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpReques
 			bytes = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes > 0)
 				builder.setBytesWritten(bytes + bytesWritten);
-			else if (bytes == body.size())
+			else if (bytes == body->size())
 			{
 				builder.setStatusCode(200);
 				return (true);
@@ -83,7 +83,7 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 	std::pair<int, enum FdIoType> fdBundle;
 
 	errno = 0;
-	std::string path = conf.getFullPath(req.getUri());
+	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
 	{
 		if (errno == ENOENT)
@@ -111,12 +111,12 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 	return (fdBundle);
 }
 
-std::vector<<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	int fd, status;
 	struct stat info;
 	std::vector<std::pair<int, enum FdIoType> > bundles;
-	std::string path = conf.getFullPath(req.getUri());
+	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	bool	hasUploadPath = conf.hasUploadPath(req.getUri());
 
 	errno = 0;
@@ -155,7 +155,7 @@ std::vector<<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpR
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	struct stat info;
-	std::string path = conf.getFullPath(req.getUri());
+	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 
 	errno = 0;
 	if (stat(path.c_str(), &info) == -1)
@@ -228,7 +228,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	struct dirent* curr;
 	struct stat info;
 	std::ostringstream html;
-	std::string path = conf.getFullPath(req.getUri());
+	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	DIR* stream = opendir(path.c_str());
 	std::string basePath = path;
 
@@ -250,8 +250,8 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 			<<				"</header>\n"
 			<<				"<table>\n";
 
-	if (basePath.empty() || basePath[basePath.size() - 1] != "/")
-		basePath += "/";
+	if (basePath.empty() || basePath[basePath.size() - 1] != '/')
+		basePath += '/';
 
 	while ((curr = readdir(stream)) != NULL)
 	{
@@ -272,7 +272,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 		if (isDir)
 			displayName += "/";
 
-		double kbSize = static_cast<double> info.st_size / 1024;
+		double kbSize = static_cast<double>(info.st_size) / 1024;
 		html	<< "<tr>\n"
 				<< "<td class=\"link\"><a href=\"" << entryPath << "\">" << displayName << ".</a></td>\n"
 				<< "<td class=\"date\">" << std::ctime(&info.st_mtime) << "</td>\n"
@@ -284,7 +284,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 			<<				"</section>\n"
 			<<			"</main>\n"
 			<<		"</body>\n"
-			<<	"</html>\n"
+			<<	"</html>\n";
 
 	if (closedir(stream) == -1)
 		return (500);
