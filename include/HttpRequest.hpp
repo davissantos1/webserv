@@ -13,7 +13,6 @@
 #ifndef HTTPREQUEST_HPP
 # define HTTPREQUEST_HPP
 
-# include "string_utils.hpp"
 # include <string>
 # include <stdint.h>
 # include <map>
@@ -65,10 +64,14 @@ class HttpRequest
 		void	setFilename(std::string filename) { this->_filename = filename; }
 		void	setEndpoint(std::string endpoint) { this->_endpoint = endpoint; }
 
+		void	addHeader( const std::string& key, const std::string& value ) { _headers[key] = value; }
+
 		std::string			getMimeType();
 		std::string 		getHeader(std::string header);
 		std::string			extractSessionId();
 		void				reset();
 };
+
+std::ostream& operator<<( std::ostream& os, const HttpRequest& req );
 
 #endif

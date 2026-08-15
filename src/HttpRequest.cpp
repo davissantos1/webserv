@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
+#include <ostream>
 
 HttpRequest::HttpRequest() {}
 
@@ -44,7 +45,7 @@ HttpRequest&	HttpRequest::operator=(const HttpRequest& other)
 
 std::string HttpRequest::getHeader(std::string header)
 {
-	if (header.empty() || this->_headers.count(header))
+	if (header.empty() || !this->_headers.count(header))
 		return ("");
 	return (this->_headers[header]);
 }
@@ -94,4 +95,45 @@ void	HttpRequest::reset()
 	this->_headers.clear();
 	this->_body.clear();
 	this->_keepAlive = false;
+}
+
+std::ostream& operator<<( std::ostream& os, const HttpRequest& req )
+{
+	os << "========== HTTP REQUEST LOG ==========\n";
+	os << "Method:     " << (req.getMethod().empty() ? "N/A" : req.getMethod()) << "\n";
+	os << "URI:        " << (req.getUri().empty() ? "N/A" : req.getUri()) << "\n";
+	os << "Version:    " << (req.getVersion().empty() ? "N/A" : req.getVersion()) << "\n";
+	os << "Endpoint:   " << (req.getEndpoint().empty() ? "N/A" : req.getEndpoint()) << "\n";
+	os << "Query:      " << (req.getQuery().empty() ? "N/A" : req.getQuery()) << "\n";
+	os << "Filename:   " << (req.getFilename().empty() ? "N/A" : req.getFilename()) << "\n";
+	os << "Server:     " << (req.getServerName().empty() ? "N/A" : req.getServerName()) << ":" << req.getServerPort() << "\n";
+	os << "Client IP:  " << (req.getClientIp().empty() ? "N/A" : req.getClientIp()) << "\n";
+
+	os << "\n--- Headers ---\n";
+	std::map<std::string, std::string> headers = req.getHeaders();
+	if (headers.empty())
+	{
+		os << "(No headers)\n";
+	}
+	else
+	{
+		std::map<std::string, std::string>::const_iterator it = headers.begin();
+		for (; it != headers.end(); ++it)
+		{
+			os << it->first << ": " << it->second << "\n";
+		}
+	}
+
+	os << "\n--- Body ---\n";
+	// O const_cast é necessário porque getBody() na sua classe não termina com 'const'
+	const std::string* bodyPtr = const_cast<HttpRequest&>(req).getBody();
+
+	if (!bodyPtr || bodyPtr->empty())
+		os << "(Empty body)\n";
+	else
+		os << *bodyPtr << "\n";
+
+	os << "======================================\n";
+
+	return os;
 }
