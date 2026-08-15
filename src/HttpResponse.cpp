@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:09:29 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 21:47:02 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ HttpResponse::HttpResponse(const HttpResponse& other)
 
 HttpResponse&	HttpResponse::operator=(const HttpResponse& other)
 {
-	if (this != other)
+	if (this != &other)
 	{
 		this->_statusCode = other._statusCode;
 		this->_version = other._version;
@@ -41,7 +41,7 @@ HttpResponse&	HttpResponse::operator=(const HttpResponse& other)
 	return (*this);
 }
 
-void	HttpResponse::setStatusCode(int statusCode)
+void	HttpResponse::setReasonPhrase(int statusCode)
 {
 	this->_statusCode = statusCode;
 	switch (statusCode)

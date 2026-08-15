@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 19:17:25 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 23:01:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,17 +38,22 @@ class HttpResponseBuilder
 
 		int					getStatusCode() { return this->_httpResponse.getStatusCode(); }
 		int					getBytesWritten() { return this->_bytesWritten; }
+		CgiParser&			getCgiParser() { return this->_cgiParser; }
 		HttpResponse&		getHttpResponse() { return this->_httpResponse; }
 		std::string&		getHttpResponseHead() { return this->_httpResponseHead; }
 		std::string&		getHttpResponseBody() { return this->_httpResponse.getBody(); }
 		int					getHttpResponseHeadSize() { return this->_httpResponseHead.size(); }
 		const std::string*	getHttpRequestBody() { return this->_httpRequest->getBody(); }
+		int					getBytesSent() { return this->_bytesSent; }
+		int					getTotalBytes() { return this->_totalBytes; }
 
 		void				setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
 		void				setStatusCode(int statusCode) { this->_httpResponse.setStatusCode(statusCode); }
 		void				setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		void				setHttpResponseBody(std::string body) { this->_httpResponse.setBody(body); }
+		void				setHttpResponseHeaders(std::map<std::string, std::string> headers) { this->_httpResponse.setHeaders(headers); }
 		
+		void				buildHeaders();
 		void				buildResponse();
 		void				feedCgi(char *buffer, int size);
 		void				feedStaticFile(char *buffer, int size);

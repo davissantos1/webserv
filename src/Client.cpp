@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:02:07 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 22:59:26 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ enum ClientStatus	Client::processHttpResponse()
 		errno = 0;
 		bytesSent = build.getBytesSent();
 		headSize = build.getHttpResponseHeadSize();
-		bytesRemaining = build.getTotalBytes - bytesSent;
+		bytesRemaining = build.getTotalBytes() - bytesSent;
 		responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
 		res = responseStr.c_str() + bytesSent;
 		bytes = send(this->_fd, res, bytesRemaining, 0);
@@ -235,7 +235,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 
 void	Client::destroyActiveFds()
 {
-	for (int i = 0; i < this->_activeFds.size(); i++)
+	for (size_t i = 0; i < this->_activeFds.size(); i++)
 	{
 		if (this->_activeFds[i] > 2)
 			close(this->_activeFds[i]);
@@ -245,22 +245,22 @@ void	Client::destroyActiveFds()
 
 VirtualHostConfig	Client::getCurrentConfig(std::string host)
 {
-	const std::vector<std::string> serverNames;
+	const std::vector<std::string>& firstServerNames = (*this->_configs)[0].getServerNames();
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-	for (size_t i = 0; i < this->_configs.size(); i++)
+	for (size_t i = 0; i < this->_configs->size(); i++)
 	{
-		serverNames = this->_configs[i].getServerNames();
+		const std::vector<std::string>& serverNames = (*this->_configs)[i].getServerNames();
 		for (size_t j = 0; j < serverNames.size(); j++)
 		{
 			if (serverNames[j] == host)
 			{
 				req.setServerName(serverNames[j]);
-				return (serverNames[j]);	
+				return ((*this->_configs)[i]);
 			}
 		}
 	}
-	req.setServerName(serverNames[0]);
-	return (serverNames[0]);
+	req.setServerName(firstServerNames[0]);
+	return ((*this->_configs)[0]);
 }
 
 void	Client::handleIndex()

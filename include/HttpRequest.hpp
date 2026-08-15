@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:06:44 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 21:53:48 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,9 +65,10 @@ class HttpRequest
 		void	setFilename(std::string filename) { this->_filename = filename; }
 		void	setEndpoint(std::string endpoint) { this->_endpoint = endpoint; }
 
-		std::string getHeader(std::string header);
-		std::string	extractSessionId();
-		void		reset();
+		std::string			getMimeType();
+		std::string 		getHeader(std::string header);
+		std::string			extractSessionId();
+		void				reset();
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:02:05 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 22:32:00 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	Server::startServer()
 	std::set<std::pair<std::string, std::string> > interface;
 	std::set<std::pair<std::string, std::string> >::iterator it;
 
-	interface = ConfigParser::extractLinten(this->_configs);
+	interface = ConfigParser::extractListen(this->_configs);
 	for (it = interface.begin(); it != interface.end(); it++)
 	{
 		std::memset(&hints, 0, sizeof(hints));

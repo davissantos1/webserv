@@ -6,17 +6,19 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 16:13:20 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 21:42:32 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CGIPARSER_HPP
 # define CGIPARSER_HPP
 
+# include "string_utils.hpp"
 # include <string>
 # include <iostream>
 # include <sstream>
 # include <map>
+# include <vector>
 
 enum CgiParserStatus
 {
@@ -28,7 +30,6 @@ enum CgiParserStatus
 class CgiParser
 {
 	private:
-		int									_bodySize;
 		enum CgiParserStatus				_status;
 		std::map<std::string, std::string>	_headers;
 		std::string 						_body;
@@ -41,6 +42,7 @@ class CgiParser
 
 		std::map<std::string, std::string>	getHeaders() { return this->_headers; }
 		std::string	getBody() { return this->_body; }
+		void	finish() { this->_status = READY; }
 
 		void	reset();
 		bool	isCgiDone();

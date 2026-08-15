@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 19:45:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 21:40:37 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,11 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			{
 				if (bytes == 0)
 				{
+					CgiParser& parser = builder.getCgiParser();
 					builder.setStatusCode(200);
+					builder.setHttpResponseHeaders(parser.getHeaders());
+					builder.setHttpResponseBody(parser.getBody());
+					parser.finish();
 					return (true);
 				}
 				builder.setBytesWritten(bytesWritten + bytes);
@@ -95,7 +99,7 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 	{
 		std::string interpreterPath = conf.getCgiInterpreterPath(req.getFilename(), req.getEndpoint());
 		std::string scriptPath = conf.getFullPath(req.getFilename(), req.getEndpoint());
-		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
+		std::vector<const char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
 			interpreterPath.c_str(),
@@ -112,7 +116,7 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 			*statusCode = 500;
 			return (bundle);
 		}
-		execve(scriptPath.c_str(), const_cast<char **>(args), &env[0]);
+		execve(scriptPath.c_str(), const_cast<char **>(args), const_cast<char**>(&env[0]));
 		*statusCode = 500;
 		return (bundle);
 	}
@@ -148,7 +152,7 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 	{
 		std::string interpreterPath = conf.getCgiInterpreterPath(req.getFilename(), req.getEndpoint());
 		std::string scriptPath = conf.getFullPath(req.getFilename(), req.getEndpoint());
-		std::vector<char *>env = this->_cgiEnvironment.getEnvironment();
+		std::vector<const char *>env = this->_cgiEnvironment.getEnvironment();
 		const char*	args[] = 
 		{
 			interpreterPath.c_str(),
@@ -165,7 +169,7 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 			*statusCode = 500;
 			return (bundles);
 		}
-		execve(scriptPath.c_str(), const_cast<char**>(args), &env[0]);
+		execve(scriptPath.c_str(), const_cast<char**>(args), const_cast<char**>(&env[0]));
 		*statusCode = 500;
 		return (bundles);
 	}

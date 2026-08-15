@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:14:28 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 21:59:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ HttpResponseBuilder::HttpResponseBuilder(const HttpResponseBuilder& other)
 
 HttpResponseBuilder&	HttpResponseBuilder::operator=(const HttpResponseBuilder& other)
 {
-	if (this != other)
+	if (this != &other)
 	{
 		this->_bytesWritten = other._bytesWritten;
 		this->_totalBytes = other._totalBytes;
@@ -42,15 +42,15 @@ void	HttpResponseBuilder::buildResponse()
 	std::stringstream ss;
 	HttpResponse& res = this->_httpResponse;
 	std::map<std::string, std::string>&	headers = this->_httpResponse.getHeaders();
-	std::map<std::string, std::string>::iterator it = header.begin();
+	std::map<std::string, std::string>::iterator it = headers.begin();
 
 	ss	<< res.getVersion()	<< " "
 		<< res.getStatusCode() << " "
 		<< res.getReasonPhrase() << "\r\n";
 	for (; it != headers.end(); it++)
 	{
-		ss	<< it.first << ": "
-			<< it.second << "\r\n";
+		ss	<< it->first << ": "
+			<< it->second << "\r\n";
 	}
 	ss	<< "\r\n";
 	this->_httpResponseHead = ss.str();
@@ -63,7 +63,7 @@ void	HttpResponseBuilder::buildHeaders()
 	std::stringstream ss;
 	time_t	now = std::time(NULL);
 	HttpResponse& rep = this->_httpResponse;
-	HttpResponse* req = this->_httpRequest;
+	HttpRequest* req = this->_httpRequest;
 	int	statusCode = rep.getStatusCode();
 	std::string path = req->getEndpoint() + req->getFilename();
 

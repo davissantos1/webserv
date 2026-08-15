@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:12:12 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/14 21:53:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,10 +61,10 @@ std::string	HttpRequest::extractSessionId()
 	idEnd = sessionId.find(';');
 	if (idStart == std::string::npos || idEnd == std::string::npos)
 		return ("");
-	return (sessionId.substr(idStart, idEnd - idStart);
+	return (sessionId.substr(idStart, idEnd - idStart));
 }
 
-std::string	getMimeType()
+std::string	HttpRequest::getMimeType()
 {
 	std::string types[] = {"html", "css", "js", "png", "jpeg"};
 	std::string mime[] = {"text/html", "text/css", "text/javascript", "image/png", "image/jpeg"};

@@ -14,13 +14,13 @@ SRC=	src/webserv.cpp \
 		src/HttpResponse.cpp \
 		src/HttpRequest.cpp \
 		src/HttpResponse.cpp \
-		src/HttpRequestParser.cpp \
 		src/HttpResponseBuilder.cpp \
 		src/string_utils.cpp \
-		src/Client.cpp \
-		src/Server.cpp \
 		src/VirtualHostConfig.cpp \
 		src/StaticFileHandler.cpp \
+		src/Client.cpp \
+		src/Server.cpp \
+		src/HttpRequestParser.cpp \
 		
 SRC_TEST=
 

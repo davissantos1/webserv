@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 19:23:54 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/14 22:01:31 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 
 std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
-	int fd, status;
+	int fd;
 	struct stat info;
 	std::vector<std::pair<int, enum FdIoType> > bundles;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
