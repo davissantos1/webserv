@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 22:59:26 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/15 01:05:58 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,8 +125,9 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
 		}
+		default:
+			return (this->_status);
 	}
-	return (this->_status);
 }
 
 enum ClientStatus	Client::processHttpResponse()
@@ -134,7 +135,6 @@ enum ClientStatus	Client::processHttpResponse()
 	const char*	res;
 	int bytes, bytesSent, bytesRemaining, headSize;
 	HttpResponseBuilder& build = this->_httpResponseBuilder;
-	std::string& responseStr;
 
 	if (this->_status == PREPARING_RESPONSE)
 	{
@@ -149,7 +149,7 @@ enum ClientStatus	Client::processHttpResponse()
 		bytesSent = build.getBytesSent();
 		headSize = build.getHttpResponseHeadSize();
 		bytesRemaining = build.getTotalBytes() - bytesSent;
-		responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
+		std::string& responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
 		res = responseStr.c_str() + bytesSent;
 		bytes = send(this->_fd, res, bytesRemaining, 0);
 		if (bytes >= 0)
@@ -174,7 +174,6 @@ enum ClientStatus	Client::processHttpResponse()
 
 void	Client::destroyCgi(int fd)
 {
-	this->_cgiHandler.destroyCgi(fd);
 	this->_activeFds.erase(std::remove(this->_activeFds.begin(), this->_activeFds.end(), fd), this->_activeFds.end());
 }
 
@@ -191,7 +190,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	std::vector<std::pair<int, enum FdIoType> > postFds;
 
 	if (statusCode != 200)
-		return (stat.handleException(statusCode, conf.getErrorPage(statusCode)));
+		return (stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint())));
 	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
 		this->handleIndex();
 	statusCode = 0;
@@ -224,12 +223,12 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 		this->setStatusCode(status);
 	if (statusCode == -1)
 	{
-		statusCode = stat.handleAutoindex(this->_httpResponseBuilder);
+		statusCode = stat.handleAutoindex(req, conf, this->_httpResponseBuilder);
 		if (statusCode == -1)
 			this->_status = PREPARING_RESPONSE;
 	}
 	if (statusCode != 200 && statusCode != -1)
-		return (stat.handleException(statusCode, conf.getErrorPage(statusCode)));
+		return (stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint())));
 	return (tasks);
 }	
 

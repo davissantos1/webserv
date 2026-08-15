@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 23:01:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/15 01:01:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ class HttpResponseBuilder
 		int					getBytesSent() { return this->_bytesSent; }
 		int					getTotalBytes() { return this->_totalBytes; }
 
+		void				setBytesSent(int bytesSent) { this->_bytesSent = bytesSent; }
+		void				setTotalBytes(int totalBytes) { this->_totalBytes = totalBytes; }
 		void				setBytesWritten(int bytesWritten) { this->_bytesWritten = bytesWritten; }
 		void				setStatusCode(int statusCode) { this->_httpResponse.setStatusCode(statusCode); }
 		void				setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };

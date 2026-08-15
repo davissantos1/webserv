@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/12 16:11:43 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/15 01:06:52 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,7 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 
 void	HttpRequestParser::handleBody( const std::string& str )
 {
+	(void)str;
 	// minha nossa como eu amo parsear, eu sou o maior parseador desse mundo, faço 2050 parseadas num sentada. aqui
 	// Lá ele, numa sentada só ainda KKKKKKKK
 	// eu tava construindo esse metodo para o HttpRequest e vi que ele faz mais sentido no proprio parser assim que a URI tiver pronta
