@@ -11,7 +11,6 @@ SRC=	src/webserv.cpp \
 		src/CgiHandler.cpp \
 		src/CgiEnvironment.cpp \
 		src/CgiParser.cpp \
-		src/HttpResponse.cpp \
 		src/HttpRequest.cpp \
 		src/HttpResponse.cpp \
 		src/HttpResponseBuilder.cpp \
