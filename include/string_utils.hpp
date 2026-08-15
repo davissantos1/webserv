@@ -20,3 +20,4 @@ std::string					reverse_split( const std::vector<std::string> & vec, const char 
 std::string					decode_str( const std::string& str );
 std::string					normalize_str( const std::string& raw );
 void						trimStr( std::string& src );
+void						strToLower( std::string& str );

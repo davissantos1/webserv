@@ -118,3 +118,12 @@ std::string normalize_str( const std::string& raw )
 		finalStr.erase(finalStr.length() - 1);
 	return (finalStr);
 }
+
+void strToLower( std::string& str )
+{
+	for(size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] >= 'A' && str[i] <= 'Z')
+			str[i] |= 32;
+	}
+}

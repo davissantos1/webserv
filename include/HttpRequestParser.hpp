@@ -23,6 +23,7 @@
 #include "HttpRequest.hpp"
 #include <cstddef>
 
+
 enum RequestStatus {
 	PARSING_REQUEST_LINE,
 	PARSING_HEADERS,
@@ -34,17 +35,35 @@ enum RequestStatus {
 
 class HttpRequestParser
 {
+
+	enum	chunkedTable
+	{
+		TO_VERIFY,
+		CHUNKED,
+		NOT_CHUNKED,
+		SIZE,
+		CONTENT
+	};
+
 	private:
 		RequestStatus	_requestStatus;
 		HttpRequest		_httpRequest;
 		std::string		_buffer;
 		std::size_t		_expectedBodyLen;
-		bool			_chunked;
-		std::size_t		_pos;
+		chunkedTable	_chunked;
+
+		//Just to chunked protocol
+		chunkedTable	_state;
+		size_t			_chunkLen;
+		std::string		_body;
 
 		void	handleRequestLine( const std::string& str );
 		void	handleHeaders( const std::string& str );
-		void	handleBody( const std::string& str );
+		void	handleBody( void );
+
+		void	checkContentProtocol( void );
+		void	handleChunked( void );
+		void	handleContent( void );
 
 	public:
 		HttpRequestParser( void );
@@ -60,6 +79,7 @@ class HttpRequestParser
 		enum RequestStatus	feed( const char* buffer, size_t size ); // to be done
 		bool				hasCgi(); // to be done
 		void				cleanHttpRequest() { this->_httpRequest.reset(); }
+		void				reset( void );
 };
 
 #endif
