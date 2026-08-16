@@ -230,7 +230,7 @@ std::vector<std::pair<int, enum FdIoType> >	Client::executeMethod()
 	if (statusCode != 200 && statusCode != -1)
 		return (stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint())));
 	return (tasks);
-}	
+}
 
 void	Client::destroyActiveFds()
 {
@@ -268,7 +268,7 @@ void	Client::handleIndex()
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	const std::vector<std::string> index = this->_virtualHostConfig.getIndex();
 	const std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
-	
+
 	for (size_t i = 0; i < index.size(); i++)
 	{
 		std::string path = basePath + index[i];

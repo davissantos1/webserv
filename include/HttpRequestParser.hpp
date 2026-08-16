@@ -54,6 +54,7 @@ class HttpRequestParser
 		HttpRequest		_httpRequest;
 		std::string		_buffer;
 		std::size_t		_expectedBodyLen;
+		std::size_t		_maxBodySize;
 		e_bodyProtocol	_bodyProtocol;
 
 		//Just to chunked protocol
