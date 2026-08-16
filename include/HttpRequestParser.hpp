@@ -36,11 +36,15 @@ enum RequestStatus {
 class HttpRequestParser
 {
 
-	enum	chunkedTable
+	enum	e_bodyProtocol
 	{
 		TO_VERIFY,
 		CHUNKED,
 		NOT_CHUNKED,
+	};
+
+	enum	e_chunckState
+	{
 		SIZE,
 		CONTENT
 	};
@@ -50,10 +54,10 @@ class HttpRequestParser
 		HttpRequest		_httpRequest;
 		std::string		_buffer;
 		std::size_t		_expectedBodyLen;
-		chunkedTable	_chunked;
+		e_bodyProtocol	_bodyProtocol;
 
 		//Just to chunked protocol
-		chunkedTable	_state;
+		e_chunckState	_chunckState;
 		size_t			_chunkLen;
 
 		void	handleRequestLine( const std::string& str );
