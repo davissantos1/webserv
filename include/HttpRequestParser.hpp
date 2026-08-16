@@ -55,7 +55,6 @@ class HttpRequestParser
 		//Just to chunked protocol
 		chunkedTable	_state;
 		size_t			_chunkLen;
-		std::string		_body;
 
 		void	handleRequestLine( const std::string& str );
 		void	handleHeaders( const std::string& str );

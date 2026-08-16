@@ -13,6 +13,7 @@
 #ifndef HTTPREQUEST_HPP
 # define HTTPREQUEST_HPP
 
+#include <cstddef>
 # include <string>
 # include <stdint.h>
 # include <map>
@@ -65,6 +66,8 @@ class HttpRequest
 		void	setEndpoint(std::string endpoint) { this->_endpoint = endpoint; }
 
 		void	addHeader( const std::string& key, const std::string& value ) { _headers[key] = value; }
+		void	appendBody( const std::string& str, const size_t len ) { _body.append(str, len); }
+		void	appendBody( const char *str, const size_t len ) { _body.append(str, len); }
 
 		std::string			getMimeType();
 		std::string 		getHeader(std::string header);

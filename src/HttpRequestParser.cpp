@@ -39,7 +39,6 @@ HttpRequestParser&	HttpRequestParser::operator=(const HttpRequestParser& other)
 		_expectedBodyLen = other._expectedBodyLen;
 		_chunked = other._chunked;
 		_state = other._state;
-		_body = other._body;
 		_chunkLen = other._chunkLen;
 	}
 	return (*this);
@@ -178,14 +177,13 @@ void	HttpRequestParser::handleChunked( void )
 	{
 		if (_buffer.size() < _chunkLen + 2)
 			return ;
-		_body.append(_buffer.c_str(), _chunkLen);
+		_httpRequest.appendBody(_buffer.c_str(), _chunkLen);
 		_buffer.erase(0, _chunkLen + 2);
 		_state = SIZE;
 		if (_chunkLen == 0)
 		{
-			_httpRequest.setBody(_body);
+			_httpRequest.appendBody(_buffer.c_str(), _chunkLen);
 			_chunkLen = 0;
-			_body.clear();
 			_requestStatus = DONE;
 		}
 	}
@@ -290,5 +288,4 @@ void	HttpRequestParser::reset( void )
 	_chunked = TO_VERIFY;
 	_state = SIZE;
 	_chunkLen = 0;
-	_body.clear();
 }
