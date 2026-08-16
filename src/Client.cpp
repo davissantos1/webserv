@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:46:05 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/16 20:57:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,14 +76,14 @@ enum ClientStatus	Client::processHttpRequest()
 
 enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 {
+	HttpRequestParser& parse = this->_httpRequestParser;
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
+	VirtualHostConfig& conf = this->_virtualHostConfig;
+
 	switch (status)
 	{
 		case DONE:
 		{
-			HttpRequestParser& parse = this->_httpRequestParser;
-			HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
-			VirtualHostConfig& conf = this->_virtualHostConfig;
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
 
@@ -113,6 +113,12 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PROCESSING_STATIC_FILE);
 			}
 		}
+		case PARSING_HEADERS_DONE:
+		{
+			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
+			// set maxBodySize inside the parser
+			return (this->_status);
+		}		
 		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
@@ -150,10 +156,7 @@ enum ClientStatus	Client::processHttpResponse()
 		headSize = build.getHttpResponseHeadSize();
 		std::string& responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
 		offset = (bytesSent < headSize) ? bytesSent : (bytesSent - headSize);
-<<<<<<< Updated upstream
 		bytesRemaining = build.getTotalBytes() - build.getBytesSent();
-=======
->>>>>>> Stashed changes
 		res = responseStr.c_str() + offset;
 		bytes = send(this->_fd, res, bytesRemaining, 0);
 		if (bytes >= 0)
@@ -183,7 +186,7 @@ void	Client::destroyCgi(int fd)
 
 void	Client::executeStaticFileMethod()
 {
-	
+	// implement execution of static for each method
 }
 
 std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
@@ -213,14 +216,6 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 	}
 	else if (req.getMethod() == "POST")
 	{
-		postFds = cgi.handlePost(req, conf, &statusCode);
-		if (statusCode == 200)
-			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
-	}
-		postFds = cgi.handlePost(req, conf, &statusCode);
-		if (statusCode == 200)
-			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
-	}
 		postFds = cgi.handlePost(req, conf, &statusCode);
 		if (statusCode == 200)
 			tasks.insert(tasks.begin(), postFds.begin(), postFds.end());
