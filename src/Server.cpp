@@ -6,15 +6,19 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 22:32:00 by dasimoes         ###   ########.fr       */
+<<<<<<< Updated upstream
+/*   Updated: 2026/08/16 20:35:25 by dasimoes         ###   ########.fr       */
+=======
+/*   Updated: 2026/08/16 12:33:42 by dasimoes         ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server() {}
+Server::Server(): _currAddr(NULL) {}
 
-Server::Server(const std::vector<VirtualHostConfig> config): _configs(config) {}
+Server::Server(const std::vector<VirtualHostConfig> config): _configs(config), _currAddr(NULL) {}
 
 Server::~Server() 
 {
@@ -175,28 +179,26 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->destroyClient(fd);
 				return ;
 			}
-			
-			if (status == PROCESSING_STATIC_FILE || status == PROCESSING_CGI || status == PROCESSING_EXCEPTION)
+			if (status == PROCESSING_STATIC_FILE || status = PROCESSING_EXCEPTION)
 			{
 				this->_multiplexer.removeFd(client->getFd());
-				std::vector<std::pair<int, enum FdIoType> > tasks = client->executeMethod();
-				if (status == PROCESSING_STATIC_FILE || status == PROCESSING_CGI)
+				if (status == PROCESSING_STATIC_FILE)
 					this->handleSession(client);
+				client->executeStaticMethod();
+				client->setStatus(PREPARING_RESPONSE);
+			}
+			if (status == PROCESSING_CGI)
+			{
+				this->_multiplexer.removeFd(client->getFd());
+				this->handleSession(client);
+				std::vector<std::pair<int, enum CgiIoType> > tasks = client->executeCgiMethod();
 				for (size_t i = 0; i < tasks.size(); i++)
 				{
 					switch (tasks[i].second)
 					{
-						case STATIC_FILE_READ:
-							this->_staticFileMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLIN | EPOLLRDHUP);
-							break;
 						case CGI_READ:
 							this->_cgiMap[tasks[i].first] = client;
 							this->_multiplexer.addFd(tasks[i].first, EPOLLIN | EPOLLRDHUP);
-							break;
-						case STATIC_FILE_WRITE:
-							this->_staticFileMap[tasks[i].first] = client;
-							this->_multiplexer.addFd(tasks[i].first, EPOLLOUT | EPOLLRDHUP);
 							break;
 						case CGI_WRITE:
 							this->_cgiMap[tasks[i].first] = client;
@@ -214,21 +216,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				client->setStatus(READING_REQUEST);
 				this->_multiplexer.removeFd(client->getFd());
 				this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
-
 			}
-			break;
-		}
-		case STATIC_FILE:
-		{
-			Client* client = this->_staticFileMap[fd];
-			if (!client) break;
-			StaticFileHandler& stat = client->getStaticFileHandler();
-			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
-			
-			bool isDone = stat.processStaticFile(fd, eventType, builder);
-			if (isDone)
-				this->handleProcessedFile(client, builder.getStatusCode(), STATIC_FILE);
-			client->setLastActivity(std::time(NULL));
 			break;
 		}
 		case CGI:
@@ -250,7 +238,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType type)
 {
 	HttpRequest& req = client->getHttpRequest();
-	std::vector<std::pair<int, enum FdIoType> > errorFd;
+	std::vector<std::pair<int, enum CgiIoType> > errorFd;
 	StaticFileHandler& stat = client->getStaticFileHandler();
 	VirtualHostConfig& conf = client->getVirtualHostConfig();
 	std::vector<int> activeFds = client->getActiveFds();
@@ -382,7 +370,7 @@ void	Server::checkTimeouts()
 	Client* currentClient;
 	double secondsIdle;
 
-	for (size_t i = 0; i < this->_clients.size(); i++)
+	for (size_t i = 0; i < this->_clients.size();)
 	{
 		currentClient = this->_clients[i];
 		secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
@@ -392,22 +380,32 @@ void	Server::checkTimeouts()
 			Server::printLog("client timed out!");
 			this->destroyClient(currentClient->getFd());
 		}
+		else
+			i++;
 	}
 	currentTime = std::time(NULL);
-	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end(); it++)
+	for (it = this->_sessionMap.begin(); it != this->_sessionMap.end();)
 	{
 		currentSession = it->second;
 		secondsIdle = std::difftime(currentTime, currentSession->getLastActivity());
 		
 		if (secondsIdle > SESSION_TIMEOUT)
 		{
-			currentClient = this->_sessionClientMap[currentSession];
-
 			Server::printLog("session expired!");
-			currentClient->setSession(NULL);
-			this->_sessionMap.erase(it->first);
+			if (this->_sessionClientMap.count(currentSession) > 0)
+			{
+				currentClient = this->_sessionClientMap[currentSession];
+				if (currentClient != NULL)
+					currentClient->setSession(NULL);
+				this->_sessionClientMap.erase(currentSession);
+			}
+			std::map<std::string, Session*>::iterator toDelete = it;
+			it++;
+			this->_sessionMap.erase(toDelete->first);
 			delete (currentSession);
-		}		
+		}
+		else
+			it++;
 	}
 }
 

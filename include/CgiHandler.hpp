@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 19:40:36 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/16 20:27:45 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ class CgiHandler
 		CgiHandler(const CgiHandler& other);
 		CgiHandler& operator=(const CgiHandler& other);
 
-		bool										processCgi(int fd, uint32_t eventType, HttpResponseBuilder& builder);
-		std::pair<int, enum FdIoType>				handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
-		std::vector<std::pair<int, enum FdIoType> >	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
+		bool											processCgi(int fd, uint32_t eventType, HttpResponseBuilder& builder);
+		std::pair<int, enum CgiIoType>					handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
+		std::vector<std::pair<int, enum CgiIoType> >	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
 };
 
 #endif

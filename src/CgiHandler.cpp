@@ -6,7 +6,11 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/15 01:03:52 by dasimoes         ###   ########.fr       */
+<<<<<<< Updated upstream
+/*   Updated: 2026/08/16 20:30:30 by dasimoes         ###   ########.fr       */
+=======
+/*   Updated: 2026/08/15 19:51:35 by dasimoes         ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,11 +87,11 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 	return (false);
 }
 
-std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	int fds[2];
 	pid_t	pid;
-	std::pair<int, enum FdIoType> bundle;
+	std::pair<int, enum CgiIoType> bundle;
 
 	if ((pipe(fds) < 0) || ((pid = fork()) < 0))
 	{
@@ -106,17 +110,17 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 			scriptPath.c_str(),
 			NULL
 		};
-		if (fcntl(fds[1], F_DUPFD, 1) < 0)
+		if (dup2(fds[1], STDOUT_FILENO) < 0)
 		{
 			*statusCode = 500;
 			return (bundle);
 		}
-		if ((close(fds[0]) < 0) || (close(fds[1] < 0)))
+		if ((close(fds[0]) < 0) || (close(fds[1]) < 0))
 		{
 			*statusCode = 500;
 			return (bundle);
 		}
-		execve(scriptPath.c_str(), const_cast<char **>(args), const_cast<char**>(&env[0]));
+		execve(interpreterPath.c_str(), const_cast<char **>(args), const_cast<char**>(&env[0]));
 		*statusCode = 500;
 		return (bundle);
 	}
@@ -136,13 +140,18 @@ std::pair<int, enum FdIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHos
 	return (bundle);
 }
 
-std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
-	int fds[2];
 	pid_t	pid;
+	int pipe_in[2];
+	int pipe_out[2];
+<<<<<<< Updated upstream
+	std::vector<std::pair<int, enum CgiIoType> > bundles;
+=======
 	std::vector<std::pair<int, enum FdIoType> > bundles;
+>>>>>>> Stashed changes
 
-	if ((pipe(fds) < 0) || ((pid = fork()) < 0))
+	if ((pipe(pipe_in) < 0) || (pipe(pipe_out) < 0) || ((pid = fork()) < 0))
 	{
 		*statusCode = 500;
 		return (bundles);
@@ -159,17 +168,27 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 			scriptPath.c_str(),
 			NULL
 		};
-		if ((fcntl(fds[1], F_DUPFD, 1) < 0) || (fcntl(fds[0], F_DUPFD, 0) < 0))
+		if ((close(pipe_in[1]) < 0) || (close(pipe_out[0]) < 0))
 		{
 			*statusCode = 500;
 			return (bundles);
 		}
-		if ((close(fds[0]) < 0) || (close(fds[1] < 0)))
+		if ((dup2(pipe_in[0], STDIN_FILENO) < 0) || (dup2(pipe_out[1], STDOUT_FILENO) < 0))
 		{
 			*statusCode = 500;
 			return (bundles);
 		}
-		execve(scriptPath.c_str(), const_cast<char**>(args), const_cast<char**>(&env[0]));
+		if ((close(pipe_in[0]) < 0) || (close(pipe_out[1]) < 0))
+		{
+			*statusCode = 500;
+			return (bundles);
+		}
+		execve(interpreterPath.c_str(), const_cast<char**>(args), const_cast<char**>(&env[0]));
+		*statusCode = 500;
+		return (bundles);
+	}
+	if ((close(pipe_in[0]) < 0) || (close(pipe_out[1]) < 0))
+	{
 		*statusCode = 500;
 		return (bundles);
 	}
@@ -180,7 +199,7 @@ std::vector<std::pair<int, enum FdIoType> >	CgiHandler::handlePost(HttpRequest& 
 		return (bundles);
 	}
 	*statusCode = 200;
-	bundles.push_back(std::make_pair(fds[0], CGI_READ));
-	bundles.push_back(std::make_pair(fds[1], CGI_WRITE));
+	bundles.push_back(std::make_pair(pipe_out[0], CGI_READ));
+	bundles.push_back(std::make_pair(pipe_in[1], CGI_WRITE));
 	return (bundles);
 }

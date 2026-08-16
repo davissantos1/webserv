@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 22:01:31 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/16 20:14:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,60 +27,21 @@ StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 	return (*this);
 }
 
-bool	StaticFileHandler::processStaticFile(int fd, uint32_t eventType, HttpResponseBuilder& builder)
+void	StaticFileHandler::processStaticFile(enum StaticFileIoType type)
 {
-	ssize_t bytes;
-	char tempBuffer[8192];
-
-	while (true)
+	if (type == STATIC_FILE_READ)
 	{
-		errno = 0;
-		if (eventType & EPOLLIN)
-		{
-			bytes = read(fd, tempBuffer, sizeof(tempBuffer));
-			if (bytes > 0)
-				builder.feedStaticFile(tempBuffer, bytes);
-			else if (bytes == 0)
-			{
-				builder.setStatusCode(200);
-				return (true);
-			}
-			else
-			{
-				if (errno == EAGAIN || errno == EWOULDBLOCK)
-					break;
-				builder.setStatusCode(500);
-				return (true);
-			}
-		}
-		else
-		{
-			int bytesWritten = builder.getBytesWritten();
-			const std::string* body = builder.getHttpRequestBody();
-			bytes = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
-			if (bytes > 0)
-				builder.setBytesWritten(bytes + bytesWritten);
-			else if ((size_t)bytes == body->size())
-			{
-				builder.setStatusCode(200);
-				return (true);
-			}
-			else
-			{
-				if (errno == EAGAIN || errno == EWOULDBLOCK)
-					break;
-				builder.setStatusCode(500);
-				return (true);
-			}
-		}
+
 	}
-	return (false);
+	else if (type == STATIC_FILE_WRITE)
+	{
+
+	}
 }
 
-std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	int fd, status;
-	std::pair<int, enum FdIoType> fdBundle;
 
 	errno = 0;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
@@ -93,7 +54,7 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 			if (conf.shouldAutoindex(req.getUri()))
 			{
 				*statusCode = -1;
-				return (fdBundle);
+				return ;
 			}
 			else
 				*statusCode = 403;
@@ -106,16 +67,14 @@ std::pair<int, enum FdIoType>	StaticFileHandler::handleGet(HttpRequest& req, Vir
 	if ((status = fcntl(fd, F_SETFL, O_NONBLOCK)) == -1)
 		*statusCode = 500;
 	if (*statusCode > 299)
-		return (fdBundle);
-	fdBundle = std::make_pair(fd, STATIC_FILE_READ);
-	return (fdBundle);
+		return ;
+	*statusCode = 200;
 }
 
-std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
 {
 	int fd;
 	struct stat info;
-	std::vector<std::pair<int, enum FdIoType> > bundles;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
 
@@ -123,7 +82,7 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRe
 	if (uploadPath.empty())
 	{
 		*statusCode = 405;
-		return (bundles);
+		return ;
 	}
 	if (stat(path.c_str(), &info) == -1)
 	{
@@ -131,7 +90,7 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRe
 			*statusCode = 403;
 		else
 			*statusCode = 500;
-		return (bundles);
+		return ;
 	}
 	if (S_ISDIR(info.st_mode))
 	{
@@ -143,13 +102,12 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handlePost(HttpRe
 				*statusCode = 403;
 			else
 				*statusCode = 500;
-			return (bundles);
+			return ;
 		}
-		bundles.push_back(std::make_pair(fd, STATIC_FILE_WRITE));
-		return (bundles);
+		*statusCode = 200;
+		return ;
 	}
 	*statusCode = 403;
-	return (bundles);
 }
 
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
@@ -187,10 +145,9 @@ void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, 
 	}
 }
 
-std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handleException(int exception, std::string path)
+void	StaticFileHandler::handleException(int exception, std::string path)
 {
-	int fd;
-	std::vector<std::pair<int, enum FdIoType> > tasks;
+	int fd = -1;
 	if (path.empty())
 	{
 		std::stringstream ss;
@@ -218,8 +175,6 @@ std::vector<std::pair<int, enum FdIoType> >	StaticFileHandler::handleException(i
 			fd = open(path.c_str(), O_RDONLY);
 			break;
 	}
-	tasks.push_back(std::make_pair(fd, STATIC_FILE_READ));
-	return (tasks);
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 21:45:04 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/15 19:03:08 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,7 @@ bool	CgiParser::isCgiDone()
 
 void	CgiParser::feed(char *buffer, int size)
 {
-	for (int i = 0; i < size; i++)
-		this->_buffer += buffer[i];
+	this->_buffer.append(buffer, size);
 	if (this->_status == BUILDING_HEADERS)
 	{
 		size_t found = this->_buffer.find("\r\n");

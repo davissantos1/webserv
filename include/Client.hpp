@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:02:06 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/16 20:28:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,13 +90,13 @@ class Client
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
 		void										destroyCgi(int fd);
-		void										destroyActiveFds();
 		void										handleIndex();
 		std::string									findSessionId();
 		enum ClientStatus							processHttpRequest();
 		enum ClientStatus							processHttpResponse();
 		enum ClientStatus							checkRequest(enum RequestStatus status);
-		std::vector<std::pair<int, enum FdIoType> > executeMethod();
+		void										executeStaticFileMethod();
+		std::vector<std::pair<int, enum CgiIoType> > executeCgiMethod();
 		void				registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
