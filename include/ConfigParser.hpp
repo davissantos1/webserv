@@ -83,6 +83,8 @@ class ConfigParser
 		bool	validateIp( const std::string& ip );
 		bool	validatePort( const std::string& port );
 
+		void	throw_exception( const char* str );
+
 	public:
 		ConfigParser( void );
 		~ConfigParser( void );

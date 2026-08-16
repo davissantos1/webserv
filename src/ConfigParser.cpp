@@ -89,82 +89,91 @@ std::vector<VirtualHostConfig> ConfigParser::parse( const std::string &path )
 	return (configs);
 }
 
-static std::pair<t_file_tokens, std::string> makePair( t_file_tokens type, std::string text )
-{
-	std::pair<t_file_tokens, std::string>	token;
-
-	token.first = type;
-	token.second = text;
-	return (token);
-}
-
 void	ConfigParser::makeTokens( std::ifstream& file )
 {
-	std::string line;
-	std::size_t	pos;
-	std::size_t	comment_pos;
+	std::string	line;
 	std::string	token_text;
+	bool		in_word = false;
+	char		quote = '\0';
 
-	while (file.eof() == false)
+	token_text.reserve(256);
+	while (std::getline(file, line))
 	{
-		pos = 0;
-		getline(file, line);
-
-		std::size_t last_pos = 0;
-		while((comment_pos = line.find('#', last_pos)) != std::string::npos)
+		for (std::size_t i = 0; i < line.length(); i++)
 		{
-			bool	on_quote = false;
-			bool	on_dquote = false;
+			char	c = line[i];
 
-			for (std::size_t k = last_pos; k < comment_pos; k++)
+			if (quote != '\0')
 			{
-				if (line[k] == '"')
-					on_dquote = !on_dquote;
-				if (line[k] == 39)
-					on_quote = !on_quote;
+				if (c == quote)
+					quote = '\0';
+				else
+					token_text += c;
 			}
-			if (!on_dquote && !on_quote)
-				line.erase(comment_pos);
-			last_pos = comment_pos;
+			else
+			{
+				switch (c)
+				{
+					case '\'':
+					case '"':
+						quote = c;
+						in_word = true;
+						break ;
+
+					case '#':
+						i = line.length();
+						break ;
+
+					case ' ':
+					case '\t':
+					case '\r':
+					case '\v':
+					case '\f':
+						if (in_word)
+						{
+							_tokens.push_back(std::make_pair(TOKEN_WORD, token_text));
+							token_text.clear();
+							in_word = false;
+						}
+						break ;
+
+					case '{':
+					case '}':
+					case ';':
+						if (in_word)
+						{
+							_tokens.push_back(std::make_pair(TOKEN_WORD, token_text));
+							token_text.clear();
+							in_word = false;
+						}
+						if (c == '{')
+							_tokens.push_back(std::make_pair(TOKEN_L_BRACE, "{"));
+						else if (c == '}')
+							_tokens.push_back(std::make_pair(TOKEN_R_BRACE, "}"));
+						else
+							_tokens.push_back(std::make_pair(TOKEN_SEMICOLON, ";"));
+						break ;
+
+					default:
+						token_text += c;
+						in_word = true;
+						break ;
+				}
+			}
 		}
 
-		while (pos < line.length())
-		{
-			if (line[pos] == ' ' || (line[pos] >= 9 && line[pos] <= 13))
-			{
-				pos++;
-				continue ;
-			}
+		if (quote != '\0')
+			throw_exception("Syntax error: Unclosed quote detected.");
 
-			switch (line[pos])
-			{
-				case '{':
-					_tokens.push_back(makePair(TOKEN_L_BRACE, "{"));
-					pos++;
-					break ;
-				case '}':
-					_tokens.push_back(makePair(TOKEN_R_BRACE, "}"));
-					pos++;
-					break ;
-				case ';':
-					_tokens.push_back(makePair(TOKEN_SEMICOLON, ";"));
-					pos++;
-					break ;
-				default :
-					std::size_t	i = pos;
-					while (i < line.length() && !std::strchr("{}; \t\n\r", line[i]))
-					{
-						token_text += line[i];
-						i++;
-					}
-					_tokens.push_back(makePair(TOKEN_WORD, token_text));
-					token_text.clear();
-					pos = i;
-			}
+		if (in_word)
+		{
+			_tokens.push_back(std::make_pair(TOKEN_WORD, token_text));
+			token_text.clear();
+			in_word = false;
 		}
-		_tokens.push_back(makePair(TOKEN_NEWLINE, "\n"));
+		_tokens.push_back(std::make_pair(TOKEN_NEWLINE, "\n"));
 	}
-	_tokens.push_back(makePair(TOKEN_END, ""));
+	_tokens.push_back(std::make_pair(TOKEN_END, ""));
 }
 
 VirtualHostConfig	ConfigParser::parseVirtualHost( void )
@@ -172,7 +181,7 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 	VirtualHostConfig	virtualHost;
 
 	if (next_token().first != TOKEN_L_BRACE)
-		throw std::runtime_error("Error: expected '{' after server directive.");
+		throw_exception("Error: expected '{' after server directive.");
 
 	advance_token(2);
 	_locationPaths.clear();
@@ -186,10 +195,10 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 			if (iter != _parseServer.end())
 				(this->*(iter->second))(virtualHost);
 			else
-				throw std::runtime_error("Error: invalid directive in server block.");
+				throw_exception("Error: invalid directive in server block.");
 		}
 		else
-			throw std::runtime_error("Error: expected unqualified word.");
+			throw_exception("Error: expected unqualified word.");
 
 	}
 
@@ -202,9 +211,9 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 		virtualHost.addAllowedMethod("DELETE");
 	}
 	if (virtualHost.getVecPort().empty())
-		throw std::runtime_error("Error: no 'listen' directive was found in server block.");
+		throw_exception("Error: no 'listen' directive was found in server block.");
 	if (virtualHost.getRoot().empty())
-			throw std::runtime_error("Error: no 'root' directive was found in server block.");
+			throw_exception("Error: no 'root' directive was found in server block.");
 	if (virtualHost.getMaxBodySize() == 0)
 		virtualHost.setMaxBodySize(1 << 21);
 
@@ -285,13 +294,13 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 	Location	local;
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: expected a path after location directive.");
+		throw_exception("Error: expected a path after location directive.");
 
 	local.setPath(next_token().second);
 	advance_token(2);
 
 	if (curr_token().first != TOKEN_L_BRACE)
-		throw std::runtime_error("Error: location block needs '{' before directives.");
+		throw_exception("Error: location block needs '{' before directives.");
 
 	advance_token(1);
 
@@ -304,10 +313,10 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 			if (iter != _parseLocation.end())
 				(this->*(iter->second))(local);
 			else
-				throw std::runtime_error("Error: Invalid directive in Location block.");
+				throw_exception("Error: Invalid directive in Location block.");
 		}
 		else
-			throw std::runtime_error("Error: expected word in location block.");
+			throw_exception("Error: expected word in location block.");
 	}
 
 	std::list<std::string>::iterator iter = _locationPaths.begin();
@@ -315,7 +324,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 	while(iter != _locationPaths.end())
 	{
 		if (*iter == local.getPath())
-			throw std::runtime_error("It looks like there is a duplicate value.");
+			throw_exception("Error: more then one Location block to the same path.");
 		iter++;
 	}
 	if (local.getAllowedMethods().empty())
@@ -325,7 +334,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 		local.addAllowedMethod("DELETE");
 	}
 	if (local.getCgiExtension().empty() != local.getCgiPath().empty())
-		throw std::runtime_error("Error: both 'cgi_extension' and 'cgi_path' must be assigned.");
+		throw_exception("Error: both 'cgi_extension' and 'cgi_path' must be assigned.");
 	advance_token(1);
 	_locationPaths.push_back(local.getPath());
 	vec.addLocation(local);
@@ -396,14 +405,17 @@ bool	ConfigParser::validateIp( const std::string& ip )
 
 void	ConfigParser::handleListen( VirtualHostConfig& vec )
 {
+	if (!vec.getVecHostIp().empty())
+		throw_exception("Error: more then one 'listen' directive.");
+
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: you must assingn a valid value to listen directive.");
+		throw_exception("Error: you must assingn a valid value to 'listen' directive.");
 
 	std::string	listen_val = next_token().second;
 	advance_token(1);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: listen directive must be ended by ';'.");
+		throw_exception("Error: listen directive must be ended by ';'.");
 
 	std::size_t	posDoubledots = listen_val.find(':');
 
@@ -417,7 +429,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 				vec.addPort(80);
 			}
 			else
-				throw std::runtime_error("Error: invalid ip format.");
+				throw_exception("Error: invalid ip format.");
 		}
 		else
 		{
@@ -430,7 +442,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 				vec.addHostIp("0.0.0.0");
 			}
 			else
-				throw std::runtime_error("Error: invalid port format.");
+				throw_exception("Error: invalid port format.");
 		}
 	}
 	else
@@ -447,7 +459,7 @@ void	ConfigParser::handleListen( VirtualHostConfig& vec )
 			vec.addPort(static_cast<int>(port));
 		}
 		else
-			throw std::runtime_error("Error: invalid ip-port format.");
+			throw_exception("Error: invalid ip-port format.");
 	}
 	advance_token(2);
 }
@@ -456,14 +468,14 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 {
 	long		parsedValue;
 	std::string	value;
-	std::size_t	scale;
+	std::size_t	scale = 0;
 	char		*end;
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'client_max_body_size' directive needs a valid value.");
+		throw_exception("Error: 'client_max_body_size' directive needs a valid value.");
 
 	if (vec.getMaxBodySize() != 0)
-		throw std::runtime_error("Error: 'client_max_body_size' duplicate ditective in server block.");
+		throw_exception("Error: 'client_max_body_size' duplicate ditective in server block.");
 
 	advance_token(1);
 
@@ -471,7 +483,7 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 	errno = 0;
 	parsedValue = std::strtol(value.c_str(), &end, 10);
 	if (parsedValue <= 0 || std::strlen(end) > 1 || errno)
-		throw std::runtime_error("Error: client_max_body_size needs a valid value.");
+		throw_exception("Error: 'client_max_body_size' directive needs a valid value.");
 	switch (*end)
 	{
 		case '\0':
@@ -490,16 +502,16 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 			scale = 1 << 30;
 			break ;
 		default:
-			scale = static_cast<std::size_t>(-1);
+			throw_exception("Error: invalid scale at 'client_max_body_size' directive.");
 	}
 
 	std::size_t maxBodySize = static_cast<std::size_t>(parsedValue);
 
-	if ((static_cast<std::size_t>(-1) / scale ) < maxBodySize)
-		throw std::runtime_error("Error: client_max_body_size needs a valid value.");
+	if ((static_cast<size_t>(-1) / scale) + 1 < maxBodySize)
+		throw_exception("Error: too large size at 'client_max_body_size' directive.");
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: missing ';' at the end of 'client_max_body_size' directive.");
+		throw_exception("Error: missing ';' at the end of 'client_max_body_size' directive.");
 
 	advance_token(2);
 	vec.setMaxBodySize(maxBodySize * scale);
@@ -512,7 +524,7 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 	std::list<int>		errors;
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'error_page' directive needs a value.");
+		throw_exception("Error: 'error_page' directive needs a value.");
 
 	advance_token(1);
 
@@ -522,14 +534,14 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 		if (*end != '\0' || curr_token().first != TOKEN_WORD)
 			break ;
 		if (num < 300 || num > 599)
-			throw std::runtime_error("Error: invalid error code in 'error_page' directive.");
+			throw_exception("Error: invalid error code in 'error_page' directive.");
 
 		errors.push_back(static_cast<int>(num));
 		advance_token(1);
 	}
 
 	if ( errors.empty() || curr_token().first != TOKEN_WORD || next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error in 'error_page' directive.");
+		throw_exception("Error: wrong sintaxe for 'error_page' directive.");
 
 	std::list<int>::iterator iter = errors.begin();
 	while (iter != errors.end())
@@ -537,7 +549,7 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 		if (vec.getErrorPages().find(*iter) == vec.getErrorPages().end())
 			vec.addErrorPage(*iter, curr_token().second);
 		else
-			throw std::runtime_error("It looks like there is a duplicate value.");
+			throw_exception("Error: it looks like there is a duplicate value in 'error_page' directive.");
 		iter++;
 	}
 
@@ -547,10 +559,10 @@ void	ConfigParser::handleErrorPage( VirtualHostConfig& vec )
 void	ConfigParser::handleRoot( VirtualHostConfig& vec )
 {
 	if (!vec.getRoot().empty())
-		throw std::runtime_error("Error: duplicate 'root' directive in server block.");
+		throw_exception("Error: duplicate 'root' directive in server block.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'root' directive needs a valid value.");
+		throw_exception("Error: 'root' directive needs a valid value.");
 
 	advance_token(1);
 
@@ -566,26 +578,26 @@ void	ConfigParser::handleReturn( VirtualHostConfig& vec )
 	long	code;
 
 	if (vec.getReturn().first != 0)
-		throw std::runtime_error("Error: duplicate 'return' directive in server block.");
+		throw_exception("Error: duplicate 'return' directive in server block.");
 
 	advance_token(1);
 
 	if (curr_token().first != TOKEN_WORD || next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'return' directive needs two valids arguments.");
+		throw_exception("Error: 'return' directive needs two valids arguments.");
 
 	errno = 0;
 	code = std::strtol(curr_token().second.c_str(), &err, 10);
 
 	if (errno || *err)
-		throw std::runtime_error("Error: couldn't convert the return directive code in the server block.");
+		throw_exception("Error: couldn't convert the return directive code in the server block.");
 	if (code < 300 || code > 599)
-		throw std::runtime_error("Error: invalid code in 'return' directive.");
+		throw_exception("Error: invalid code in 'return' directive.");
 
 	vec.setReturn(std::make_pair(static_cast<int>(code), next_token().second));
 	advance_token(2);
 
 	if (curr_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'return' takes exactly two argument or is missing ';'.");
+		throw_exception("Error: 'return' takes exactly two argument or is missing ';'.");
 	advance_token(1);
 }
 
@@ -631,7 +643,7 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 	const std::vector<std::string> &	tmp = vec.getAllowedMethods();
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'allow_methods' directive needs a valid value.");
+		throw_exception("Error: 'allow_methods' directive needs a valid value.");
 
 	advance_token(1);
 	while (curr_token().first == TOKEN_WORD)
@@ -645,33 +657,33 @@ void	ConfigParser::handleAllowedMethods( VirtualHostConfig& vec )
 				for(std::size_t j = 0; j < tmp.size(); j++)
 				{
 					if (tmp[j] == allowed[i])
-						throw std::runtime_error("Error: duplicate atribute in 'allow_methods' directive in server block.");
+						throw_exception("Error: duplicate atribute in 'allow_methods' directive in server block.");
 				}
 				vec.addAllowedMethod(curr_token().second);
 			}
 		}
 		if (!flag)
-			throw std::runtime_error("Error: invalid atribute in 'allow_methods' directive in server block.");
+			throw_exception("Error: invalid atribute in 'allow_methods' directive in server block.");
 		advance_token(1);
 	}
 	if (curr_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: missing ';' at the end of 'allow_methods' directive in server block.");
+		throw_exception("Error: missing ';' at the end of 'allow_methods' directive in server block.");
 	advance_token(1);
 }
 void	ConfigParser::handleUploadPath( VirtualHostConfig& vec )
 {
 	if (!vec.getUploadPath().empty())
-		throw std::runtime_error("Error: duplicate 'upload_path' directive in server block.");
+		throw_exception("Error: duplicate 'upload_path' directive in server block.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'upload_path' directive requires a valid argument.");
+		throw_exception("Error: 'upload_path' directive requires a valid argument.");
 
 	advance_token(1);
 
 	vec.setUploadPath(curr_token().second);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'upload_path' takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'upload_path' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -679,17 +691,17 @@ void	ConfigParser::handleUploadPath( VirtualHostConfig& vec )
 void	ConfigParser::handleLocationRoot( Location& loc )
 {
 	if (!loc.getRoot().empty())
-		throw std::runtime_error("Error: duplicate 'root' directive in location.");
+		throw_exception("Error: duplicate 'root' directive in location.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'root' directive requires a valid argument.");
+		throw_exception("Error: 'root' directive requires a valid argument.");
 
 	advance_token(1);
 
 	loc.setRoot(curr_token().second);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'root' directive takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'root' directive takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -697,7 +709,7 @@ void	ConfigParser::handleLocationRoot( Location& loc )
 void	ConfigParser::handleLocationIndex( Location& loc )
 {
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'index' requires at least one argument in location.");
+		throw_exception("Error: 'index' requires at least one argument in location.");
 
 	advance_token(1);
 
@@ -708,7 +720,7 @@ void	ConfigParser::handleLocationIndex( Location& loc )
 	}
 
 	if (curr_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: missing ';' at the end of 'index' directive in location.");
+		throw_exception("Error: missing ';' at the end of 'index' directive in location.");
 
 	advance_token(1);
 }
@@ -720,7 +732,7 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 	const std::vector<std::string> &		tmp = loc.getAllowedMethods();
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'allow_methods' directive needs a valid value in location block.");
+		throw_exception("Error: 'allow_methods' directive needs a valid value in location block.");
 
 	advance_token(1);
 	while (curr_token().first == TOKEN_WORD)
@@ -734,18 +746,18 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 				for(std::size_t j = 0; j < tmp.size(); j++)
 				{
 					if (tmp[j] == allowed[i])
-						throw std::runtime_error("Error: duplicate attribute in 'allow_methods' directive in location block.");
+						throw_exception("Error: duplicate attribute in 'allow_methods' directive in location block.");
 				}
 				loc.addAllowedMethod(curr_token().second);
 			}
 		}
 		if (!flag)
-			throw std::runtime_error("Error: invalid attribute in 'allow_methods' directive in location block.");
+			throw_exception("Error: invalid attribute in 'allow_methods' directive in location block.");
 
 		advance_token(1);
 	}
 	if (curr_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: missing ';' at the end of 'allow_methods' directive in location block.");
+		throw_exception("Error: missing ';' at the end of 'allow_methods' directive in location block.");
 
 	advance_token(1);
 }
@@ -757,7 +769,7 @@ void	ConfigParser::handleLocationErrorPage( Location& local )
 	std::list<int>		errors;
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'error_page' directive needs a value.");
+		throw_exception("Error: 'error_page' directive needs a value.");
 
 	advance_token(1);
 
@@ -767,14 +779,14 @@ void	ConfigParser::handleLocationErrorPage( Location& local )
 		if (*end != '\0' || curr_token().first != TOKEN_WORD)
 			break ;
 		if (num < 300 || num > 599)
-			throw std::runtime_error("Error: invalid error code in 'error_page' directive.");
+			throw_exception("Error: invalid error code in 'error_page' directive.");
 
 		errors.push_back(static_cast<int>(num));
 		advance_token(1);
 	}
 
 	if ( errors.empty() || curr_token().first != TOKEN_WORD || next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error in 'error_page' directive.");
+		throw_exception("Error: wrong sintaxe for 'error_page' directive.");
 
 	std::list<int>::iterator iter = errors.begin();
 	while (iter != errors.end())
@@ -782,7 +794,7 @@ void	ConfigParser::handleLocationErrorPage( Location& local )
 		if (local.getErrorPages().find(*iter) == local.getErrorPages().end())
 			local.addErrorPage(*iter, curr_token().second);
 		else
-			throw std::runtime_error("It looks like there is a duplicate value.");
+			throw_exception("Error: it looks like there is a duplicate value in 'error_page' directive.");
 		iter++;
 	}
 
@@ -792,7 +804,7 @@ void	ConfigParser::handleLocationErrorPage( Location& local )
 void	ConfigParser::handleLocationAutoindex( Location& loc )
 {
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'autoindex' directive requires a valid argument.");
+		throw_exception("Error: 'autoindex' directive requires a valid argument.");
 
 	advance_token(1);
 
@@ -803,10 +815,10 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 	else if (state == "off")
 		loc.setAutoindex(false);
 	else
-		throw std::runtime_error("Error: 'autoindex' must be 'on' or 'off'.");
+		throw_exception("Error: 'autoindex' must be 'on' or 'off'.");
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'autoindex' takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'autoindex' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -814,17 +826,17 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 void	ConfigParser::handleLocationUploadPath( Location& loc )
 {
 	if (!loc.getUploadPath().empty())
-		throw std::runtime_error("Error: duplicate 'upload_path' directive.");
+		throw_exception("Error: duplicate 'upload_path' directive.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'upload_path' directive requires a valid argument.");
+		throw_exception("Error: 'upload_path' directive requires a valid argument.");
 
 	advance_token(1);
 
 	loc.setUploadPath(curr_token().second);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'upload_path' takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'upload_path' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -832,18 +844,18 @@ void	ConfigParser::handleLocationUploadPath( Location& loc )
 void	ConfigParser::handleLocationCgiExtension( Location& loc )
 {
 	if (!loc.getCgiExtension().empty())
-		throw std::runtime_error("Error: duplicate 'cgi_extension' directive.");
+		throw_exception("Error: duplicate 'cgi_extension' directive.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'cgi_extension' directive requires a valid argument.");
+		throw_exception("Error: 'cgi_extension' directive requires a valid argument.");
 
 	advance_token(1);
 
 	if (curr_token().second != ".py" && curr_token().second != ".php")
-		throw std::runtime_error("Error: invalid CGI extension, only '.php' and '.py' are accepted.");
+		throw_exception("Error: invalid CGI extension, only '.php' and '.py' are accepted.");
 	loc.setCgiExtension(curr_token().second);
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'cgi_extension' takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'cgi_extension' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -851,17 +863,17 @@ void	ConfigParser::handleLocationCgiExtension( Location& loc )
 void	ConfigParser::handleLocationCgiPath( Location& loc )
 {
 	if (!loc.getCgiPath().empty())
-		throw std::runtime_error("Error: duplicate 'cgi_path' directive.");
+		throw_exception("Error: duplicate 'cgi_path' directive.");
 
 	if (next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'cgi_path' directive requires a valid argument.");
+		throw_exception("Error: 'cgi_path' directive requires a valid argument.");
 
 	advance_token(1);
 
 	loc.setCgiPath(curr_token().second);
 
 	if (next_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'cgi_path' takes exactly one argument or is missing ';'.");
+		throw_exception("Error: 'cgi_path' takes exactly one argument or is missing ';'.");
 
 	advance_token(2);
 }
@@ -873,26 +885,26 @@ void	ConfigParser::handleLocationReturn( Location& loc )
 	long	code;
 
 	if (loc.getReturn().first != 0)
-		throw std::runtime_error("Error: duplicate 'return' directive in location block.");
+		throw_exception("Error: duplicate 'return' directive in location block.");
 
 	advance_token(1);
 
 	if (curr_token().first != TOKEN_WORD || next_token().first != TOKEN_WORD)
-		throw std::runtime_error("Error: 'return' directive needs two valids arguments.");
+		throw_exception("Error: 'return' directive needs two valids arguments.");
 
 	errno = 0;
 	code = std::strtol(curr_token().second.c_str(), &err, 10);
 
 	if (errno || *err)
-		throw std::runtime_error("Error: couldn't convert the return directive code in the server block.");
+		throw_exception("Error: couldn't convert the return directive code in the server block.");
 	if (code < 300 || code > 599)
-		throw std::runtime_error("Error: invalid code in 'return' directive.");
+		throw_exception("Error: invalid code in 'return' directive.");
 
 	loc.setReturn(std::make_pair(static_cast<int>(code), next_token().second));
 	advance_token(2);
 
 	if (curr_token().first != TOKEN_SEMICOLON)
-		throw std::runtime_error("Error: 'return' takes exactly two argument or is missing ';'.");
+		throw_exception("Error: 'return' takes exactly two argument or is missing ';'.");
 	advance_token(1);
 }
 
@@ -917,4 +929,24 @@ std::set<std::pair<std::string, std::string> >	ConfigParser::extractListen( std:
 		}
 	}
 	return (listens);
+}
+
+void	ConfigParser::throw_exception( const char* str )
+{
+	size_t		i = 0;
+	size_t		newline_counter = 1;
+	std::string	word = curr_token().second;
+
+	if (word.empty())
+		word = "}";
+	if (curr_token().first == TOKEN_END)
+		newline_counter--;
+	while (i <= _pos)
+	{
+		i++;
+		if (_tokens[i].first == TOKEN_NEWLINE)
+			newline_counter++;
+	}
+	std::cerr << "A problem occurred at line " << newline_counter << " near '" << word << "'." << std::endl;
+	throw std::runtime_error(str);
 }
