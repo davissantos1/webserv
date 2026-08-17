@@ -6,11 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-<<<<<<< Updated upstream
-/*   Updated: 2026/08/16 20:30:30 by dasimoes         ###   ########.fr       */
-=======
-/*   Updated: 2026/08/15 19:51:35 by dasimoes         ###   ########.fr       */
->>>>>>> Stashed changes
+/*   Updated: 2026/08/17 16:09:42 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,11 +141,7 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 	pid_t	pid;
 	int pipe_in[2];
 	int pipe_out[2];
-<<<<<<< Updated upstream
 	std::vector<std::pair<int, enum CgiIoType> > bundles;
-=======
-	std::vector<std::pair<int, enum FdIoType> > bundles;
->>>>>>> Stashed changes
 
 	if ((pipe(pipe_in) < 0) || (pipe(pipe_out) < 0) || ((pid = fork()) < 0))
 	{

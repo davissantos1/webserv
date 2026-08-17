@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 21:53:48 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 15:35:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ class HttpRequest
 		const std::string*	getBody( void ) { return &(this->_body); }
 		const std::string&	getQuery( void ) const { return this->_query; }
 		const std::string&	getServerName( void ) const { return this->_serverName; }
-		uint16_t		getServerPort( void ) const { return this->_serverPort; }
+		uint16_t			getServerPort( void ) const { return this->_serverPort; }
 		const std::string&	getClientIp( void ) const { return this->_clientIp; }
-		int				getBodySize( void ) const { return this->_body.size(); }
+		std::size_t			getBodySize( void ) const { return this->_body.size(); }
 		const std::string&	getFilename( void ) const { return this->_filename; }
 		const std::string&	getEndpoint( void ) const { return this->_endpoint; }
 		const std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }

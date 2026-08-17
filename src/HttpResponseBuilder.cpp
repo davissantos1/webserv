@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 21:59:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:10:11 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,3 +111,29 @@ void	HttpResponseBuilder::addHeader(std::string key, std::string value)
 		headers[key] = value;
 }
 
+void	HttpResponseBuilder::buildHardFallback(int exception)
+{
+	std::string hardFallback;
+	switch (exception)
+	{
+		case 400:
+			hardFallback = "Hard Bad Request";
+			break;
+		case 403:
+			hardFallback = "Hard Forbidden";
+			break;
+		case 404:
+			hardFallback = "Hard Not Found";
+			break;
+		case 405:
+			hardFallback = "Hard Method Not Allowed";
+			break;
+		case 413:
+			hardFallback = "Hard Request Too Large";
+			break;
+		case 500:
+			hardFallback = "Hard Internal Server Error";
+			break;
+	}
+	this->setHttpResponseBody(hardFallback);
+}

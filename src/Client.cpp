@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:57:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:32:29 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,12 +113,13 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PROCESSING_STATIC_FILE);
 			}
 		}
-		case PARSING_HEADERS_DONE:
-		{
-			this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
-			// set maxBodySize inside the parser
-			return (this->_status);
-		}		
+	//	case PARSING_HEADERS_DONE:
+	//	{
+	//		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
+	//		conf = this->_virtualHostConfig;
+	//		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
+	//		return (this->_status);
+	//	}
 		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
@@ -186,26 +187,58 @@ void	Client::destroyCgi(int fd)
 
 void	Client::executeStaticFileMethod()
 {
-	// implement execution of static for each method
+	int statusCode = this->getStatusCode();
+	VirtualHostConfig& conf = this->_virtualHostConfig;
+	StaticFileHandler& stat = this->_staticFileHandler;
+	HttpResponseBuilder& build = this->_httpResponseBuilder;
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
+	
+	if (statusCode != 200)
+	{
+		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
+	}
+	if (conf.shouldIndex(req.getEndpoint()))
+		this->handleIndex();
+	statusCode = 0;
+	if (req.getMethod() == "GET")
+		stat.handleGet(req, conf, build);
+	else if (req.getMethod() == "POST")
+	{
+		if (req.getBodySize() == 0)
+			statusCode = 400;
+		else
+			stat.handlePost(req, conf, build);
+	}
+	else if (req.getMethod() == "DELETE")
+		stat.handleDelete(req, conf, build);
+	if (statusCode > 299)
+	{
+		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
+	}
+	this->_status = PREPARING_RESPONSE;
 }
 
 std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 {
+	CgiHandler& cgi = this->_cgiHandler;
 	int statusCode = this->getStatusCode();
 	std::vector<std::pair<int, enum CgiIoType> > tasks;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 	StaticFileHandler& stat = this->_staticFileHandler;
-	CgiHandler& cgi = this->_cgiHandler;
+	HttpResponseBuilder& build = this->_httpResponseBuilder;
 	std::pair<int, enum CgiIoType> task;
 	std::vector<std::pair<int, enum CgiIoType> > postFds;
 
-	if (statusCode != 200)
+	if (statusCode > 299)
 	{
-		stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()));
+		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
 		return (tasks);
 	}
-	if (this->_virtualHostConfig.shouldIndex(req.getUri()))
+	if (conf.shouldIndex(req.getEndpoint()))
 		this->handleIndex();
 	statusCode = 0;
 	if (req.getMethod() == "GET")
@@ -222,14 +255,11 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 	}
 	if (statusCode > 0)
 		this->setStatusCode(statusCode);
-	if (statusCode == -1)
+	if (statusCode > 299)
 	{
-		statusCode = stat.handleAutoindex(req, conf, this->_httpResponseBuilder);
-		if (statusCode == -1)
-			this->_status = PREPARING_RESPONSE;
+		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
 	}
-	if (statusCode != 200 && statusCode != -1)
-		stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()));
 	return (tasks);
 }
 

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:29:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:20:54 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,13 @@ class StaticFileHandler
 		StaticFileHandler(const StaticFileHandler& other);
 		StaticFileHandler& operator=(const StaticFileHandler& other);
 
-		void	handleException(int exception, std::string path);
-		void	handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
-		void	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
-		void	handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);	
+
+		void	handleGet(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);
+		void	handlePost(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);
+		void	handleDelete(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);	
 		int		handleAutoindex(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);
+		bool	handleException(int exception, std::string path, HttpRequest& req, HttpResponseBuilder& build);
+		bool	processStaticFile(int fd, enum StaticFileIoType type, HttpRequest& req, HttpResponseBuilder& build);
 };
 
 #endif

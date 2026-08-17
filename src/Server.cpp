@@ -6,11 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-<<<<<<< Updated upstream
-/*   Updated: 2026/08/16 20:35:25 by dasimoes         ###   ########.fr       */
-=======
-/*   Updated: 2026/08/16 12:33:42 by dasimoes         ###   ########.fr       */
->>>>>>> Stashed changes
+/*   Updated: 2026/08/17 16:42:33 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,13 +124,10 @@ void	Server::runServer()
 				this->_staticFileMap.count(fds[j].first) == 0 &&
 				this->_cgiMap.count(fds[j].first) == 0)
 					continue;
-					
 			}
 			fdType = (it != listenEnd) ? SOCKET : CLIENT;
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
-			else if (this->_staticFileMap.count(fds[j].first) > 0)
-				fdType = STATIC_FILE;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
 			this->checkTimeouts();
 		}
@@ -179,12 +172,12 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->destroyClient(fd);
 				return ;
 			}
-			if (status == PROCESSING_STATIC_FILE || status = PROCESSING_EXCEPTION)
+			if (status == PROCESSING_STATIC_FILE || status == PROCESSING_EXCEPTION)
 			{
 				this->_multiplexer.removeFd(client->getFd());
 				if (status == PROCESSING_STATIC_FILE)
 					this->handleSession(client);
-				client->executeStaticMethod();
+				client->executeStaticFileMethod();
 				client->setStatus(PREPARING_RESPONSE);
 			}
 			if (status == PROCESSING_CGI)
@@ -242,6 +235,7 @@ void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType typ
 	StaticFileHandler& stat = client->getStaticFileHandler();
 	VirtualHostConfig& conf = client->getVirtualHostConfig();
 	std::vector<int> activeFds = client->getActiveFds();
+	HttpResponseBuilder& build = client->getHttpResponseBuilder();
 	for (size_t i = 0; i < activeFds.size(); i++)
 	{
 		this->_multiplexer.removeFd(activeFds[i]);
@@ -253,10 +247,9 @@ void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType typ
 	client->destroyActiveFds();
 	if (statusCode > 299)
 	{
-		client->setStatus(PROCESSING_STATIC_FILE);
-		errorFd = stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint())); 
-		this->_multiplexer.addFd(errorFd[0].first, EPOLLIN | EPOLLRDHUP);
-		this->_staticFileMap[errorFd[0].first] = client;
+		client->setStatus(PREPARING_RESPONSE);
+		errorFd = stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build); 
+		this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
 		client->registerFd(errorFd[0].first);
 	}	
 	else

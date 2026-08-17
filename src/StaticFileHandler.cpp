@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:14:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:22:32 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,70 +27,92 @@ StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 	return (*this);
 }
 
-void	StaticFileHandler::processStaticFile(enum StaticFileIoType type)
+bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, HttpRequest& req, HttpResponseBuilder& build)
 {
+	int bytes;
+	char buffer[8196];
+
 	if (type == STATIC_FILE_READ)
 	{
-
+		while ((bytes = read(fd, buffer, sizeof(buffer))))
+		{
+			if (bytes < 0)
+			{
+				build.setStatusCode(500);
+				return (false);
+			}
+			else
+				build.feedStaticFile(buffer, bytes);
+		}
 	}
 	else if (type == STATIC_FILE_WRITE)
 	{
-
+		const char* reqBody = req.getBody()->c_str();
+		bytes = write(fd, reqBody, req.getBodySize());
+		if (bytes < 0)
+		{
+			build.setStatusCode(500);
+			return (false);
+		}
 	}
+	return (true);
 }
 
-void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
-	int fd, status;
+	int fd, statusCode;
 
 	errno = 0;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
 	{
 		if (errno == ENOENT)
-			*statusCode = 404;
+			build.setStatusCode(404);
 		else if (errno == EISDIR)
 		{
-			if (conf.shouldAutoindex(req.getUri()))
+			if (conf.shouldAutoindex(req.getEndpoint()))
 			{
-				*statusCode = -1;
+				this->handleAutoindex(req, conf, build);
 				return ;
 			}
 			else
-				*statusCode = 403;
+				build.setStatusCode(403);
 		}
 		else if (errno == EACCES)
-			*statusCode = 403;
+			build.setStatusCode(403);
 		else
-			*statusCode = 500;
-	}
-	if ((status = fcntl(fd, F_SETFL, O_NONBLOCK)) == -1)
-		*statusCode = 500;
-	if (*statusCode > 299)
+			build.setStatusCode(500);
+		statusCode = build.getStatusCode();
+		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
 		return ;
-	*statusCode = 200;
+	}
+	build.setStatusCode(200);
+	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
+	{
+		close(fd);
+		statusCode = build.getStatusCode();
+		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
+	}
 }
 
-void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
-	int fd;
+	int fd, statusCode;
 	struct stat info;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
 
 	errno = 0;
 	if (uploadPath.empty())
-	{
-		*statusCode = 405;
-		return ;
-	}
+		build.setStatusCode(405);
 	if (stat(path.c_str(), &info) == -1)
 	{
 		if (errno == EACCES || errno == ENOENT)
-			*statusCode = 403;
+			build.setStatusCode(403);
 		else
-			*statusCode = 500;
-		return ;
+			build.setStatusCode(500);
 	}
 	if (S_ISDIR(info.st_mode))
 	{
@@ -99,19 +121,35 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, in
 		if (fd < 0)
 		{
 			if (errno == EACCES)
-				*statusCode = 403;
+				build.setStatusCode(403);
 			else
-				*statusCode = 500;
+				build.setStatusCode(500);
+		}
+		else
+		{
+			build.setStatusCode(200);
+			if (!this->processStaticFile(fd, STATIC_FILE_WRITE, req, build))
+			{
+				close(fd);
+				statusCode = build.getStatusCode();
+				if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+					build.setHardFallback(true);
+			}
 			return ;
 		}
-		*statusCode = 200;
-		return ;
 	}
-	*statusCode = 403;
-}
-
-void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, int* statusCode)
+	build.setStatusCode(403);
+	statusCode = build.getStatusCode();
+	if (statusCode != 200)
+	{
+		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
+	}
+}   	
+    	
+void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
+	int statusCode;
 	struct stat info;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 
@@ -119,33 +157,35 @@ void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, 
 	if (stat(path.c_str(), &info) == -1)
 	{
 		if (errno == EACCES || errno == EPERM)
-			*statusCode = 403;
+			build.setStatusCode(403);
 		else if (errno == ENOENT)
-			*statusCode = 404;
+			build.setStatusCode(404);
 		else
-			*statusCode = 500;
-		return ;
+			build.setStatusCode(500);
 	}
 	if (S_ISDIR(info.st_mode))
-	{
-		*statusCode = 403;
-		return ;
-	}
+		build.setStatusCode(403);
 	errno = 0;
 	if(std::remove(path.c_str()) == 0)
-		*statusCode = 204;
+		build.setStatusCode(204);
 	else
 	{
 		if (errno == EACCES || errno == EPERM)
-			*statusCode = 403;
+			build.setStatusCode(403);
 		else if (errno == ENOENT)
-			*statusCode = 404;
+			build.setStatusCode(404);
 		else
-			*statusCode = 500;
+			build.setStatusCode(500);
+	}
+	statusCode = build.getStatusCode();
+	if (statusCode != 204)
+	{
+		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
+			build.setHardFallback(true);
 	}
 }
 
-void	StaticFileHandler::handleException(int exception, std::string path)
+bool	StaticFileHandler::handleException(int exception, std::string path, HttpRequest& req, HttpResponseBuilder& build)
 {
 	int fd = -1;
 	if (path.empty())
@@ -175,6 +215,12 @@ void	StaticFileHandler::handleException(int exception, std::string path)
 			fd = open(path.c_str(), O_RDONLY);
 			break;
 	}
+	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
+	{
+		close(fd);
+		return (false);
+	}
+	return (true);
 }
 
 
@@ -244,5 +290,5 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	if (closedir(stream) == -1)
 		return (500);
 	build.setHttpResponseBody(html.str());
-	return (-1);
+	return (200);
 }

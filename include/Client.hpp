@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:28:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:33:42 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ class Client
 		void										destroyCgi(int fd);
 		void										handleIndex();
 		std::string									findSessionId();
+		void										destroyActiveFds();
 		enum ClientStatus							processHttpRequest();
 		enum ClientStatus							processHttpResponse();
 		enum ClientStatus							checkRequest(enum RequestStatus status);

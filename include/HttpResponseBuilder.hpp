@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/15 01:01:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:05:39 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ class HttpResponseBuilder
 		HttpRequest*	_httpRequest;
 		CgiParser		_cgiParser;
 		std::string		_httpResponseHead;
+		bool			_hardFallback;
 		
 	public:
 		HttpResponseBuilder();
@@ -46,6 +47,7 @@ class HttpResponseBuilder
 		const std::string*	getHttpRequestBody() { return this->_httpRequest->getBody(); }
 		int					getBytesSent() { return this->_bytesSent; }
 		int					getTotalBytes() { return this->_totalBytes; }
+		bool				getHardFallback() { return this->_hardFallback; }
 
 		void				setBytesSent(int bytesSent) { this->_bytesSent = bytesSent; }
 		void				setTotalBytes(int totalBytes) { this->_totalBytes = totalBytes; }
@@ -54,12 +56,14 @@ class HttpResponseBuilder
 		void				setHttpRequest(HttpRequest* httpRequest) { this->_httpRequest = httpRequest; };
 		void				setHttpResponseBody(std::string body) { this->_httpResponse.setBody(body); }
 		void				setHttpResponseHeaders(std::map<std::string, std::string> headers) { this->_httpResponse.setHeaders(headers); }
+		void				setHardFallback(bool hardFallback) { this->_hardFallback = hardFallback; }
 		
 		void				buildHeaders();
 		void				buildResponse();
 		void				feedCgi(char *buffer, int size);
 		void				feedStaticFile(char *buffer, int size);
 		void				addHeader(std::string key, std::string value);
+		void				buildHardFallback(int exception);
 		void				cleanHttpResponse() { this->_httpResponse.reset(); }
 };
 

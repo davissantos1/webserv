@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/04 20:22:34 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/17 16:11:43 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,6 +203,13 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 			return (local.getUploadPath());
 	}
 	return (getUploadPath());
+}
+
+// to be done
+std::size_t getMaxBodySize(std::string endpoint)
+{
+	(void) endpoint;
+	return (0);
 }
 
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )

@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:02:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:11:12 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,15 +57,16 @@ class VirtualHostConfig
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 		const std::string&					getUploadPath( void ) const { return _uploadPath; }
 
-		std::pair<int, std::string> getReturn( const std::string& endpoint ) const; // to be done
-		std::string	getErrorPage( const int error, const std::string& endpoint ) const; // to be done
-		std::string	getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const; // to be done
-		std::string	getFullPath( const std::string& filename, const std::string& endpoint ) const; // to be done aqui exolhe 1
+		std::pair<int, std::string> getReturn( const std::string& endpoint ) const;
+		std::string	getErrorPage( const int error, const std::string& endpoint ) const;
+		std::string	getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const;
+		std::string	getFullPath( const std::string& filename, const std::string& endpoint ) const;
 		std::string	getUploadPath( const std::string& endpoint ) const;
-		bool		isMethodAllowed( const std::string& method, const std::string& endpoint ) const; // to be done
-		bool		shouldIndex( const std::string& endpoint ) const; // to be done
-		bool		shouldAutoindex( const std::string& endpoint ) const; // to be done
-		bool		shouldRedirect( const std::string& endpoint ) const; // to be done
+		bool		isMethodAllowed( const std::string& method, const std::string& endpoint ) const;
+		bool		shouldIndex( const std::string& endpoint ) const;
+		bool		shouldAutoindex( const std::string& endpoint ) const;
+		bool		shouldRedirect( const std::string& endpoint ) const;
+		std::size_t getMaxBodySize(std::string endpoint); // to be done
 
 		void	setServerNames( const std::vector<std::string> & serverNames ) { _serverNames = serverNames; }
 		void	setHostIp( const std::vector<std::string> & hostIp ) { _hostIp = hostIp; }
