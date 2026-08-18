@@ -159,7 +159,7 @@ void	HttpRequestParser::handleBody( void )
 
 void	HttpRequestParser::handleContent( void )
 {
-	if (_buffer.size() > _expectedBodyLen || _expectedBodyLen > _maxBodySize)
+	if (_buffer.size() > _expectedBodyLen || (_maxBodySize != 0 && _expectedBodyLen > _maxBodySize))
 	{
 		_requestStatus = ERROR_REQUEST_TOO_LARGE;
 		return ;
@@ -191,7 +191,7 @@ void	HttpRequestParser::handleChunked( void )
 			return ;
 		}
 		_expectedBodyLen += static_cast<std::size_t>(chunkLen);
-		if (_expectedBodyLen > _maxBodySize)
+		if (_maxBodySize != 0 && _expectedBodyLen > _maxBodySize)
 		{
 			_requestStatus = ERROR_REQUEST_TOO_LARGE;
 			return ;
