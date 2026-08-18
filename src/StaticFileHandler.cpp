@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:22:32 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 11:54:03 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,7 @@ void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, Htt
 	{
 		close(fd);
 		statusCode = build.getStatusCode();
-		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
-			build.setHardFallback(true);
+		this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
 	}
 }
 
@@ -132,8 +131,7 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 			{
 				close(fd);
 				statusCode = build.getStatusCode();
-				if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
-					build.setHardFallback(true);
+				this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
 			}
 			return ;
 		}
@@ -141,10 +139,7 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 	build.setStatusCode(403);
 	statusCode = build.getStatusCode();
 	if (statusCode != 200)
-	{
-		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
-			build.setHardFallback(true);
-	}
+		this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
 }   	
     	
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
@@ -179,10 +174,7 @@ void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, 
 	}
 	statusCode = build.getStatusCode();
 	if (statusCode != 204)
-	{
-		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
-			build.setHardFallback(true);
-	}
+		this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
 }
 
 bool	StaticFileHandler::handleException(int exception, std::string path, HttpRequest& req, HttpResponseBuilder& build)
@@ -218,6 +210,7 @@ bool	StaticFileHandler::handleException(int exception, std::string path, HttpReq
 	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
 	{
 		close(fd);
+		build.setHardFallback(true);
 		return (false);
 	}
 	return (true);

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:32:29 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 13:27:16 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
 
+			this->_httpResponseBuilder.setHttpRequest(&req);
 			if (!conf.isMethodAllowed(req.getMethod(), req.getEndpoint()))
 			{
 				this->setStatusCode(405);
@@ -101,7 +102,6 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PREPARING_RESPONSE);
 			}
 			this->setStatusCode(200);
-			this->_httpResponseBuilder.setHttpRequest(&req);
 			if (parse.hasCgi() && req.getMethod() != "DELETE")
 			{
 				this->_status = PROCESSING_CGI;
@@ -197,6 +197,8 @@ void	Client::executeStaticFileMethod()
 	{
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
 			build.setHardFallback(true);
+		this->_status = PREPARING_RESPONSE;
+		return ;
 	}
 	if (conf.shouldIndex(req.getEndpoint()))
 		this->handleIndex();

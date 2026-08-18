@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/15 01:27:15 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 12:01:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ HttpRequestParser&	HttpRequestParser::operator=(const HttpRequestParser& other)
 		_bodyProtocol = other._bodyProtocol;
 		_chunckState = other._chunckState;
 		_chunkLen = other._chunkLen;
+		_maxBodySize = other._maxBodySize;
 	}
 	return (*this);
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 15:30:50 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 11:59:05 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ class	Server
 		void				destroyClient(int clientFd);
 		static void			printLog(const std::string& msg);
 		void				routeServer(int fd, uint32_t eventType, enum FdType fdType);
-		void				handleProcessedFile(Client* client, int statusCode, enum FdType type);
+		void				handleProcessedFile(Client* client, int statusCode);
 		void				handleError(int fd, enum FdType fdType);
 		void				handleSession(Client* client);
 		class ServerException: public std::exception

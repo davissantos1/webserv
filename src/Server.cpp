@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:42:33 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 13:06:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ void	Server::startServer()
 			throw (ServerException(errno));
 		if ((status = fcntl(sockFd, F_SETFL, O_NONBLOCK)) == -1)
 			throw (ServerException(errno));
+		this->_multiplexer.addFd(sockFd, (EPOLLIN | EPOLLRDHUP));
 		freeaddrinfo(this->_currAddr);
 		this->_currAddr = res = NULL;
 	}
@@ -129,7 +130,8 @@ void	Server::runServer()
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
-			this->checkTimeouts();
+			if (fdType != SOCKET)
+				this->checkTimeouts();
 		}
 	}
 }
@@ -152,7 +154,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			{
 				int newClient = this->createClient(fd);
 				if (newClient != -1)
-					this->_multiplexer.addFd(newClient, (EPOLLIN | EPOLLRDHUP));		
+					this->_multiplexer.addFd(newClient, (EPOLLIN | EPOLLRDHUP));
 			}
 			break;
 		}
@@ -221,14 +223,14 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 
 			bool isPipeDone = cgi.processCgi(fd, eventType, builder);
 			if (isPipeDone)
-				this->handleProcessedFile(client, builder.getStatusCode(), CGI);
+				this->handleProcessedFile(client, builder.getStatusCode());
 			client->setLastActivity(std::time(NULL));
 			break;
 		}
 	}
 }
 
-void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType type)
+void	Server::handleProcessedFile(Client* client, int statusCode)
 {
 	HttpRequest& req = client->getHttpRequest();
 	std::vector<std::pair<int, enum CgiIoType> > errorFd;
@@ -239,24 +241,13 @@ void	Server::handleProcessedFile(Client* client, int statusCode, enum FdType typ
 	for (size_t i = 0; i < activeFds.size(); i++)
 	{
 		this->_multiplexer.removeFd(activeFds[i]);
-		if (type == CGI)
-			this->_cgiMap.erase(activeFds[i]);
-		else
-			this->_staticFileMap.erase(activeFds[i]);
+		this->_cgiMap.erase(activeFds[i]);
 	}
 	client->destroyActiveFds();
+	client->setStatus(PREPARING_RESPONSE);
 	if (statusCode > 299)
-	{
-		client->setStatus(PREPARING_RESPONSE);
-		errorFd = stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build); 
-		this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
-		client->registerFd(errorFd[0].first);
-	}	
-	else
-	{
-		client->setStatus(PREPARING_RESPONSE);
-		this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
-	}
+		stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build); 
+	this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 }
 
 void	Server::handleError(int fd, enum FdType fdType)
@@ -271,19 +262,6 @@ void	Server::handleError(int fd, enum FdType fdType)
 		case CLIENT:
 			this->destroyClient(fd);
 			break;
-		case STATIC_FILE:
-		{
-			Client* client = this->_staticFileMap[fd];
-
-			this->_multiplexer.removeFd(fd);
-			this->_staticFileMap.erase(fd);
-			close(fd);
-			client->setStatusCode(500);
-			client->setStatus(PREPARING_RESPONSE);
-			this->_multiplexer.addFd(client->getFd(), EPOLLOUT);
-			Server::printLog("static file presented an error");
-			break;
-		}
 		case CGI:
 		{
 			Client* client = this->_cgiMap[fd];
@@ -306,7 +284,7 @@ int	Server::createClient(int sockFd)
 	std::string ipStr;
 	struct sockaddr_storage addr;
 	socklen_t addr_len = sizeof(addr);
-	int clientFd;
+	int clientFd, status;
 	uint16_t	port = 0;
 	uint32_t	ip = 0;
 
@@ -314,6 +292,12 @@ int	Server::createClient(int sockFd)
 	{
 		Server::printLog("accept error on client!");
 		return (clientFd);
+	}
+	if ((status = fcntl(clientFd, F_SETFL, O_NONBLOCK)) == -1)
+	{
+		Server::printLog("client creation error!");
+		this->destroyClient(clientFd);
+		return (-1);
 	}
 	if (addr.ss_family == AF_INET)
 	{

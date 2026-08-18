@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 17:16:03 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/18 12:04:25 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,10 @@ class HttpRequestParser
 		enum RequestStatus	getRequestStatus() { return this->_requestStatus; }
 		HttpRequest&		getHttpRequest() { return this->_httpRequest; }
 		HttpRequest*		getHttpRequestPointer() { return &this->_httpRequest; }
+		std::size_t			getMaxBodySize() { return this->_maxBodySize; }
 		void				splitRequestUri();
+	
+		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }
 
 		enum RequestStatus	feed( const char* buffer, size_t size ); // to be done
 		bool				hasCgi(); // to be done
