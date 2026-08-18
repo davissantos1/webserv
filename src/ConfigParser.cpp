@@ -85,7 +85,7 @@ std::vector<VirtualHostConfig> ConfigParser::parse( const std::string &path )
 		file.close();
 	}
 	else
-		std::cerr << "Error: Couldn't read " << path << " file." << std::endl;
+		throw std::runtime_error("Error: Couldn't read configuration file.");
 	return (configs);
 }
 
