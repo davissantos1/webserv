@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _expectedBodyLen(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0) {}
+HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0) {}
 
 HttpRequestParser::~HttpRequestParser( void ) {}
 
@@ -43,6 +43,7 @@ HttpRequestParser&	HttpRequestParser::operator=(const HttpRequestParser& other)
 		_chunckState = other._chunckState;
 		_chunkLen = other._chunkLen;
 		_maxBodySize = other._maxBodySize;
+		_heardersDone = other._heardersDone;
 	}
 	return (*this);
 }
@@ -67,6 +68,8 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 				handleRequestLine(param);
 			else
 				handleHeaders(param);
+			if (_heardersDone)
+				checkHeaders();
 			_buffer.erase(0, i + 2);
 		}
 		else
@@ -119,6 +122,7 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 	if (str.empty())
 	{
 		_requestStatus = PARSING_BODY;
+		_heardersDone = true;
 		return ;
 	}
 	pos = str.find(':');
@@ -155,7 +159,7 @@ void	HttpRequestParser::handleBody( void )
 
 void	HttpRequestParser::handleContent( void )
 {
-	if (_buffer.size() > _expectedBodyLen)
+	if (_buffer.size() > _expectedBodyLen || _expectedBodyLen > _maxBodySize)
 	{
 		_requestStatus = ERROR_REQUEST_TOO_LARGE;
 		return ;
@@ -186,7 +190,13 @@ void	HttpRequestParser::handleChunked( void )
 			_requestStatus = ERROR_BAD_REQUEST;
 			return ;
 		}
-		_chunkLen = static_cast<size_t>(chunkLen);
+		_expectedBodyLen += static_cast<std::size_t>(chunkLen);
+		if (_expectedBodyLen > _maxBodySize)
+		{
+			_requestStatus = ERROR_REQUEST_TOO_LARGE;
+			return ;
+		}
+		_chunkLen = static_cast<std::size_t>(chunkLen);
 		_buffer.erase(0, i + 2);
 		_chunckState = CONTENT;
 	}
@@ -303,4 +313,18 @@ void	HttpRequestParser::reset( void )
 	_bodyProtocol = TO_VERIFY;
 	_chunckState = SIZE;
 	_chunkLen = 0;
+}
+
+void	HttpRequestParser::checkHeaders( void )
+{
+	const char *requiredFields[] = {"Host", 0};
+
+	for (size_t i = 0; requiredFields[i] != NULL; i++)
+	{
+		if (_httpRequest.getHeader(requiredFields[i]) == "")
+		{
+			_requestStatus = ERROR_BAD_REQUEST;
+			break ;
+		}
+	}
 }

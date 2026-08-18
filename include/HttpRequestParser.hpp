@@ -53,6 +53,7 @@ class HttpRequestParser
 		RequestStatus	_requestStatus;
 		HttpRequest		_httpRequest;
 		std::string		_buffer;
+		bool			_heardersDone;
 		std::size_t		_expectedBodyLen;
 		std::size_t		_maxBodySize;
 		e_bodyProtocol	_bodyProtocol;
@@ -68,6 +69,9 @@ class HttpRequestParser
 		void	checkContentProtocol( void );
 		void	handleChunked( void );
 		void	handleContent( void );
+		void	splitRequestUri( void );
+
+		void	checkHeaders( void );
 
 	public:
 		HttpRequestParser( void );
@@ -79,12 +83,13 @@ class HttpRequestParser
 		HttpRequest&		getHttpRequest() { return this->_httpRequest; }
 		HttpRequest*		getHttpRequestPointer() { return &this->_httpRequest; }
 		std::size_t			getMaxBodySize() { return this->_maxBodySize; }
-		void				splitRequestUri();
-	
+		bool				getHeadersDone( void ) const { return _heardersDone; };
+
+		void				setHeadersDone( bool headersDone ) { _heardersDone = headersDone; };
 		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }
 
-		enum RequestStatus	feed( const char* buffer, size_t size ); // to be done
-		bool				hasCgi(); // to be done
+		enum RequestStatus	feed( const char* buffer, size_t size );
+		bool				hasCgi( void );
 		void				cleanHttpRequest() { this->_httpRequest.reset(); }
 		void				reset( void );
 };
