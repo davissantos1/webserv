@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:33:42 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 20:17:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ class Client
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
+		void										updateActivity();
 		void										destroyCgi(int fd);
 		void										handleIndex();
 		std::string									findSessionId();

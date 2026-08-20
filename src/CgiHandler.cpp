@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:09:42 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 22:43:40 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CgiHandler.hpp"
 
-CgiHandler::CgiHandler() {}
+CgiHandler::CgiHandler(): _stat_loc(0) {}
 
 CgiHandler::~CgiHandler() {}
 
@@ -36,7 +36,6 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 {
 	while (true)
 	{
-		errno = 0;
 		int bytes = 0;
 		if (eventType & EPOLLIN)
 		{
@@ -70,15 +69,7 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			}
 		}
 		if (bytes < 0)
-		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break;
-			if (errno == EACCES || errno == EPERM)
-				builder.setStatusCode(403);
-			else
-				builder.setStatusCode(500);
 			return (true);
-		}
 	}
 	return (false);
 }

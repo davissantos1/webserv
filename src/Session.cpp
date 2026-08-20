@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:02:00 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 21:36:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Session.hpp"
 
-Session::Session()
+Session::Session(): _lastActivity(std::time(NULL))
 {
 	std::stringstream ss;
 

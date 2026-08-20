@@ -6,14 +6,14 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 21:53:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 20:52:52 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 #include <ostream>
 
-HttpRequest::HttpRequest() {}
+HttpRequest::HttpRequest(): _serverPort(0), _keepAlive(false) {}
 
 HttpRequest::~HttpRequest() {}
 

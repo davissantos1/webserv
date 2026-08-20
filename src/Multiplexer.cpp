@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 18:05:58 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 21:01:17 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Multiplexer::~Multiplexer() {}
 
-Multiplexer::Multiplexer()
+Multiplexer::Multiplexer(): _epollFd(0)
 {
 	if ((this->_epollFd = epoll_create(1)) == -1)
 		throw (MultiplexerException(errno));

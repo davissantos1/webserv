@@ -6,21 +6,15 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/14 21:47:02 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 21:39:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse()
-{
-	this->_version = "HTTP/1.1";
-}
+HttpResponse::HttpResponse(): _statusCode(0), _version("HTTP/1.1") {}
 
-HttpResponse::~HttpResponse()
-{
-
-}
+HttpResponse::~HttpResponse() {}
 
 HttpResponse::HttpResponse(const HttpResponse& other)
 {

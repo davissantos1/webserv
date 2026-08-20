@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 13:06:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 20:17:44 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			bool isPipeDone = cgi.processCgi(fd, eventType, builder);
 			if (isPipeDone)
 				this->handleProcessedFile(client, builder.getStatusCode());
-			client->setLastActivity(std::time(NULL));
+			client->updateActivity();
 			break;
 		}
 	}

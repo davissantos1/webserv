@@ -6,23 +6,15 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 12:04:25 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/18 19:32:19 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPREQUESTPARSER_HPP
 # define HTTPREQUESTPARSER_HPP
 
-// deal with the connection and the transfer-encoding header
-// This parser will be fed a bit at a time and have an internal state
-// I need to know specific states from feed to send an error if the request is malformed or filled with errors
-// I'm assuming an enum for each state, tell me if you change it, please
-// This project is draining my soul
-// Please include PARSING_ERROR and REQUEST_TOO_LARGE statuses for error handling, I need that.
-
 #include "HttpRequest.hpp"
 #include <cstddef>
-
 
 enum RequestStatus {
 	PARSING_REQUEST_LINE,
@@ -69,7 +61,6 @@ class HttpRequestParser
 		void	checkContentProtocol( void );
 		void	handleChunked( void );
 		void	handleContent( void );
-		void	splitRequestUri( void );
 
 		void	checkHeaders( void );
 
@@ -88,6 +79,7 @@ class HttpRequestParser
 		void				setHeadersDone( bool headersDone ) { _heardersDone = headersDone; };
 		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }
 
+		void				splitRequestUri( void );
 		enum RequestStatus	feed( const char* buffer, size_t size );
 		bool				hasCgi( void );
 		void				cleanHttpRequest() { this->_httpRequest.reset(); }

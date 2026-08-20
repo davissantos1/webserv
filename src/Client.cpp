@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 13:27:16 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 23:03:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,12 @@ Client::Client() {}
 Client::~Client() {}
 
 Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs):
- _ip(ip), _port(port), _fd(fd), _configs(configs) {}
+ _ip(ip), _port(port), _fd(fd), _configs(configs) 
+{
+	this->_status = READING_REQUEST;
+	this->_session = NULL;
+	this->_lastActivity = std::time(NULL);
+}
 
 Client::Client(const Client& other)
 {
@@ -52,23 +57,17 @@ enum ClientStatus	Client::processHttpRequest()
 	HttpRequestParser& parse = this->_httpRequestParser;
 	enum RequestStatus	requestStatus = PARSING_REQUEST_LINE;
 
+	this->updateActivity();
 	while (true)
 	{
-		errno = 0;
 		ssize_t bytes = recv(this->_fd, tempBuffer, sizeof(tempBuffer), 0);
 		if (bytes > 0)
 		{
 			this->_lastActivity = std::time(NULL);
 			requestStatus = parse.feed(tempBuffer, bytes);
 		}
-		else if (bytes == 0)
-			return (DISCONNECT);
 		else
-		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break;
 			return (DISCONNECT);
-		}
 	}
 	clientStatus = this->checkRequest(requestStatus);
 	return (clientStatus);
@@ -80,6 +79,12 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 
+	if (parse.getHeadersDone())
+	{
+		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
+		conf = this->_virtualHostConfig;
+		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
+	}
 	switch (status)
 	{
 		case DONE:
@@ -113,13 +118,6 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PROCESSING_STATIC_FILE);
 			}
 		}
-	//	case PARSING_HEADERS_DONE:
-	//	{
-	//		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
-	//		conf = this->_virtualHostConfig;
-	//		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
-	//		return (this->_status);
-	//	}
 		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
@@ -142,9 +140,12 @@ enum ClientStatus	Client::processHttpResponse()
 	const char*	res;
 	int bytes, bytesSent, bytesRemaining, headSize, offset;
 	HttpResponseBuilder& build = this->_httpResponseBuilder;
+	HttpResponse&		rep = build.getHttpResponse();
 
+	this->updateActivity();
 	if (this->_status == PREPARING_RESPONSE)
 	{
+		rep.setReasonPhrase(rep.getStatusCode());
 		this->_httpResponseBuilder.buildHeaders();
 		this->_httpResponseBuilder.buildResponse();
 		this->_httpRequestParser.cleanHttpRequest();
@@ -152,12 +153,11 @@ enum ClientStatus	Client::processHttpResponse()
 	}
 	while (true)
 	{
-		errno = 0;
 		bytesSent = build.getBytesSent();
 		headSize = build.getHttpResponseHeadSize();
 		std::string& responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
 		offset = (bytesSent < headSize) ? bytesSent : (bytesSent - headSize);
-		bytesRemaining = build.getTotalBytes() - build.getBytesSent();
+		bytesRemaining = (bytesSent < headSize) ? headSize - bytesSent : build.getTotalBytes() - build.getBytesSent();
 		res = responseStr.c_str() + offset;
 		bytes = send(this->_fd, res, bytesRemaining, 0);
 		if (bytes >= 0)
@@ -171,11 +171,7 @@ enum ClientStatus	Client::processHttpResponse()
 			}
 		}
 		else
-		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break ;
 			return (DISCONNECT);
-		}
 	}
 	return (WRITING_RESPONSE);
 }
@@ -193,6 +189,7 @@ void	Client::executeStaticFileMethod()
 	HttpResponseBuilder& build = this->_httpResponseBuilder;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	
+	this->updateActivity();
 	if (statusCode != 200)
 	{
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
@@ -291,7 +288,10 @@ VirtualHostConfig	Client::getCurrentConfig(std::string host)
 			}
 		}
 	}
-	req.setServerName(firstServerNames[0]);
+	if (firstServerNames.empty())
+		req.setServerName("localhost");
+	else
+		req.setServerName(firstServerNames[0]);
 	return ((*this->_configs)[0]);
 }
 
@@ -332,4 +332,12 @@ std::string	Client::findSessionId()
 		return (sessionId);
 	}
 	return (this->_session->getSessionId());
+}
+
+void	Client::updateActivity()
+{
+	Session* session = this->getSession();
+	this->setLastActivity(std::time(NULL));
+	if (session)
+		session->setLastActivity(std::time(NULL));
 }

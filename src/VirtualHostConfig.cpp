@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:11:43 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 02:38:47 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ std::string	VirtualHostConfig::getFullPath( const std::string& filename, const s
 {
 	Location	local;
 
-	if (!checkFileExtension(filename))
+	if (!filename.empty() && !checkFileExtension(filename))
 		return (std::string());
 	if (findLocation(endpoint, local))
 	{
@@ -206,7 +206,7 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 }
 
 // to be done
-std::size_t getMaxBodySize(std::string endpoint)
+std::size_t VirtualHostConfig::getMaxBodySize(std::string endpoint)
 {
 	(void) endpoint;
 	return (0);

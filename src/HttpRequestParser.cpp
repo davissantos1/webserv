@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 12:01:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 21:41:23 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0) {}
+HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(1), _maxBodySize(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0)  {}
 
 HttpRequestParser::~HttpRequestParser( void ) {}
 

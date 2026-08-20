@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:10:11 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/19 20:58:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponseBuilder.hpp"
 
-HttpResponseBuilder::HttpResponseBuilder() {}
+HttpResponseBuilder::HttpResponseBuilder(): _bytesWritten(0), _totalBytes(0), _bytesSent(0), _httpRequest(NULL), _hardFallback(false) {}
 
 HttpResponseBuilder::~HttpResponseBuilder() {}
 
