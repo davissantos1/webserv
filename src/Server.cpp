@@ -6,10 +6,11 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 20:17:44 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 01:21:59 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Server.hpp"
 
 Server::Server(): _currAddr(NULL) {}
@@ -18,6 +19,7 @@ Server::Server(const std::vector<VirtualHostConfig> config): _configs(config), _
 
 Server::~Server() 
 {
+	Server::printLog("Destroying server...");
 	std::map<std::string, Session*>::iterator it;
 
 	for (size_t i = 0; i < this->_clients.size(); i++)
@@ -101,6 +103,7 @@ void	Server::startServer()
 		this->_multiplexer.addFd(sockFd, (EPOLLIN | EPOLLRDHUP));
 		freeaddrinfo(this->_currAddr);
 		this->_currAddr = res = NULL;
+		Server::printLog("Listening on " + color::red + it->first + ":" + it->second + color::reset);
 	}
 	serverRunning = 1;
 }
@@ -257,7 +260,7 @@ void	Server::handleError(int fd, enum FdType fdType)
 		case SOCKET:
 			this->_listenFds.erase(std::remove(this->_listenFds.begin(), this->_listenFds.end(), fd));
 			close(fd);
-			Server::printLog("socket fd removed from connection");
+			Server::printLog("Socket fd removed from connection");
 			break;
 		case CLIENT:
 			this->destroyClient(fd);
@@ -290,12 +293,12 @@ int	Server::createClient(int sockFd)
 
 	if ((clientFd = accept(sockFd, (struct sockaddr*)&addr, &addr_len)) == -1)
 	{
-		Server::printLog("accept error on client!");
+		Server::printLog("Accept error on client!");
 		return (clientFd);
 	}
 	if ((status = fcntl(clientFd, F_SETFL, O_NONBLOCK)) == -1)
 	{
-		Server::printLog("client creation error!");
+		Server::printLog("Client creation error!");
 		this->destroyClient(clientFd);
 		return (-1);
 	}
@@ -319,9 +322,11 @@ int	Server::createClient(int sockFd)
 
 void	Server::destroyClient(int clientFd)
 {
+	std::stringstream ss;
 	Client* client = this->_clientMap[clientFd];
 	if (!client) return ;
 
+	ss << clientFd;
 	this->_multiplexer.removeFd(clientFd);
 	this->_clientMap.erase(clientFd);
 	this->_sessionClientMap.erase(client->getSession());
@@ -337,10 +342,12 @@ void	Server::destroyClient(int clientFd)
 	}
 	close(clientFd);
 	delete (client);
+	Server::printLog("TCP connection destroyed on FD " + ss.str());
 }
 
 void	Server::checkTimeouts()
 {
+	std::stringstream ss;
 	std::time_t currentTime = std::time(NULL);
 	std::map<std::string, Session*>::iterator it;
 	Session* currentSession;
@@ -351,11 +358,12 @@ void	Server::checkTimeouts()
 	{
 		currentClient = this->_clients[i];
 		secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
-
 		if (secondsIdle > TIMEOUT)
 		{
-			Server::printLog("client timed out!");
+			ss << currentClient->getFd();
+			Server::printLog("Client FD " + color::blue + ss.str() + color::reset + "timed out");
 			this->destroyClient(currentClient->getFd());
+			ss.str("");
 		}
 		else
 			i++;
@@ -368,7 +376,7 @@ void	Server::checkTimeouts()
 		
 		if (secondsIdle > SESSION_TIMEOUT)
 		{
-			Server::printLog("session expired!");
+			Server::printLog("Session ID: " + color::blue + currentSession->getSessionId() + color::reset + "timed out");
 			if (this->_sessionClientMap.count(currentSession) > 0)
 			{
 				currentClient = this->_sessionClientMap[currentSession];
@@ -388,20 +396,24 @@ void	Server::checkTimeouts()
 
 void	Server::handleSession(Client* client)
 {
+	std::stringstream ss;
 	HttpRequest& req = client->getHttpRequest();
 	HttpResponseBuilder& build = client->getHttpResponseBuilder();
 	std::string sessionId = client->findSessionId();
 
+	ss << client->getFd();
 	if (sessionId.empty() || !this->_sessionMap.count(sessionId))
 	{
 		std::string newCookie;
 		Session* newSession = new Session;
-		newCookie = "session_id=" + newSession->getSessionId() + "; Max-Age=1800; Path=/";
+		std::string cookieId = newSession->getSessionId();
+		newCookie = "session_id=" + cookieId + "; Max-Age=1800; Path=/";
 
 		this->_sessionMap[newSession->getSessionId()] = newSession;
 		this->_sessionClientMap[newSession] = client;
 		build.addHeader("Set-Cookie", newCookie);
 		client->setSession(newSession);
+		Server::printLog("New cookie created - " + color::green + cookieId + color::reset + "for FD " + ss.str());
 	}
 	else
 	{

@@ -6,16 +6,17 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/28 16:33:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:29:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 01:26:56 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
+# include <string>
 # include <csignal>
 
-# define TIMEOUT 15.0
+# define TIMEOUT 30.0
 # define EPOLL_WAIT 1000
 
 enum CgiIoType

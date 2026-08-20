@@ -6,11 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 23:03:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 00:49:53 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Client.hpp"
+#include "Server.hpp"
 
 Client::Client() {}
 
@@ -19,9 +21,13 @@ Client::~Client() {}
 Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs):
  _ip(ip), _port(port), _fd(fd), _configs(configs) 
 {
+	std::stringstream ss;
+
+	ss << fd;
 	this->_status = READING_REQUEST;
 	this->_session = NULL;
 	this->_lastActivity = std::time(NULL);
+	Server::printLog("new TCP connection stablished for FD: " + ss.str());
 }
 
 Client::Client(const Client& other)
