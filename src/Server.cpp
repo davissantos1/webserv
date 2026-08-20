@@ -6,11 +6,12 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 01:21:59 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 01:40:35 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "color.hpp"
 #include "Server.hpp"
 
 Server::Server(): _currAddr(NULL) {}

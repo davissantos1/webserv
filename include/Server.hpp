@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 01:25:48 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 01:39:36 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,7 @@ enum FdType
 
 class Session;
 
-namespace color
-{
-	std::string red = "\033[31m";
-	std::string green = "\033[32m";
-	std::string blue = "\033[33m";
-	std::string reset = "\033[0mm";
-}
+
 
 class	Server
 {
