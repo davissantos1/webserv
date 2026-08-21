@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 00:03:45 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:37:00 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,17 @@
 
 class StaticFileHandler
 {
+	private:
+		int	_fd;
 	public:
 		StaticFileHandler();
 		~StaticFileHandler();
 		StaticFileHandler(const StaticFileHandler& other);
 		StaticFileHandler& operator=(const StaticFileHandler& other);
 
+		int		getFd() { return this->_fd; } 
+		void	setFd(int fd) { this->_fd = fd; }
+	
 		bool	isDirectory();
 		void	handleGet(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);
 		void	handlePost(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build);

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 15:28:17 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:51:02 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -339,10 +339,10 @@ void	Server::destroyClient(int clientFd)
 	for (size_t i = 0; i < activeFds.size(); i++)
 	{
 		int fd = activeFds[i];
-		this->_multiplexer.removeFd(fd);
-		this->_staticFileMap.erase(fd);
 		this->_cgiMap.erase(fd);
-		close (fd);
+		this->_staticFileMap.erase(fd);
+		if (fd > 0)
+			close (fd);
 	}
 	close(clientFd);
 	delete (client);

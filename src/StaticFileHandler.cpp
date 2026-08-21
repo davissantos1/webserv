@@ -6,24 +6,26 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 02:54:00 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:40:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "StaticFileHandler.hpp"
 
-StaticFileHandler::StaticFileHandler() {}
+StaticFileHandler::StaticFileHandler(): _fd(-1) {}
 
 StaticFileHandler::~StaticFileHandler() {}
 
 StaticFileHandler::StaticFileHandler(const StaticFileHandler& other)
 {
-	(void) other;
+	if (this != &other)
+		*this = other;
 }
 
 StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 {
-	(void) other;
+	if (this != &other)
+		this->_fd = other._fd;
 	return (*this);
 }
 
@@ -84,16 +86,18 @@ void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, Htt
 	}
 	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
 	{
+		this->_fd = fd;
 		build.setStatusCode(500);
 		return ;
 	}
+	this->_fd = fd;
 	build.setStatusCode(200);
 	this->processStaticFile(fd, STATIC_FILE_READ, req, build);
 }
 
 void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
-	int fd;
+	int fd = -1;
 	struct stat info;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
@@ -123,9 +127,12 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 		{
 			build.setStatusCode(200);
 			this->processStaticFile(fd, STATIC_FILE_WRITE, req, build);
+			this->_fd = fd;
 			return ;
 		}
 	}
+	if (fd > 0)
+		this->_fd = fd;
 	build.setStatusCode(403);
 }   	
     	
@@ -200,6 +207,7 @@ bool	StaticFileHandler::handleException(int exception, std::string path, HttpReq
 		build.setHardFallback(true);
 		return (false);
 	}
+	this->_fd = fd;
 	return (true);
 }
 

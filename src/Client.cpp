@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 04:49:18 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:32:46 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,6 +227,8 @@ void	Client::executeStaticFileMethod()
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
 			build.setHardFallback(true);
 	}
+	if (stat.getFd() > 2)
+		this->registerFd(stat.getFd());
 	this->_status = PREPARING_RESPONSE;
 }
 

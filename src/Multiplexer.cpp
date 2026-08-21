@@ -6,13 +6,17 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 19:18:20 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:53:47 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Multiplexer.hpp"
 
-Multiplexer::~Multiplexer() {}
+Multiplexer::~Multiplexer() 
+{
+	if (this->_epollFd > 0)
+		close(this->_epollFd);
+}
 
 Multiplexer::Multiplexer(): _epollFd(0)
 {
