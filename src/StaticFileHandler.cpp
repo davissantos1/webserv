@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 00:10:43 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:54:00 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
 	struct stat info;
-	int fd, statusCode;
+	int fd;
 
 	errno = 0;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
@@ -85,23 +85,15 @@ void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, Htt
 	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
 	{
 		build.setStatusCode(500);
-		statusCode = build.getStatusCode();
-		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
-			build.setHardFallback(true);
 		return ;
 	}
 	build.setStatusCode(200);
-	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
-	{
-		close(fd);
-		statusCode = build.getStatusCode();
-		this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
-	}
+	this->processStaticFile(fd, STATIC_FILE_READ, req, build);
 }
 
 void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
-	int fd, statusCode;
+	int fd;
 	struct stat info;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
@@ -130,19 +122,11 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 		else
 		{
 			build.setStatusCode(200);
-			if (!this->processStaticFile(fd, STATIC_FILE_WRITE, req, build))
-			{
-				close(fd);
-				statusCode = build.getStatusCode();
-				this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
-			}
+			this->processStaticFile(fd, STATIC_FILE_WRITE, req, build);
 			return ;
 		}
 	}
 	build.setStatusCode(403);
-	statusCode = build.getStatusCode();
-	if (statusCode != 200)
-		this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build);
 }   	
     	
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)

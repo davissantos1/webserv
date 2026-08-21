@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 21:41:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:28:57 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 
 static std::string cleanUp_uri( const std::string& uri)
 {
-	return (normalize_str(decode_str(uri)));
+	return (decode_str(uri));
 }
 
 void	HttpRequestParser::handleRequestLine( const std::string& str )
@@ -109,7 +109,6 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 		return ;
 	}
 
-	splitRequestUri();
 	_requestStatus = PARSING_HEADERS;
 }
 
@@ -232,8 +231,9 @@ bool	HttpRequestParser::hasCgi()
 	return (false);
 }
 
-void	HttpRequestParser::splitRequestUri()
+void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 {
+	const std::vector<Location>& locations = conf.getLocation();
 	std::string	filename, endpoint, queryString;
 	std::string uri	= this->_httpRequest.getUri();
 	size_t		dot = uri.rfind('.');
@@ -248,7 +248,7 @@ void	HttpRequestParser::splitRequestUri()
 		queryString.erase(0, query + 1);
 		if (dot != std::string::npos)
 		{
-			endpoint.erase(slash + 1);
+			endpoint.erase(slash);
 			filename.erase(0, slash + 1);
 		}
 		else
@@ -259,15 +259,20 @@ void	HttpRequestParser::splitRequestUri()
 		queryString.clear();
 		if (dot != std::string::npos)
 		{
-			endpoint.erase(slash + 1);
+			endpoint.erase(slash);
 			filename.erase(0, slash + 1);
 		}
 		else
 			filename.clear();
 	}
+	this->_httpRequest.setEndpoint("/");
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		if (locations[i].getPath() == endpoint)
+			this->_httpRequest.setEndpoint(endpoint);
+	}
 	this->_httpRequest.setQuery(queryString);
 	this->_httpRequest.setFilename(filename);
-	this->_httpRequest.setEndpoint(endpoint);
 }
 
 void	HttpRequestParser::checkContentProtocol( void )

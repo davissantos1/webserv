@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 20:52:52 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:57:01 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ std::string	HttpRequest::getMimeType()
 	std::string type = this->_filename;
 	size_t dot = type.find('.');
 
-	type.erase(0, dot);
+	type.erase(0, dot + 1);
 	for (int i = 0; i < 5; i++)
 	{
 		if (types[i] == type)

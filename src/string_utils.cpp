@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/09 12:01:55 by vitosant          #+#    #+#             */
-/*   Updated: 2026/08/09 12:01:55 by vitosant         ###    ########.fr      */
+/*   Updated: 2026/08/21 01:05:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ std::string normalize_str( const std::string& raw )
 	std::vector<std::string>	parts;
 
 
-	if (raw.empty())
+	if (raw.empty() || raw == finalStr)
 		return (finalStr);
 	for (size_t i = 0; i < splited.size(); i++)
 	{

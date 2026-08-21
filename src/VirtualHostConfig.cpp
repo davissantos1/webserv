@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 02:38:47 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:42:15 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,14 +139,14 @@ std::string	VirtualHostConfig::getFullPath( const std::string& filename, const s
 {
 	Location	local;
 
-	if (!filename.empty() && !checkFileExtension(filename))
-		return (std::string());
+	//if (!filename.empty() && !checkFileExtension(filename))
+	//	return (std::string());
 	if (findLocation(endpoint, local))
 	{
 		if (!local.getRoot().empty())
-			return (local.getRoot() + filename);
+			return (local.getRoot() + "/" + filename);
 	}
-	return (getRoot() + filename);
+	return (getRoot() + "/" + filename);
 }
 
 bool		VirtualHostConfig::isMethodAllowed( const std::string& method, const std::string& endpoint ) const

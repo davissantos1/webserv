@@ -6,13 +6,14 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 19:32:19 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:29:21 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPREQUESTPARSER_HPP
 # define HTTPREQUESTPARSER_HPP
 
+#include "VirtualHostConfig.hpp"
 #include "HttpRequest.hpp"
 #include <cstddef>
 
@@ -79,7 +80,7 @@ class HttpRequestParser
 		void				setHeadersDone( bool headersDone ) { _heardersDone = headersDone; };
 		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }
 
-		void				splitRequestUri( void );
+		void				splitRequestUri( VirtualHostConfig& conf );
 		enum RequestStatus	feed( const char* buffer, size_t size );
 		bool				hasCgi( void );
 		void				cleanHttpRequest() { this->_httpRequest.reset(); }

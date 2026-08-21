@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 00:17:36 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 02:28:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
 
+			parse.splitRequestUri(conf);
 			this->_httpResponseBuilder.setHttpRequest(&req);
 			if (!conf.isMethodAllowed(req.getMethod(), req.getEndpoint()))
 			{
@@ -322,7 +323,7 @@ void	Client::handleIndex()
 			if (uri[0] != '/')
 				uri = "/" + uri;
 			req.setUri(uri);
-			this->_httpRequestParser.splitRequestUri();
+			this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
 			if (this->_httpRequestParser.hasCgi())
 				this->_status = PROCESSING_CGI;
 			else
