@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 02:42:15 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 04:50:02 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ bool VirtualHostConfig::findLocation( const std::string& path, Location& loc ) c
 	return (false);
 }
 
-
 static bool checkFileExtension( const std::string& filename )
 {
 	size_t		i;
@@ -76,7 +75,6 @@ static bool checkFileExtension( const std::string& filename )
 	extension = filename.substr(i);
 	return (extension == ".py" || extension == ".php");
 }
-
 
 // Essa daqui vai retornar "" se não achar o endpoint ou a extensão do arquivo não for válida
 std::string	VirtualHostConfig::getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const
@@ -203,13 +201,6 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 			return (local.getUploadPath());
 	}
 	return (getUploadPath());
-}
-
-// to be done
-std::size_t VirtualHostConfig::getMaxBodySize(std::string endpoint)
-{
-	(void) endpoint;
-	return (0);
 }
 
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )

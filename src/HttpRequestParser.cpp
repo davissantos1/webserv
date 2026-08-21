@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 02:28:57 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 05:05:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,12 +265,26 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 		else
 			filename.clear();
 	}
-	this->_httpRequest.setEndpoint("/");
+	const Location* best = NULL;
+	size_t bestLen = 0;
 	for (size_t i = 0; i < locations.size(); i++)
 	{
-		if (locations[i].getPath() == endpoint)
-			this->_httpRequest.setEndpoint(endpoint);
+		const std::string& locPath = locations[i].getPath();
+		if (endpoint.compare(0, locPath.size(), locPath) == 0)
+		{
+			bool valid =
+				(locPath[locPath.size() - 1] == '/') ||
+				(endpoint.size() == locPath.size()) ||
+				(endpoint[locPath.size()] == '/');
+			if (valid && locPath.size() > bestLen)
+			{
+				best = &locations[i];
+				bestLen = locPath.size();
+			}
+		}
 	}
+	if (best)
+		this->_httpRequest.setEndpoint(best->getPath());
 	this->_httpRequest.setQuery(queryString);
 	this->_httpRequest.setFilename(filename);
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 02:28:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 04:49:18 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	{
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 		conf = this->_virtualHostConfig;
-		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
+		parse.setMaxBodySize(conf.getMaxBodySize());
 	}
 	switch (status)
 	{

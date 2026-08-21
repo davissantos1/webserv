@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:11:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 04:48:41 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ class VirtualHostConfig
 		bool		shouldIndex( const std::string& endpoint ) const;
 		bool		shouldAutoindex( const std::string& endpoint ) const;
 		bool		shouldRedirect( const std::string& endpoint ) const;
-		std::size_t getMaxBodySize(std::string endpoint); // to be done
 
 		void	setServerNames( const std::vector<std::string> & serverNames ) { _serverNames = serverNames; }
 		void	setHostIp( const std::vector<std::string> & hostIp ) { _hostIp = hostIp; }
