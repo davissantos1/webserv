@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 01:40:35 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 15:28:17 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void	Server::startServer()
 		this->_multiplexer.addFd(sockFd, (EPOLLIN | EPOLLRDHUP));
 		freeaddrinfo(this->_currAddr);
 		this->_currAddr = res = NULL;
-		Server::printLog("Listening on " + color::red + it->first + ":" + it->second + color::reset);
+		Server::printLog("Listening on " + color::green + it->first + ":" + it->second + color::reset);
 	}
 	serverRunning = 1;
 }
@@ -212,7 +212,10 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			if (status == SENT_RESPONSE)
 			{
-				client->setStatus(READING_REQUEST);
+				if (client->keepAlive())
+					client->setStatus(READING_REQUEST);
+				else
+					client->setStatus(DISCONNECT);
 				this->_multiplexer.removeFd(client->getFd());
 				this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
 			}
@@ -343,7 +346,7 @@ void	Server::destroyClient(int clientFd)
 	}
 	close(clientFd);
 	delete (client);
-	Server::printLog("TCP connection destroyed on FD " + ss.str());
+	Server::printLog("TCP connection " + color::red + "destroyed" + color::reset + " on FD " + ss.str());
 }
 
 void	Server::checkTimeouts()
@@ -362,7 +365,7 @@ void	Server::checkTimeouts()
 		if (secondsIdle > TIMEOUT)
 		{
 			ss << currentClient->getFd();
-			Server::printLog("Client FD " + color::blue + ss.str() + color::reset + "timed out");
+			Server::printLog("Client FD " + ss.str() +  color::red + " timed " + color::reset + "out");
 			this->destroyClient(currentClient->getFd());
 			ss.str("");
 		}
@@ -377,7 +380,7 @@ void	Server::checkTimeouts()
 		
 		if (secondsIdle > SESSION_TIMEOUT)
 		{
-			Server::printLog("Session ID: " + color::blue + currentSession->getSessionId() + color::reset + "timed out");
+			Server::printLog("Session ID " + currentSession->getSessionId() +  color::red + " timed " + color::reset + "out");
 			if (this->_sessionClientMap.count(currentSession) > 0)
 			{
 				currentClient = this->_sessionClientMap[currentSession];
@@ -414,7 +417,7 @@ void	Server::handleSession(Client* client)
 		this->_sessionClientMap[newSession] = client;
 		build.addHeader("Set-Cookie", newCookie);
 		client->setSession(newSession);
-		Server::printLog("New cookie created - " + color::green + cookieId + color::reset + "for FD " + ss.str());
+		Server::printLog("Cookie created " + color::green + cookieId + color::reset + " for FD " + ss.str());
 	}
 	else
 	{

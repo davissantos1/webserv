@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 15:35:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 15:32:33 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ class HttpRequest
 		const std::string&	getFilename( void ) const { return this->_filename; }
 		const std::string&	getEndpoint( void ) const { return this->_endpoint; }
 		const std::map<std::string, std::string> getHeaders( void ) const { return this->_headers; }
+		bool	getKeepAlive( void ) const { return this->_keepAlive; }
 
 		void	setMethod(std::string method) { this->_method = method; }
 		void	setUri(std::string uri) { this->_uri = uri; }

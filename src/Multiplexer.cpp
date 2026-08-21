@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 21:01:17 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 19:18:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	Multiplexer::addFd(int fd, uint32_t event)
 
 	errno = 0;
 	ev.data.fd = fd;
-	ev.events = event;
+	ev.events = event | EPOLLET;
 	status = epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &ev);
 	if (status < 0)
 		throw (MultiplexerException(errno));
@@ -80,7 +80,7 @@ void	Multiplexer::modifyFd(int fd, uint32_t event)
 
 	errno = 0;
 	ev.data.fd = fd;
-	ev.events = event;
+	ev.events = event | EPOLLET;
 	status = epoll_ctl(this->_epollFd, EPOLL_CTL_MOD, fd, &ev);
 	if (status < 0)
 		throw (MultiplexerException(errno));

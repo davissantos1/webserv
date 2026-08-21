@@ -6,11 +6,12 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 00:49:53 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 00:17:36 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "color.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
 
@@ -27,7 +28,7 @@ Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostCon
 	this->_status = READING_REQUEST;
 	this->_session = NULL;
 	this->_lastActivity = std::time(NULL);
-	Server::printLog("new TCP connection stablished for FD: " + ss.str());
+	Server::printLog("TCP connection " + color::blue + "created" + color::reset + " for FD " + ss.str());
 }
 
 Client::Client(const Client& other)
@@ -72,8 +73,10 @@ enum ClientStatus	Client::processHttpRequest()
 			this->_lastActivity = std::time(NULL);
 			requestStatus = parse.feed(tempBuffer, bytes);
 		}
-		else
+		else if (bytes == 0)
 			return (DISCONNECT);
+		else
+			break;
 	}
 	clientStatus = this->checkRequest(requestStatus);
 	return (clientStatus);
@@ -163,10 +166,10 @@ enum ClientStatus	Client::processHttpResponse()
 		headSize = build.getHttpResponseHeadSize();
 		std::string& responseStr = (bytesSent < headSize) ? build.getHttpResponseHead() : build.getHttpResponseBody();
 		offset = (bytesSent < headSize) ? bytesSent : (bytesSent - headSize);
-		bytesRemaining = (bytesSent < headSize) ? headSize - bytesSent : build.getTotalBytes() - build.getBytesSent();
 		res = responseStr.c_str() + offset;
+		bytesRemaining = (bytesSent < headSize) ? responseStr.size() - bytesSent: responseStr.size() - bytesSent + headSize;
 		bytes = send(this->_fd, res, bytesRemaining, 0);
-		if (bytes >= 0)
+		if (bytes > 0)
 		{
 			this->_httpResponseBuilder.setBytesSent(bytesSent + bytes);
 			if (build.getBytesSent() == build.getTotalBytes())
@@ -177,7 +180,7 @@ enum ClientStatus	Client::processHttpResponse()
 			}
 		}
 		else
-			return (DISCONNECT);
+			break ;
 	}
 	return (WRITING_RESPONSE);
 }
@@ -217,6 +220,7 @@ void	Client::executeStaticFileMethod()
 	}
 	else if (req.getMethod() == "DELETE")
 		stat.handleDelete(req, conf, build);
+	statusCode = this->getStatusCode();
 	if (statusCode > 299)
 	{
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
@@ -346,4 +350,11 @@ void	Client::updateActivity()
 	this->setLastActivity(std::time(NULL));
 	if (session)
 		session->setLastActivity(std::time(NULL));
+}
+
+bool	Client::keepAlive()
+{
+	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
+
+	return (req.getKeepAlive());
 }

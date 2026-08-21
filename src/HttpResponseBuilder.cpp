@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 20:58:20 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 22:50:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,10 @@ void	HttpResponseBuilder::buildHeaders()
 	else
 		this->addHeader("Content-Type", "text/html");
 	this->addHeader("Content-Length", ss.str());
-	this->addHeader("Connection", "keep-alive");
+	if (req->getKeepAlive())
+		this->addHeader("Connection", "keep-alive");
+	else
+		this->addHeader("Connection", "close");
 }
 
 void	HttpResponseBuilder::feedCgi(char *buffer, int size)

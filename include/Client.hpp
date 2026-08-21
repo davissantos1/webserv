@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 20:17:28 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/20 15:31:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ class Client
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
+		bool										keepAlive();
 		void										updateActivity();
 		void										destroyCgi(int fd);
 		void										handleIndex();
@@ -99,7 +100,7 @@ class Client
 		enum ClientStatus							checkRequest(enum RequestStatus status);
 		void										executeStaticFileMethod();
 		std::vector<std::pair<int, enum CgiIoType> > executeCgiMethod();
-		void				registerFd(int fd) { this->_activeFds.push_back(fd); }
+		void										registerFd(int fd) { this->_activeFds.push_back(fd); }
 
 		class	ClientException: public std::exception
 		{

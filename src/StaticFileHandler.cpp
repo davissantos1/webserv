@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/18 11:54:03 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/21 00:10:43 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,28 +60,31 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 
 void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
+	struct stat info;
 	int fd, statusCode;
 
 	errno = 0;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
-	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
+	if (stat(path.c_str(), &info) == -1)
 	{
-		if (errno == ENOENT)
-			build.setStatusCode(404);
-		else if (errno == EISDIR)
-		{
-			if (conf.shouldAutoindex(req.getEndpoint()))
-			{
-				this->handleAutoindex(req, conf, build);
-				return ;
-			}
-			else
-				build.setStatusCode(403);
-		}
-		else if (errno == EACCES)
+		if (errno == EACCES || errno == EPERM)
 			build.setStatusCode(403);
+		else if (errno == ENOENT)
+			build.setStatusCode(404);
 		else
 			build.setStatusCode(500);
+	}
+	if (S_ISDIR(info.st_mode))
+	{
+		if (conf.shouldAutoindex(req.getEndpoint()))
+			this->handleAutoindex(req, conf, build);
+		else
+			build.setStatusCode(403);
+		return ;
+	}
+	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
+	{
+		build.setStatusCode(500);
 		statusCode = build.getStatusCode();
 		if (!this->handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
 			build.setHardFallback(true);
