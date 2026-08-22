@@ -59,11 +59,13 @@ class HttpRequestParser
 		void	handleHeaders( const std::string& str );
 		void	handleBody( void );
 
-		void	checkContentProtocol( void );
+		void	processHeaders( void );
+		void	checkHeaders( void );
+		void	processContentProtocol( void );
+		void	processConnection( void );
+
 		void	handleChunked( void );
 		void	handleContent( void );
-
-		void	checkHeaders( void );
 
 	public:
 		HttpRequestParser( void );

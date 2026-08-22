@@ -70,7 +70,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 			else
 				handleHeaders(param);
 			if (_heardersDone)
-				checkHeaders();
+				processHeaders();
 			_buffer.erase(0, i + 2);
 		}
 		else
@@ -121,11 +121,7 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 
 	if (str.empty())
 	{
-		bool	keep;
-
-		keep = (_httpRequest.getHeader("Connection") == "keep-alive");
 		_requestStatus = PARSING_BODY;
-		_httpRequest.setKeepAlive(keep);
 		_heardersDone = true;
 		return ;
 	}
@@ -147,14 +143,25 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 	_httpRequest.addHeader(key, value);
 }
 
+void	HttpRequestParser::processHeaders( void )
+{
+	checkHeaders();
+	if (_requestStatus != PARSING_BODY)
+		return ;
+	processConnection();
+	processContentProtocol();
+}
+
+void	HttpRequestParser::processConnection( void )
+{
+	bool	keep;
+
+	keep = (_httpRequest.getHeader("Connection") == "keep-alive");
+	_httpRequest.setKeepAlive(keep);
+}
 
 void	HttpRequestParser::handleBody( void )
 {
-	if (_bodyProtocol == TO_VERIFY)
-		checkContentProtocol();
-	if (_requestStatus == ERROR_BAD_REQUEST || _requestStatus == DONE)
-		return ;
-
 	if (_bodyProtocol == NOT_CHUNKED)
 		handleContent();
 	else
@@ -286,7 +293,7 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 	this->_httpRequest.setFilename(filename);
 }
 
-void	HttpRequestParser::checkContentProtocol( void )
+void	HttpRequestParser::processContentProtocol( void )
 {
 	char		*err;
 	std::string	value;
