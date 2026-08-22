@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/20 15:31:24 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 18:59:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ class Client
 		time_t							_lastActivity;
 		std::vector<int>				_activeFds;
 		std::vector<VirtualHostConfig>*	_configs;
+		bool							_keepAlive;
 	public:
 		Client();
 		~Client();
@@ -83,13 +84,13 @@ class Client
 		VirtualHostConfig		getCurrentConfig(std::string host);
 		Session*				getSession() { return this->_session; }
 		HttpRequest&			getHttpRequest() { return this->_httpRequestParser.getHttpRequest(); }
+		bool					getKeepAlive() { return this->_keepAlive; }
 
 		void	setSession(Session* session) { this->_session = session; }
 		void	setStatus(enum ClientStatus status) { this->_status = status; }
 		void	setStatusCode(int code) { this->_httpResponseBuilder.setStatusCode(code); }
 		void	setLastActivity(time_t time) { this->_lastActivity = time; }
 
-		bool										keepAlive();
 		void										updateActivity();
 		void										destroyCgi(int fd);
 		void										handleIndex();

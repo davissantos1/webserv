@@ -13,7 +13,6 @@ int main(int argc, char **argv)
 
 	ConfigParser parser;
 
-	// O parsing começa aqui chamando o método público que você criou
 	try {
 		std::vector<VirtualHostConfig> servers = parser.parse(argv[1]);
 		if (servers.empty())

@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 05:05:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 19:21:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,7 +260,7 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 		filename.erase(0, slash + 1);
 	}
 	else
-		filename.erase(0, filename.rfind('/'));
+		filename.erase(0, filename.rfind('/') + 1);
 
 	const Location* best = NULL;
 	size_t bestLen = 0;

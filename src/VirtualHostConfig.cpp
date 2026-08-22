@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 04:50:02 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 16:24:44 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ static bool checkFileExtension( const std::string& filename )
 	return (extension == ".py" || extension == ".php");
 }
 
-// Essa daqui vai retornar "" se não achar o endpoint ou a extensão do arquivo não for válida
 std::string	VirtualHostConfig::getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const
 {
 	Location local;

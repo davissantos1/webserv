@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 05:32:46 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 18:56:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,8 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 
 	if (parse.getHeadersDone())
 	{
+		if (req.getKeepAlive())
+			this->_keepAlive = true;
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 		conf = this->_virtualHostConfig;
 		parse.setMaxBodySize(conf.getMaxBodySize());
@@ -181,7 +183,7 @@ enum ClientStatus	Client::processHttpResponse()
 			}
 		}
 		else
-			break ;
+			return (DISCONNECT);
 	}
 	return (WRITING_RESPONSE);
 }
@@ -315,6 +317,8 @@ void	Client::handleIndex()
 	const std::vector<std::string> index = this->_virtualHostConfig.getIndex();
 	const std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
 
+	if (!req.getFilename().empty())
+		return ;
 	for (size_t i = 0; i < index.size(); i++)
 	{
 		std::string path = basePath + index[i];
@@ -353,11 +357,4 @@ void	Client::updateActivity()
 	this->setLastActivity(std::time(NULL));
 	if (session)
 		session->setLastActivity(std::time(NULL));
-}
-
-bool	Client::keepAlive()
-{
-	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-
-	return (req.getKeepAlive());
 }

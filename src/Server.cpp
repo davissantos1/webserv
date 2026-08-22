@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 05:51:02 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 18:58:31 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,8 @@ void	Server::startServer()
 		if ((status = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) == -1)
 			throw (ServerException(errno));
 		if ((status = setsockopt(sockFd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt))) == -1)
+			throw (ServerException(errno));
+		if ((status = setsockopt(sockFd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt))) == -1)
 			throw (ServerException(errno));
 		if ((status = bind(sockFd, res->ai_addr, res->ai_addrlen)) == -1)
 			throw (ServerException(errno));
@@ -212,12 +214,14 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			if (status == SENT_RESPONSE)
 			{
-				if (client->keepAlive())
+				if (client->getKeepAlive())
+				{
 					client->setStatus(READING_REQUEST);
+					this->_multiplexer.removeFd(client->getFd());
+					this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
+				}
 				else
-					client->setStatus(DISCONNECT);
-				this->_multiplexer.removeFd(client->getFd());
-				this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
+					this->destroyClient(client->getFd());
 			}
 			break;
 		}
