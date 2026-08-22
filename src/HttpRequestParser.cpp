@@ -332,7 +332,9 @@ void	HttpRequestParser::reset( void )
 {
 	_requestStatus = PARSING_REQUEST_LINE;
 	_httpRequest.reset();
+	_heardersDone = false;
 	_expectedBodyLen = 0;
+	_maxBodySize = 0;
 	_bodyProtocol = TO_VERIFY;
 	_chunckState = SIZE;
 	_chunkLen = 0;
