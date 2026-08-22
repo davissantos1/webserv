@@ -85,7 +85,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 	return (_requestStatus);
 }
 
-static std::string cleanUp_uri( const std::string& uri)
+inline static std::string cleanUp_uri( const std::string& uri)
 {
 	return (decode_str(normalize_str(uri)));
 }
@@ -253,7 +253,7 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 			filename.erase(0, slash + 1);
 		}
 		else
-			filename.clear();
+			filename.erase(0, filename.rfind('/'));
 	}
 	else
 	{
@@ -264,7 +264,7 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 			filename.erase(0, slash + 1);
 		}
 		else
-			filename.clear();
+			filename.erase(0, filename.rfind('/'));
 	}
 	const Location* best = NULL;
 	size_t bestLen = 0;
