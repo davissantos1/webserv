@@ -53,8 +53,9 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 	std::string	tmp;
 	std::size_t	i;
 
-	_buffer.append(buffer, len);
-	while (_requestStatus != DONE && _requestStatus != ERROR_BAD_REQUEST && _requestStatus != ERROR_REQUEST_TOO_LARGE)
+	if (_requestStatus >= PARSING_REQUEST_LINE && _requestStatus <= PARSING_BODY)
+		_buffer.append(buffer, len);
+	while (_requestStatus >= PARSING_REQUEST_LINE && _requestStatus <= PARSING_BODY)
 	{
 		if (_requestStatus == PARSING_REQUEST_LINE || _requestStatus == PARSING_HEADERS)
 		{
@@ -86,7 +87,7 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 
 static std::string cleanUp_uri( const std::string& uri)
 {
-	return (decode_str(uri));
+	return (decode_str(normalize_str(uri)));
 }
 
 void	HttpRequestParser::handleRequestLine( const std::string& str )

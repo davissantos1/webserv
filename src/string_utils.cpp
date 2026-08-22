@@ -23,14 +23,16 @@ std::vector<std::string>	split( const std::string& str, const char splitter )
 
 	if (str.empty())
 		return (splited);
-	while ((i = str.find(splitter, pos)) != std::string::npos)
+	while (pos < str.length() && str[pos] == splitter)
+		pos++;
+	while (pos < str.size() && (i = str.find(splitter, pos)) != std::string::npos)
 	{
 		splited.push_back(str.substr(pos, i - pos));
 		pos = i;
 		while (pos < str.length() && str[pos] == splitter)
 			pos++;
 	}
-	if (i + 1 < str.length())
+	if (pos + 1 < str.length())
 		splited.push_back(str.substr(pos));
 	return (splited);
 }
@@ -101,18 +103,23 @@ std::string normalize_str( const std::string& raw )
 	std::vector<std::string>	parts;
 
 
-	if (raw.empty() || raw == finalStr)
+	if (raw.empty())
+		return(raw);
+	if (raw == "/" || splited.empty())
 		return (finalStr);
 	for (size_t i = 0; i < splited.size(); i++)
 	{
-		if (splited[i] == ".." && parts.size() > 0)
+		if (splited[i] == "..")
+		{
+			if (parts.size() > 0)
 				parts.pop_back();
+		}
 		else if (splited[i] == ".")
 			continue ;
 		else
 			parts.push_back(splited[i]);
 	}
-	for (size_t i = 0; i < splited.size(); i++)
+	for (size_t i = 0; i < parts.size(); i++)
 		finalStr += parts[i] + "/";
 	if (raw.length() > 1 && raw[raw.length() - 1] != '/' && finalStr != "/")
 		finalStr.erase(finalStr.length() - 1);
