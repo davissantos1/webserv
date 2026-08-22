@@ -49,7 +49,7 @@ $(NAME): $(OBJ)
 	@printf " 🛠️ ${BLUE} Compiling:${RESET} $< to $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-debug: CFLAGS += -O0 -g3 -fno-eliminate-unused-debug-types 
+debug: CFLAGS += -O0 -g3 -fno-eliminate-unused-debug-types
 debug: re
 	@printf " ⚠️  ${RED}Compilation mode:${RESET} debug\n"
 
@@ -76,5 +76,8 @@ test_config_parser:
 
 test_request_parser:
 	$(CC) $(CFLAGS) -g3 -Iinclude tests/http_request/main.cpp src/HttpRequest.cpp src/HttpRequestParser.cpp src/string_utils.cpp -o tests/http_request/test_parser.out && tests/http_request/test_parser.out
+
+test_string_utils:
+	$(CC) $(CFLAGS) -g3 -Iinclude tests/string_utils/test_strings.cpp src/string_utils.cpp -o tests/string_utils/test_string.out && ./tests/string_utils/test_string.out
 
 .PHONY: all clean fclean re debug
