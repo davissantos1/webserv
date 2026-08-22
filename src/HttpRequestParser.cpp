@@ -121,7 +121,11 @@ void	HttpRequestParser::handleHeaders( const std::string& str )
 
 	if (str.empty())
 	{
+		bool	keep;
+
+		keep = (_httpRequest.getHeader("Connection") == "keep-alive");
 		_requestStatus = PARSING_BODY;
+		_httpRequest.setKeepAlive(keep);
 		_heardersDone = true;
 		return ;
 	}
@@ -247,25 +251,17 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 		filename.erase(query);
 		endpoint.erase(query);
 		queryString.erase(0, query + 1);
-		if (dot != std::string::npos)
-		{
-			endpoint.erase(slash);
-			filename.erase(0, slash + 1);
-		}
-		else
-			filename.erase(0, filename.rfind('/'));
 	}
 	else
-	{
 		queryString.clear();
-		if (dot != std::string::npos)
-		{
-			endpoint.erase(slash);
-			filename.erase(0, slash + 1);
-		}
-		else
-			filename.erase(0, filename.rfind('/'));
+	if (dot != std::string::npos)
+	{
+		endpoint.erase(slash);
+		filename.erase(0, slash + 1);
 	}
+	else
+		filename.erase(0, filename.rfind('/'));
+
 	const Location* best = NULL;
 	size_t bestLen = 0;
 	for (size_t i = 0; i < locations.size(); i++)
