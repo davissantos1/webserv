@@ -35,6 +35,7 @@ Location&	Location::operator=( const Location& other )
 		this->_uploadPath = other._uploadPath;
 		this->_cgiExtension = other._cgiExtension;
 		this->_cgiPath = other._cgiPath;
+		this->_errorPages = other._errorPages;
 		this->_return = other._return;
 	}
 	return (*this);

@@ -59,7 +59,10 @@ ConfigParser::ConfigParser( void )
 
 ConfigParser::~ConfigParser( void ) {}
 
-ConfigParser::ConfigParser( const ConfigParser& other ): _tokens(other._tokens), _filePath(other._filePath), _pos(other._pos) {}
+ConfigParser::ConfigParser( const ConfigParser& other )
+{
+	*this = other;
+}
 
 ConfigParser&	ConfigParser::operator=(const ConfigParser& other)
 {

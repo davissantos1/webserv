@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(1), _maxBodySize(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0)  {}
+HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(0), _maxBodySize(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0)  {}
 
 HttpRequestParser::~HttpRequestParser( void ) {}
 
@@ -324,7 +324,7 @@ void	HttpRequestParser::reset( void )
 	_requestStatus = PARSING_REQUEST_LINE;
 	_httpRequest.reset();
 	_heardersDone = false;
-	_expectedBodyLen = 1;
+	_expectedBodyLen = 0;
 	_maxBodySize = 0;
 	_bodyProtocol = TO_VERIFY;
 	_chunckState = SIZE;
