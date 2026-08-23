@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 13:03:49 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 13:36:32 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,7 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 		{
 			build.setStatusCode(201);
 			this->processStaticFile(fd, STATIC_FILE_WRITE, req, build);
+			build.addHeader("Location", filePath);
 			this->_fd = fd;
 			return ;
 		}
