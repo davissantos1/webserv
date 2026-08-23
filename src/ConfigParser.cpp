@@ -49,6 +49,7 @@ ConfigParser::ConfigParser( void )
 	_parseLocation["root"]			= &ConfigParser::handleLocationRoot;
 	_parseLocation["index"]			= &ConfigParser::handleLocationIndex;
 	_parseLocation["allow_methods"]	= &ConfigParser::handleLocationAllowedMethods;
+	_parseLocation["error_page"]	= &ConfigParser::handleLocationErrorPage;
 	_parseLocation["autoindex"]		= &ConfigParser::handleLocationAutoindex;
 	_parseLocation["upload_path"]	= &ConfigParser::handleLocationUploadPath;
 	_parseLocation["cgi_extension"]	= &ConfigParser::handleLocationCgiExtension;
@@ -120,7 +121,12 @@ void	ConfigParser::makeTokens( std::ifstream& file )
 			if (quote != '\0')
 			{
 				if (c == quote)
-					quote = '\0';
+				{
+					if (token_text.empty())
+						throw std::runtime_error("Error: empty content inside quotes.");
+					else
+						quote = '\0';
+				}
 				else
 					token_text += c;
 			}

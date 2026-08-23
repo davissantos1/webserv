@@ -84,7 +84,7 @@ class ConfigParser
 		bool	validatePort( const std::string& port );
 
 		void	throw_exception( const char* str );
-		bool	is_dir( const char* dir );
+		bool	is_dir( const char* path );
 
 	public:
 		ConfigParser( void );
