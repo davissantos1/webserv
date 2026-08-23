@@ -26,6 +26,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <strings.h>
+#include <sys/stat.h>
 #include <utility>
 #include <vector>
 
@@ -80,6 +82,8 @@ std::vector<VirtualHostConfig> ConfigParser::parse( const std::string &path )
 	file.open(path.c_str());
 	if (file.is_open() == true)
 	{
+		if (is_dir(path.c_str()))
+			throw std::runtime_error("Error: invalid configuration file.");
 		makeTokens(file);
 		mountConfigVec(configs);
 		file.close();
@@ -87,6 +91,16 @@ std::vector<VirtualHostConfig> ConfigParser::parse( const std::string &path )
 	else
 		throw std::runtime_error("Error: Couldn't read configuration file.");
 	return (configs);
+}
+
+bool	ConfigParser::is_dir( const char* path )
+{
+	struct stat	file;
+
+	bzero(&file, sizeof(file));
+	if (stat(path, &file) != 0)
+		throw std::runtime_error("Error: stat() syscall error.");
+	return ((file.st_mode & S_IFMT) == S_IFDIR);
 }
 
 void	ConfigParser::makeTokens( std::ifstream& file )
@@ -227,7 +241,7 @@ void	ConfigParser::mountConfigVec( std::vector<VirtualHostConfig> & configs )
 	while(curr_token().first != TOKEN_END)
 		configs.push_back(parseVirtualHost());
 	if (configs.empty())
-		std::cerr << "Empty configuration file." << std::endl;
+		throw  std::runtime_error("Empty configuration file.");
 }
 
 void	ConfigParser::skip_newline( void )
