@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 04:42:51 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:02:50 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,8 +209,10 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				}
 			}
 			status = client->getStatus();
-			if (status == PREPARING_RESPONSE)
+			if (status == PREPARING_RESPONSE && !client->getRedirect())
 				this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
+			if (status == PREPARING_RESPONSE && client->getRedirect())
+				this->_multiplexer.modifyFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 			if (status == SENT_RESPONSE)
 			{
 				if (client->getKeepAlive())

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 04:44:52 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:22:17 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ Client&	Client::operator=(const Client& other)
 		this->_cgiHandler = other._cgiHandler;
 		this->_staticFileHandler = other._staticFileHandler;
 		this->_configs = other._configs;
+		this->_redirect = other._redirect;
 	}
 	return (*this);
 }
@@ -96,7 +97,9 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 			this->_keepAlive = true;
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 		conf = this->_virtualHostConfig;
+		parse.splitRequestUri(conf);
 		parse.setMaxBodySize(conf.getMaxBodySize());
+		this->_redirect = conf.shouldRedirect(req.getEndpoint());
 	}
 	switch (status)
 	{
@@ -104,7 +107,6 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		{
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
-			parse.splitRequestUri(conf);
 			this->_httpResponseBuilder.setHttpRequest(&req);
 			if (!conf.isMethodAllowed(req.getMethod(), req.getEndpoint()))
 			{
@@ -112,7 +114,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				this->_status = PROCESSING_EXCEPTION;
 				return (PROCESSING_EXCEPTION);
 			}
-			if (conf.shouldRedirect(req.getEndpoint()))
+			if (this->_redirect)
 			{
 				std::pair<int, std::string> ret = conf.getReturn(req.getEndpoint());
 				this->setStatusCode(ret.first);
@@ -159,7 +161,7 @@ enum ClientStatus	Client::processHttpResponse()
 	if (this->_status == PREPARING_RESPONSE)
 	{
 		rep.setReasonPhrase(rep.getStatusCode());
-		this->_httpResponseBuilder.buildHeaders();
+		this->_httpResponseBuilder.buildHeaders(this->_virtualHostConfig);
 		this->_httpResponseBuilder.buildResponse();
 		this->_httpRequestParser.reset();
 		this->_status = WRITING_RESPONSE;

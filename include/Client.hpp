@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 18:59:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:02:06 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ class Client
 		std::vector<int>				_activeFds;
 		std::vector<VirtualHostConfig>*	_configs;
 		bool							_keepAlive;
+		bool							_redirect;
 	public:
 		Client();
 		~Client();
@@ -85,6 +86,7 @@ class Client
 		Session*				getSession() { return this->_session; }
 		HttpRequest&			getHttpRequest() { return this->_httpRequestParser.getHttpRequest(); }
 		bool					getKeepAlive() { return this->_keepAlive; }
+		bool					getRedirect() { return this->_redirect; }
 
 		void	setSession(Session* session) { this->_session = session; }
 		void	setStatus(enum ClientStatus status) { this->_status = status; }

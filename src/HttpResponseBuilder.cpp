@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 21:03:04 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:33:27 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void	HttpResponseBuilder::buildResponse()
 	this->_totalBytes = this->_httpResponseHead.size() + res.getBodySize();
 }
 
-void	HttpResponseBuilder::buildHeaders()
+void	HttpResponseBuilder::buildHeaders(VirtualHostConfig& conf)
 {
 	char buffer[100];
 	std::stringstream ss;
@@ -66,6 +66,7 @@ void	HttpResponseBuilder::buildHeaders()
 	HttpRequest* req = this->_httpRequest;
 	int	statusCode = rep.getStatusCode();
 	std::string path = req->getEndpoint() + req->getFilename();
+	std::pair<int, std::string> ret = conf.getReturn(req->getEndpoint());
 
 	ss << rep.getBodySize();
 	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", std::gmtime(&now));
@@ -73,7 +74,7 @@ void	HttpResponseBuilder::buildHeaders()
 	this->addHeader("Date", buffer);
 	
 	if ((statusCode > 299 && statusCode < 400) || statusCode == 201)
-		this->addHeader("Location", path);
+		this->addHeader("Location", ret.second);
 	if (statusCode == 200)
 		this->addHeader("Content-Type", req->getMimeType());
 	else

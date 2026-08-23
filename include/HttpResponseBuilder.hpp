@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 21:00:33 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:23:33 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "CgiParser.hpp"
 # include "HttpResponse.hpp"
 # include "HttpRequest.hpp"
+# include "VirtualHostConfig.hpp"
 # include <string>
 # include <ctime>
 
@@ -59,10 +60,10 @@ class HttpResponseBuilder
 		void				setHardFallback(bool hardFallback) { this->_hardFallback = hardFallback; }
 		
 		void				reset();
-		void				buildHeaders();
 		void				buildResponse();
 		void				feedCgi(char *buffer, int size);
 		void				feedStaticFile(char *buffer, int size);
+		void				buildHeaders(VirtualHostConfig& conf);
 		void				addHeader(std::string key, std::string value);
 		void				buildHardFallback(int exception);
 };
