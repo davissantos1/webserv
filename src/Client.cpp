@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 18:56:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 21:03:31 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ enum ClientStatus	Client::processHttpResponse()
 		rep.setReasonPhrase(rep.getStatusCode());
 		this->_httpResponseBuilder.buildHeaders();
 		this->_httpResponseBuilder.buildResponse();
-		this->_httpRequestParser.cleanHttpRequest();
+		this->_httpRequestParser.reset();
 		this->_status = WRITING_RESPONSE;
 	}
 	while (true)
@@ -178,7 +178,7 @@ enum ClientStatus	Client::processHttpResponse()
 			if (build.getBytesSent() == build.getTotalBytes())
 			{
 				this->_status = SENT_RESPONSE;
-				this->_httpResponseBuilder.cleanHttpResponse();
+				this->_httpResponseBuilder.reset();
 				return (SENT_RESPONSE);
 			}
 		}

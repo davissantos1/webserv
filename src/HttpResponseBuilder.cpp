@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 16:40:46 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 21:03:04 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,4 +139,16 @@ void	HttpResponseBuilder::buildHardFallback(int exception)
 			break;
 	}
 	this->setHttpResponseBody(hardFallback);
+}
+
+void	HttpResponseBuilder::reset()
+{
+	this->_bytesWritten = 0;
+	this->_totalBytes = 0;
+	this->_bytesSent = 0;
+	this->_httpResponse.reset();
+	this->_httpRequest = NULL;
+	this->_cgiParser.reset();
+	this->_httpResponseHead.clear();
+	this->_hardFallback = false;
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/17 16:05:39 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/22 21:00:33 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,13 @@ class HttpResponseBuilder
 		void				setHttpResponseHeaders(std::map<std::string, std::string> headers) { this->_httpResponse.setHeaders(headers); }
 		void				setHardFallback(bool hardFallback) { this->_hardFallback = hardFallback; }
 		
+		void				reset();
 		void				buildHeaders();
 		void				buildResponse();
 		void				feedCgi(char *buffer, int size);
 		void				feedStaticFile(char *buffer, int size);
 		void				addHeader(std::string key, std::string value);
 		void				buildHardFallback(int exception);
-		void				cleanHttpResponse() { this->_httpResponse.reset(); }
 };
 
 #endif
