@@ -226,19 +226,16 @@ void	HttpRequestParser::handleChunked( void )
 
 bool	HttpRequestParser::hasCgi()
 {
-	if (_requestStatus == PARSING_HEADERS || _requestStatus == PARSING_BODY)
+	size_t dotPos = _httpRequest.getUri().find_last_of(".");
+
+	if (_httpRequest.getUri().find("/cgi-bin/") != std::string::npos)
+		return (true);
+
+	if (dotPos != std::string::npos)
 	{
-		size_t dotPos = _httpRequest.getUri().find_last_of(".");
+		std::string	extensionFile = _httpRequest.getUri().substr(dotPos);
 
-		if (_httpRequest.getUri().find("/cgi-bin/") != std::string::npos)
-			return (true);
-
-		if (dotPos != std::string::npos)
-		{
-			std::string	extensionFile = _httpRequest.getUri().substr(dotPos);
-
-			return (extensionFile == ".py" || extensionFile == ".php");
-		}
+		return (extensionFile == ".py" || extensionFile == ".php");
 	}
 	return (false);
 }
