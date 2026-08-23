@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 05:50:22 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 12:46:25 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,7 +207,7 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 
 	if (findLocation(endpoint, local))
 	{
-		if (local.getUploadPath().empty())
+		if (!local.getUploadPath().empty())
 			return (local.getUploadPath());
 	}
 	return (getUploadPath());

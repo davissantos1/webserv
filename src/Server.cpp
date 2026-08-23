@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 09:02:50 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 09:53:52 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,6 +250,7 @@ void	Server::handleProcessedFile(Client* client, int statusCode)
 	VirtualHostConfig& conf = client->getVirtualHostConfig();
 	std::vector<int> activeFds = client->getActiveFds();
 	HttpResponseBuilder& build = client->getHttpResponseBuilder();
+
 	for (size_t i = 0; i < activeFds.size(); i++)
 	{
 		this->_multiplexer.removeFd(activeFds[i]);
@@ -259,6 +260,8 @@ void	Server::handleProcessedFile(Client* client, int statusCode)
 	client->setStatus(PREPARING_RESPONSE);
 	if (statusCode > 299)
 		stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build); 
+	else
+		build.setHttpResponseBody(build.getCgiParser().getBody());
 	this->_multiplexer.addFd(client->getFd(), EPOLLOUT | EPOLLRDHUP);
 }
 

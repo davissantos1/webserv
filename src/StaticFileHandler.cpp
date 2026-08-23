@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 07:05:24 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 13:03:49 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,10 +100,12 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 {
 	int fd = -1;
 	struct stat info;
+	std::stringstream ss;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	std::string uploadPath = conf.getUploadPath(req.getEndpoint());
 
 	errno = 0;
+	ss << std::time(NULL);
 	if (uploadPath.empty())
 		build.setStatusCode(405);
 	if (stat(path.c_str(), &info) == -1)
@@ -115,7 +117,7 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 	}
 	if (S_ISDIR(info.st_mode))
 	{
-		std::string filePath = uploadPath + req.getFilename();
+		std::string filePath = uploadPath + "/file_" + ss.str();
 		fd = open(filePath.c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
 		if (fd < 0)
 		{
@@ -126,7 +128,7 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 		}
 		else
 		{
-			build.setStatusCode(200);
+			build.setStatusCode(201);
 			this->processStaticFile(fd, STATIC_FILE_WRITE, req, build);
 			this->_fd = fd;
 			return ;
