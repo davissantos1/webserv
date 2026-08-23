@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 20:11:37 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 04:42:51 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,9 +136,8 @@ void	Server::runServer()
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
 			this->routeServer(fds[j].first, fds[j].second, fdType);
-			if (fdType != SOCKET)
-				this->checkTimeouts();
 		}
+		this->checkTimeouts();
 	}
 }
 
@@ -146,7 +145,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 {
 	enum ClientStatus	status;
 
-	if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
 	{
 		this->handleError(fd, fdType);
 		return ;

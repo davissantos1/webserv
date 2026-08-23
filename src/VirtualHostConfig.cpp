@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 16:24:44 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 05:50:22 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,16 +134,27 @@ std::string	VirtualHostConfig::getErrorPage( const int error, const std::string&
 
 std::string	VirtualHostConfig::getFullPath( const std::string& filename, const std::string& endpoint ) const
 {
+	std::string root;
 	Location	local;
 
-	//if (!filename.empty() && !checkFileExtension(filename))
-	//	return (std::string());
 	if (findLocation(endpoint, local))
 	{
 		if (!local.getRoot().empty())
-			return (local.getRoot() + "/" + filename);
+		{
+			root = local.getRoot();
+			if (filename.empty())
+				return (local.getRoot());
+			if (root[root.size() - 1] == '/')
+				return (root + filename);
+			return (root + "/" + filename);
+		}
 	}
-	return (getRoot() + "/" + filename);
+	root = getRoot();
+	if (filename.empty())
+		return (root);
+	if (root[root.size() - 1] == '/')
+		return (root + filename);
+	return (root + "/" + filename);
 }
 
 bool		VirtualHostConfig::isMethodAllowed( const std::string& method, const std::string& endpoint ) const

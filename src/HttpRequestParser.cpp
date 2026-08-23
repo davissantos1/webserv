@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 19:21:20 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 05:09:02 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,11 +245,11 @@ bool	HttpRequestParser::hasCgi()
 
 void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 {
+	size_t bestLen = 0;
+	const Location* best = NULL;
 	const std::vector<Location>& locations = conf.getLocation();
 	std::string	filename, endpoint, queryString;
 	std::string uri	= this->_httpRequest.getUri();
-	size_t		dot = uri.rfind('.');
-	size_t		slash = uri.rfind('/');
 	size_t		query = uri.rfind('?');
 
 	filename = endpoint = queryString = uri;
@@ -261,16 +261,6 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 	}
 	else
 		queryString.clear();
-	if (dot != std::string::npos)
-	{
-		endpoint.erase(slash);
-		filename.erase(0, slash + 1);
-	}
-	else
-		filename.erase(0, filename.rfind('/') + 1);
-
-	const Location* best = NULL;
-	size_t bestLen = 0;
 	for (size_t i = 0; i < locations.size(); i++)
 	{
 		const std::string& locPath = locations[i].getPath();
@@ -288,7 +278,11 @@ void	HttpRequestParser::splitRequestUri(VirtualHostConfig& conf)
 		}
 	}
 	if (best)
-		this->_httpRequest.setEndpoint(best->getPath());
+	{
+		endpoint = best->getPath();
+		filename.erase(0, endpoint.size());
+	}
+	this->_httpRequest.setEndpoint(endpoint);
 	this->_httpRequest.setQuery(queryString);
 	this->_httpRequest.setFilename(filename);
 }

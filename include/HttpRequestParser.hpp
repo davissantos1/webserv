@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 02:29:21 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 01:06:44 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,8 @@ class HttpRequestParser
 		HttpRequest&		getHttpRequest() { return this->_httpRequest; }
 		HttpRequest*		getHttpRequestPointer() { return &this->_httpRequest; }
 		std::size_t			getMaxBodySize() { return this->_maxBodySize; }
-		bool				getHeadersDone( void ) const { return _heardersDone; };
+		bool				getHeadersDone( void ) const { return _heardersDone; }
+		std::string			getBuffer() { return this->_buffer; }
 
 		void				setHeadersDone( bool headersDone ) { _heardersDone = headersDone; };
 		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }

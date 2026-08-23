@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 05:40:10 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 07:05:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ void	StaticFileHandler::handleGet(HttpRequest& req, VirtualHostConfig& conf, Htt
 			build.setStatusCode(404);
 		else
 			build.setStatusCode(500);
+		return ;
 	}
 	if (S_ISDIR(info.st_mode))
 	{
@@ -219,7 +220,11 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	std::ostringstream html;
 	std::string path = conf.getFullPath(req.getFilename(), req.getEndpoint());
 	DIR* stream = opendir(path.c_str());
+	std::string urlBase = req.getEndpoint() + req.getFilename();
 	std::string basePath = path;
+
+	if (urlBase.empty() || urlBase[urlBase.size() - 1] != '/')
+	    urlBase += '/';
 
 	if (!stream) 
 		return (500);
@@ -229,7 +234,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 			<<			"<meta charset=\"utf-8\"/>\n"
 			<<			"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n"
 			<<			"<title>Index of" << path << "</title>\n"
-			<<			"<link rel=\"stylesheet\" href=\"directory.css\">\n"
+			<<			"<link rel=\"stylesheet\" href=\"error_pages/directory.css\">\n"
 			<<		"</head>\n"
 			<<		"<body lang=\"en\">\n"
 			<<			"<main>\n"
@@ -239,9 +244,6 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 			<<				"</header>\n"
 			<<				"<table>\n";
 
-	if (basePath.empty() || basePath[basePath.size() - 1] != '/')
-		basePath += '/';
-
 	while ((curr = readdir(stream)) != NULL)
 	{
 		std::string fileName = curr->d_name;
@@ -250,9 +252,11 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 		if (fileName == "." || fileName == "..")
 			continue ;
 
-		std::string entryPath = basePath + fileName;
-		if (stat(entryPath.c_str(), &info) != 0)
+		std::string diskPath = basePath + fileName;
+		if (stat(basePath.c_str(), &info) != 0)
 			return (500);
+
+		std::string entryPath = urlBase + fileName;
 
 		if (isDir)
 			entryPath += "/";
@@ -278,5 +282,6 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	if (closedir(stream) == -1)
 		return (500);
 	build.setHttpResponseBody(html.str());
+	build.addHeader("Content-Type", "text/html");
 	return (200);
 }

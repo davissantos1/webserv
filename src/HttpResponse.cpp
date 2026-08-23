@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/19 21:39:09 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 03:58:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ void	HttpResponse::setReasonPhrase(int statusCode)
 void	HttpResponse::reset()
 {
 	this->_statusCode = 0;
-	this->_version.clear();
 	this->_reasonPhrase.clear();
 	this->_headers.clear();
 	this->_body.clear();

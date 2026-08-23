@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 21:03:31 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/23 04:44:52 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ enum ClientStatus	Client::processHttpRequest()
 		else if (bytes == 0)
 			return (DISCONNECT);
 		else
-			break;
+			break ;
 	}
 	clientStatus = this->checkRequest(requestStatus);
 	return (clientStatus);
@@ -88,8 +88,10 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 
+
 	if (parse.getHeadersDone())
 	{
+		this->_httpResponseBuilder.reset();
 		if (req.getKeepAlive())
 			this->_keepAlive = true;
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
@@ -102,7 +104,6 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		{
 			req.setServerPort(this->_port);
 			req.setClientIp(this->_ip);
-
 			parse.splitRequestUri(conf);
 			this->_httpResponseBuilder.setHttpRequest(&req);
 			if (!conf.isMethodAllowed(req.getMethod(), req.getEndpoint()))
@@ -183,7 +184,7 @@ enum ClientStatus	Client::processHttpResponse()
 			}
 		}
 		else
-			return (DISCONNECT);
+			break;
 	}
 	return (WRITING_RESPONSE);
 }
