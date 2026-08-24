@@ -11,10 +11,14 @@
 /* ************************************************************************** */
 
 #include "StaticFileHandler.hpp"
+#include <unistd.h>
 
 StaticFileHandler::StaticFileHandler(): _fd(-1) {}
 
-StaticFileHandler::~StaticFileHandler() {}
+StaticFileHandler::~StaticFileHandler() {
+	if (_fd > 0)
+		close(_fd);
+}
 
 StaticFileHandler::StaticFileHandler(const StaticFileHandler& other)
 {
@@ -138,8 +142,8 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 	if (fd > 0)
 		this->_fd = fd;
 	build.setStatusCode(403);
-}   	
-    	
+}
+
 void	StaticFileHandler::handleDelete(HttpRequest& req, VirtualHostConfig& conf, HttpResponseBuilder& build)
 {
 	int statusCode;
@@ -229,7 +233,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	if (urlBase.empty() || urlBase[urlBase.size() - 1] != '/')
 	    urlBase += '/';
 
-	if (!stream) 
+	if (!stream)
 		return (500);
 
 	html	<<	"<html>\n"
