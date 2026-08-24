@@ -16,7 +16,7 @@
 StaticFileHandler::StaticFileHandler(): _fd(-1) {}
 
 StaticFileHandler::~StaticFileHandler() {
-	if (_fd > 0)
+	if (_fd != -1)
 		close(_fd);
 }
 
