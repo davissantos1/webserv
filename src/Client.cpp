@@ -6,11 +6,12 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 09:22:17 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/25 03:22:07 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include <algorithm>
 #include "color.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
@@ -53,6 +54,7 @@ Client&	Client::operator=(const Client& other)
 		this->_cgiHandler = other._cgiHandler;
 		this->_staticFileHandler = other._staticFileHandler;
 		this->_configs = other._configs;
+		this->_keepAlive = other._keepAlive;
 		this->_redirect = other._redirect;
 	}
 	return (*this);
@@ -164,6 +166,7 @@ enum ClientStatus	Client::processHttpResponse()
 		this->_httpResponseBuilder.buildHeaders(this->_virtualHostConfig);
 		this->_httpResponseBuilder.buildResponse();
 		this->_httpRequestParser.reset();
+		this->_cgiHandler.reset();
 		this->_status = WRITING_RESPONSE;
 	}
 	while (true)
@@ -249,6 +252,7 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 	std::pair<int, enum CgiIoType> task;
 	std::vector<std::pair<int, enum CgiIoType> > postFds;
 
+	this->updateActivity();
 	if (statusCode > 299)
 	{
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
@@ -276,6 +280,7 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 	{
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
 			build.setHardFallback(true);
+		this->_status = PREPARING_RESPONSE;
 	}
 	return (tasks);
 }
@@ -360,4 +365,26 @@ void	Client::updateActivity()
 	this->setLastActivity(std::time(NULL));
 	if (session)
 		session->setLastActivity(std::time(NULL));
+}
+
+void	Client::registerFd(int fd)
+{ 
+	if (std::find(_activeFds.begin(), _activeFds.end(), fd) != _activeFds.end())
+		return;
+
+	this->_activeFds.push_back(fd); 
+}
+
+void	Client::reset()
+{
+	this->_status = READING_REQUEST;
+	this->_httpRequestParser.reset();
+	this->_httpResponseBuilder.reset();
+	this->_staticFileHandler.reset();
+	this->_cgiHandler.reset();
+	this->_session = NULL;
+	this->_lastActivity = std::time(NULL);
+	this->_activeFds.clear();
+	this->_keepAlive = false;
+	this->_redirect = false;
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 13:36:32 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/25 03:19:28 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,4 +287,9 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 	build.setHttpResponseBody(html.str());
 	build.addHeader("Content-Type", "text/html");
 	return (200);
+}
+
+void	StaticFileHandler::reset()
+{
+	this->_fd = -1;
 }

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/16 20:27:45 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/25 09:17:35 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ class CgiHandler
 {
 	private:
 		CgiEnvironment	_cgiEnvironment;
+		bool			_readDone;
+		bool			_writeDone;
 		int				_stat_loc;
 	public:
 		CgiHandler();
@@ -42,6 +44,7 @@ class CgiHandler
 		CgiHandler(const CgiHandler& other);
 		CgiHandler& operator=(const CgiHandler& other);
 
+		void											reset();
 		bool											processCgi(int fd, uint32_t eventType, HttpResponseBuilder& builder);
 		std::pair<int, enum CgiIoType>					handleGet(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);
 		std::vector<std::pair<int, enum CgiIoType> >	handlePost(HttpRequest& req, VirtualHostConfig& conf, int* statusCode);

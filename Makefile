@@ -49,7 +49,7 @@ $(NAME): $(OBJ)
 	@printf " 🛠️ ${BLUE} Compiling:${RESET} $< to $@\n"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-debug: CFLAGS += -O0 -g3 -fno-eliminate-unused-debug-types
+debug: CFLAGS += -O0 -g3 -fno-eliminate-unused-debug-types -fsanitize=address,undefined
 debug: re
 	@printf " ⚠️  ${RED}Compilation mode:${RESET} debug\n"
 

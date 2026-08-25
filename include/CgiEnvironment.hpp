@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/15 18:57:29 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/24 17:31:56 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class CgiEnvironment
 		CgiEnvironment(const CgiEnvironment& other);
 		CgiEnvironment& operator=(const CgiEnvironment& other);
 
+		void				reset() { this->_environment.clear(); }
 		void				startEnvironment(HttpRequest& req);
 		std::vector<const char *>	getEnvironment();
 };

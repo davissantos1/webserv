@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 09:53:52 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/25 03:21:23 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,12 +145,6 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 {
 	enum ClientStatus	status;
 
-    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
-	{
-		this->handleError(fd, fdType);
-		return ;
-	}
-
 	switch (fdType)
 	{
 		case SOCKET:
@@ -165,13 +159,16 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		}
 		case CLIENT:
 		{
+			if ((eventType & EPOLLOUT) && (eventType & (EPOLLERR | EPOLLRDHUP | EPOLLHUP)))
+				break;
+
 			Client* client = this->_clientMap[fd];
 			if (!client) break;
 
 			status = client->getStatus();
 			if (eventType & EPOLLIN)
 				status = client->processHttpRequest();
-			else if (eventType & EPOLLOUT)
+			else if (eventType & EPOLLOUT) 	
 				status = client->processHttpResponse();
 
 			if (status == DISCONNECT)
@@ -217,9 +214,9 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			{
 				if (client->getKeepAlive())
 				{
-					client->setStatus(READING_REQUEST);
 					this->_multiplexer.removeFd(client->getFd());
 					this->_multiplexer.addFd(client->getFd(), EPOLLIN | EPOLLRDHUP);
+					client->reset();
 				}
 				else
 					this->destroyClient(client->getFd());
@@ -228,6 +225,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		}
 		case CGI:
 		{
+			if ((eventType & EPOLLOUT) && (eventType & (EPOLLERR | EPOLLRDHUP | EPOLLHUP)))
+				break;
 			Client* client = this->_cgiMap[fd];
 			if (!client) break;
 			CgiHandler& cgi = client->getCgiHandler();
@@ -240,6 +239,8 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			break;
 		}
 	}
+    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+		this->handleError(fd, fdType);
 }
 
 void	Server::handleProcessedFile(Client* client, int statusCode)
@@ -385,7 +386,6 @@ void	Server::checkTimeouts()
 	{
 		currentSession = it->second;
 		secondsIdle = std::difftime(currentTime, currentSession->getLastActivity());
-		
 		if (secondsIdle > SESSION_TIMEOUT)
 		{
 			Server::printLog("Session ID " + currentSession->getSessionId() +  color::red + " timed " + color::reset + "out");
