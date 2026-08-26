@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 09:37:52 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 16:38:04 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,6 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			builder.setHttpResponseBody(parser.getBody());
 			res.setHeaders(parser.getHeaders());
 			res.setBody(parser.getBody());
-			parser.reset();
 		}
 		else
 		{

@@ -1,23 +1,25 @@
+<?php
+
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   printEnvironment.php                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: davi <dasimoes@student.42sp.org.br>        +#+  +:+       +#+        */
+/*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/08/13 16:33:47 by davi              #+#    #+#             */
-/*   Updated: 2026/08/13 16:33:52 by davi             ###   ########.fr       */
+/*   Created: 2026/08/26 18:49:13 by dasimoes          #+#    #+#             */
+/*   Updated: 2026/08/26 18:49:13 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-<?php
 
-	header("Content-Type: text/html");
+	echo("Content-Type: text/html\r\n\r\n");
 
-	echo "CGI Environment Variables:";
+	echo("<h1> Hello from PHP </h1>");
+	echo("<p>CGI Environment Variables:</p>");
 
 	foreach ($_SERVER as $key => $value)
 	{
-		echo sprintf("%-20s = %s\n", $key, $value);
+		echo sprintf("<p>%-20s = %s</p>", $key, $value);
 	}
 ?>

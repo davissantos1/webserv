@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 03:22:07 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 16:40:11 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -387,4 +387,5 @@ void	Client::reset()
 	this->_activeFds.clear();
 	this->_keepAlive = false;
 	this->_redirect = false;
+	this->_httpResponseBuilder.getCgiParser().reset();
 }
