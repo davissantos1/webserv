@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/22 21:12:18 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 18:11:36 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ class	Server
 		Server(const std::vector<VirtualHostConfig> config);
 		void				runServer();
 		void				startServer();
+		void				killChildren();
 		void				checkTimeouts();
 		int					createClient(int sockFd);
 		void				destroyClient(int clientFd);

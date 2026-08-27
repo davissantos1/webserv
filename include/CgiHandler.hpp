@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 20:27:37 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 18:13:38 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,14 @@ class CgiHandler
 		bool			_writeDone;
 		int				_stat_loc;
 		size_t			_bytesWritten;
+		pid_t			_pid;
 	public:
 		CgiHandler();
 		~CgiHandler();
 		CgiHandler(const CgiHandler& other);
 		CgiHandler& operator=(const CgiHandler& other);
+
+		pid_t											getPid() { return this->_pid; }
 
 		void											reset();
 		bool											processCgi(int fd, uint32_t eventType, HttpResponseBuilder& builder);

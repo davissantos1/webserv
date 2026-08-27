@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 20:44:30 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 17:58:37 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CgiHandler.hpp"
 
-CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _stat_loc(0), _bytesWritten(0) {}
+CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _stat_loc(0), _bytesWritten(0), _pid(0) {}
 
 CgiHandler::~CgiHandler() {}
 
@@ -31,6 +31,7 @@ CgiHandler&	CgiHandler::operator=(const CgiHandler& other)
 		this->_bytesWritten = other._bytesWritten;
 		this->_readDone = other._readDone;
 		this->_writeDone = other._writeDone;
+		this->_pid = other._pid;
 	}
 	return (*this);
 }
@@ -40,9 +41,16 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 	HttpResponse&	res = builder.getHttpResponse();
 	CgiParser&		parser = builder.getCgiParser();
 
+	if (this->_pid > 0)
+		waitpid(this->_pid, &(this->_stat_loc), WNOHANG);
 	while (true)
 	{
 		int bytes = 0;
+		if (WIFEXITED(this->_stat_loc))
+		{
+			this->_readDone = true;
+			break;
+		}
 		if (eventType & EPOLLIN)
 		{
 			char tmp[8192];
@@ -87,7 +95,7 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			res.setBody(parser.getBody());
 		}
 		else
-			builder.setStatusCode(500);
+			builder.setStatusCode(502);
 		return (true);
 	}
 	return (false);
@@ -145,12 +153,13 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 		}
 		
 	}
-	if (((waitpid(pid, &this->_stat_loc, WNOHANG)) < 0) || (*statusCode == 500))
+	if (((waitpid(pid, &(this->_stat_loc), WNOHANG)) < 0) || (*statusCode == 500))
 	{
 		*statusCode = 500;
 		kill(pid, SIGKILL);
 		return (bundle);
 	}
+	this->_pid = pid;
 	this->_writeDone = true;
 	*statusCode = 200;
 	bundle = std::make_pair(fds[0], CGI_READ);
@@ -211,12 +220,13 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 		kill(pid, SIGKILL);
 		return (bundles);
 	}
-	if (((waitpid(pid, &this->_stat_loc, WNOHANG)) < 0) || (*statusCode == 500))
+	if (((waitpid(pid, &(this->_stat_loc), WNOHANG)) < 0) || (*statusCode == 500))
 	{
 		*statusCode = 500;
 		kill(pid, SIGKILL);
 		return (bundles);
 	}
+	this->_pid = pid;
 	*statusCode = 200;
 	bundles.push_back(std::make_pair(pipe_out[0], CGI_READ));
 	bundles.push_back(std::make_pair(pipe_in[1], CGI_WRITE));
@@ -226,6 +236,7 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 void	CgiHandler::reset()
 {
 	this->_cgiEnvironment.reset();
+	this->_pid = 0;
 	this->_stat_loc = 0;
 	this->_bytesWritten = 0;
 	this->_readDone = false;

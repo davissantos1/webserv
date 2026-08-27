@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/04 16:08:48 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/11 21:53:47 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/27 18:05:30 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ volatile sig_atomic_t serverRunning = 0;
 void	panic(int sig)
 {
 	if (sig == SIGINT || sig == SIGTERM || sig == SIGQUIT)
-			serverRunning = 0;
+		serverRunning = 0;
 }
 
 void	registerSignals()

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 01:00:58 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 12:39:34 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,29 +322,33 @@ VirtualHostConfig	Client::getCurrentConfig(std::string host)
 void	Client::handleIndex()
 {
 	int status;
+	std::string path, uri;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	const std::vector<std::string> index = this->_virtualHostConfig.getIndex(req.getEndpoint());
 	std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
 
+	uri = "";
 	if (basePath[basePath.size() -1] != '/')
 		basePath += "/";
 	for (size_t i = 0; i < index.size(); i++)
 	{
-		std::string path = basePath + index[i];
+		path = basePath + index[i];
 		status = access(path.c_str(), F_OK);
 		if (status == 0)
 		{
-			std::string uri = index[i];
+			uri = index[i];
 			if (uri[0] != '/')
 				uri = "/" + uri;
+			if (req.getEndpoint() != "/")
+				uri = req.getEndpoint() + uri;
 			req.setUri(uri);
 			this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
-			if (this->_httpRequestParser.hasCgi())
-				this->_status = PROCESSING_CGI;
-			else
-				this->_status = PROCESSING_STATIC_FILE;
 		}
 	}
+	if (this->_httpRequestParser.hasCgi())
+		this->_status = PROCESSING_CGI;
+	else
+		this->_status = PROCESSING_STATIC_FILE;
 }
 
 std::string	Client::findSessionId()

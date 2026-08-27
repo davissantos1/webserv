@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 23:45:07 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 03:12:48 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 18:12:44 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ class Client
 		HttpRequest&			getHttpRequest() { return this->_httpRequestParser.getHttpRequest(); }
 		bool					getKeepAlive() { return this->_keepAlive; }
 		bool					getRedirect() { return this->_redirect; }
+		pid_t					getPid() { return this->_cgiHandler.getPid(); }
 
 		void	setSession(Session* session) { this->_session = session; }
 		void	setStatus(enum ClientStatus status) { this->_status = status; }

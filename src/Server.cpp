@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 03:21:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 18:11:17 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,10 +139,12 @@ void	Server::runServer()
 		}
 		this->checkTimeouts();
 	}
+	this->killChildren();
 }
 
 void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 {
+	bool isPipeDone;
 	enum ClientStatus	status;
 
 	switch (fdType)
@@ -232,14 +234,14 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			CgiHandler& cgi = client->getCgiHandler();
 			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
 
-			bool isPipeDone = cgi.processCgi(fd, eventType, builder);
+			isPipeDone = cgi.processCgi(fd, eventType, builder);
 			if (isPipeDone)
 				this->handleProcessedFile(client, builder.getStatusCode());
 			client->updateActivity();
 			break;
 		}
 	}
-    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP) && !isPipeDone)
 		this->handleError(fd, fdType);
 }
 
@@ -433,6 +435,16 @@ void	Server::handleSession(Client* client)
 		client->setSession(currentSession);
 		this->_sessionClientMap[currentSession] = client;
 		currentSession->extractCookies(req.getHeader("Cookie"));
+	}
+}
+
+void	Server::killChildren()
+{
+	for (size_t i = 0; i < this->_clients.size(); i++)
+	{
+		Client* currClient = this->_clients[i];
+		if (currClient->getPid() != 0)
+			kill(currClient->getPid(), SIGKILL);
 	}
 }
 
