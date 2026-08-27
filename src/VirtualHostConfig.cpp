@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 12:46:25 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 00:48:19 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,18 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 			return (local.getUploadPath());
 	}
 	return (getUploadPath());
+}
+
+std::vector<std::string> VirtualHostConfig::getIndex(std::string endpoint)
+{
+	Location	local;
+
+	if (findLocation(endpoint, local))
+	{
+		if (!local.getIndex().empty())
+			return (local.getIndex());
+	}
+	return (getIndex());
 }
 
 std::ostream&	operator<<( std::ostream& out, const VirtualHostConfig& vhc )

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 09:34:52 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 23:20:14 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void	HttpResponseBuilder::buildResponse()
 {
 	std::stringstream ss;
 	HttpResponse& res = this->_httpResponse;
+	HttpRequest* req = this->_httpRequest;
 	std::map<std::string, std::string>&	headers = this->_httpResponse.getHeaders();
 	std::map<std::string, std::string>::iterator it = headers.begin();
 
@@ -54,6 +55,9 @@ void	HttpResponseBuilder::buildResponse()
 	}
 	ss	<< "\r\n";
 	this->_httpResponseHead = ss.str();
+	
+	if (req->getMethod() == "HEAD")
+		res.setBody("");
 	this->_totalBytes = this->_httpResponseHead.size() + res.getBodySize();
 }
 

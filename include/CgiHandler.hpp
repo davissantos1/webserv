@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/25 09:17:35 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 20:27:37 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class CgiHandler
 		bool			_readDone;
 		bool			_writeDone;
 		int				_stat_loc;
+		size_t			_bytesWritten;
 	public:
 		CgiHandler();
 		~CgiHandler();

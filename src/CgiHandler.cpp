@@ -6,13 +6,13 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 16:38:04 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 20:44:30 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CgiHandler.hpp"
 
-CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _stat_loc(0) {}
+CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _stat_loc(0), _bytesWritten(0) {}
 
 CgiHandler::~CgiHandler() {}
 
@@ -28,6 +28,7 @@ CgiHandler&	CgiHandler::operator=(const CgiHandler& other)
 	{
 		this->_cgiEnvironment = other._cgiEnvironment;
 		this->_stat_loc = other._stat_loc;
+		this->_bytesWritten = other._bytesWritten;
 		this->_readDone = other._readDone;
 		this->_writeDone = other._writeDone;
 	}
@@ -59,25 +60,25 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 		}
 		else if (eventType & EPOLLOUT)
 		{
-			if (WIFEXITED(this->_stat_loc))
-				this->_writeDone = true;
-			int bytesWritten = builder.getBytesWritten();
+			size_t bytesWritten = this->_bytesWritten;
 			const std::string* body = builder.getHttpRequestBody();
 			bytes  = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
 			if (bytes >= 0)
 			{
 				if (bytes == 0)
 					break ;
-				builder.setBytesWritten(bytesWritten + bytes);
+				this->_bytesWritten = bytesWritten + bytes;
 			}
+			if (this->_bytesWritten == body->size())
+				this->_writeDone = true;
 		}
 		if (bytes < 0)
 			break ;
 	}
-	if (WIFEXITED(this->_stat_loc))
+	if (WIFEXITED(this->_stat_loc) && this->_readDone && this->_writeDone)
 	{
 		int status = WEXITSTATUS(this->_stat_loc);
-		if (status == 0 && this->_readDone)
+		if (status == 0)
 		{
 			builder.setStatusCode(200);
 			builder.setHttpResponseHeaders(parser.getHeaders());
@@ -86,12 +87,8 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			res.setBody(parser.getBody());
 		}
 		else
-		{
 			builder.setStatusCode(500);
-			return (true);
-		}
-		if (this->_readDone && this->_writeDone)
-			return (true);
+		return (true);
 	}
 	return (false);
 }
@@ -230,6 +227,7 @@ void	CgiHandler::reset()
 {
 	this->_cgiEnvironment.reset();
 	this->_stat_loc = 0;
+	this->_bytesWritten = 0;
 	this->_readDone = false;
 	this->_writeDone = false;
 }

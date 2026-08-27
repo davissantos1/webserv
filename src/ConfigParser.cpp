@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/13 16:49:29 by davi             ###   ########.fr       */
+/*   Updated: 2026/08/26 23:07:01 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,6 +232,7 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 		virtualHost.addAllowedMethod("GET");
 		virtualHost.addAllowedMethod("POST");
 		virtualHost.addAllowedMethod("DELETE");
+		virtualHost.addAllowedMethod("HEAD");
 	}
 	if (virtualHost.getVecPort().empty())
 		throw_exception("Error: no 'listen' directive was found in server block.");
@@ -355,6 +356,7 @@ void	ConfigParser::handleLocation( VirtualHostConfig& vec )
 		local.addAllowedMethod("GET");
 		local.addAllowedMethod("POST");
 		local.addAllowedMethod("DELETE");
+		local.addAllowedMethod("HEAD");
 	}
 	if (local.getCgiExtension().empty() != local.getCgiPath().empty())
 		throw_exception("Error: both 'cgi_extension' and 'cgi_path' must be assigned.");
@@ -750,7 +752,7 @@ void	ConfigParser::handleLocationIndex( Location& loc )
 
 void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 {
-	const char								*allowed[] = {"GET", "DELETE", "POST", 0};
+	const char								*allowed[] = {"GET", "DELETE", "POST", "HEAD", 0};
 	bool									flag;
 	const std::vector<std::string> &		tmp = loc.getAllowedMethods();
 

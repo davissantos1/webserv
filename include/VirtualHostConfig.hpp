@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 04:48:41 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 00:48:46 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ class VirtualHostConfig
 		const std::pair<int, std::string> & getReturn( void ) const { return (_return); }
 		const std::string&					getUploadPath( void ) const { return _uploadPath; }
 
+		std::vector<std::string> getIndex(std::string endpoint);
 		std::pair<int, std::string> getReturn( const std::string& endpoint ) const;
 		std::string	getErrorPage( const int error, const std::string& endpoint ) const;
 		std::string	getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const;

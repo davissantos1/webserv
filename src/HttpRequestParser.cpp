@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 05:09:02 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/26 22:51:31 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void	HttpRequestParser::handleRequestLine( const std::string& str )
 {
 	std::vector<std::string> splited = split(str, ' ');
 
-	if (splited.size() != 3 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE"))
+	if (splited.size() != 3 || (splited[0] != "GET" && splited[0] != "POST" && splited[0] != "DELETE" && splited[0] != "HEAD"))
 	{
 		_requestStatus = ERROR_BAD_REQUEST;
 		return ;
@@ -226,14 +226,11 @@ void	HttpRequestParser::handleChunked( void )
 
 bool	HttpRequestParser::hasCgi()
 {
-	size_t dotPos = _httpRequest.getUri().find_last_of(".");
-
-	if (_httpRequest.getUri().find("/cgi-bin/") != std::string::npos)
-		return (true);
+	size_t dotPos = _httpRequest.getFilename().find_last_of(".");
 
 	if (dotPos != std::string::npos)
 	{
-		std::string	extensionFile = _httpRequest.getUri().substr(dotPos);
+		std::string	extensionFile = _httpRequest.getFilename().substr(dotPos);
 
 		return (extensionFile == ".py" || extensionFile == ".php");
 	}

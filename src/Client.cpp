@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 16:40:11 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 01:00:58 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,6 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	VirtualHostConfig& conf = this->_virtualHostConfig;
 
-
 	if (parse.getHeadersDone())
 	{
 		this->_httpResponseBuilder.reset();
@@ -138,12 +137,14 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
+			this->_httpResponseBuilder.setHttpRequest(&req);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
 		}
 		case ERROR_REQUEST_TOO_LARGE:
 		{
 			this->setStatusCode(413);
+			this->_httpResponseBuilder.setHttpRequest(&req);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
 		}
@@ -218,7 +219,7 @@ void	Client::executeStaticFileMethod()
 	if (conf.shouldIndex(req.getEndpoint()))
 		this->handleIndex();
 	statusCode = 0;
-	if (req.getMethod() == "GET")
+	if (req.getMethod() == "GET" || req.getMethod() == "HEAD")
 		stat.handleGet(req, conf, build);
 	else if (req.getMethod() == "POST")
 	{
@@ -262,7 +263,7 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 	if (conf.shouldIndex(req.getEndpoint()))
 		this->handleIndex();
 	statusCode = 0;
-	if (req.getMethod() == "GET")
+	if (req.getMethod() == "GET" || req.getMethod() == "HEAD")
 	{
 		task = cgi.handleGet(req, conf, &statusCode);
 		if (statusCode == 200)
@@ -322,11 +323,11 @@ void	Client::handleIndex()
 {
 	int status;
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
-	const std::vector<std::string> index = this->_virtualHostConfig.getIndex();
-	const std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
+	const std::vector<std::string> index = this->_virtualHostConfig.getIndex(req.getEndpoint());
+	std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
 
-	if (!req.getFilename().empty())
-		return ;
+	if (basePath[basePath.size() -1] != '/')
+		basePath += "/";
 	for (size_t i = 0; i < index.size(); i++)
 	{
 		std::string path = basePath + index[i];
