@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 12:39:34 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:33:20 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 				return (PREPARING_RESPONSE);
 			}
 			this->setStatusCode(200);
-			if (parse.hasCgi() && req.getMethod() != "DELETE")
+			if (parse.hasCgi(this->_virtualHostConfig) && req.getMethod() != "DELETE")
 			{
 				this->_status = PROCESSING_CGI;
 				return (PROCESSING_CGI);
@@ -216,7 +216,7 @@ void	Client::executeStaticFileMethod()
 		this->_status = PREPARING_RESPONSE;
 		return ;
 	}
-	if (conf.shouldIndex(req.getEndpoint()))
+	if (conf.shouldIndex(req.getFilename(), req.getEndpoint()))
 		this->handleIndex();
 	statusCode = 0;
 	if (req.getMethod() == "GET" || req.getMethod() == "HEAD")
@@ -260,7 +260,7 @@ std::vector<std::pair<int, enum CgiIoType> >	Client::executeCgiMethod()
 			build.setHardFallback(true);
 		return (tasks);
 	}
-	if (conf.shouldIndex(req.getEndpoint()))
+	if (conf.shouldIndex(req.getFilename(), req.getEndpoint()))
 		this->handleIndex();
 	statusCode = 0;
 	if (req.getMethod() == "GET" || req.getMethod() == "HEAD")
@@ -345,7 +345,17 @@ void	Client::handleIndex()
 			this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
 		}
 	}
-	if (this->_httpRequestParser.hasCgi())
+	if (uri.empty())
+	{
+		uri = index[0];
+		if (uri[0] != '/')
+			uri = "/" + uri;
+		if (req.getEndpoint() != "/")
+			uri = req.getEndpoint() + uri;
+		req.setUri(uri);
+		this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
+	}
+	if (this->_httpRequestParser.hasCgi(this->_virtualHostConfig))
 		this->_status = PROCESSING_CGI;
 	else
 		this->_status = PROCESSING_STATIC_FILE;
@@ -382,6 +392,7 @@ void	Client::registerFd(int fd)
 
 void	Client::reset()
 {
+	this->destroyActiveFds();
 	this->_status = READING_REQUEST;
 	this->_httpRequestParser.reset();
 	this->_httpResponseBuilder.reset();
@@ -389,7 +400,6 @@ void	Client::reset()
 	this->_cgiHandler.reset();
 	this->_session = NULL;
 	this->_lastActivity = std::time(NULL);
-	this->_activeFds.clear();
 	this->_keepAlive = false;
 	this->_redirect = false;
 	this->_httpResponseBuilder.getCgiParser().reset();

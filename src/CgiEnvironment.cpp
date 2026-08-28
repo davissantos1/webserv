@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/15 19:16:13 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 19:23:49 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ void	CgiEnvironment::startEnvironment(HttpRequest& req)
 	tmp = "CONTENT_TYPE=" + req.getHeader("Content-Type");
 	this->_environment.push_back(tmp);
 	tmp = "SCRIPT_FILENAME=" + req.getFilename();
+	this->_environment.push_back(tmp);
+	tmp = "PATH_INFO=" + req.getFilename();
 	this->_environment.push_back(tmp);
 	this->_environment.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	this->_environment.push_back("REDIRECT_STATUS=200");

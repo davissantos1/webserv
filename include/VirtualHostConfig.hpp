@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:28 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 00:48:46 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:27:01 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ class VirtualHostConfig
 		std::pair<int, std::string>	_return;
 		std::string					_uploadPath;
 
-		bool findLocation( const std::string& path, Location& loc ) const;
-
 	public:
 		VirtualHostConfig();
 		~VirtualHostConfig();
@@ -43,6 +41,7 @@ class VirtualHostConfig
 		VirtualHostConfig(const VirtualHostConfig& other);
 		VirtualHostConfig&	operator=(const VirtualHostConfig& other);
 
+		bool findLocation( const std::string& path, Location& loc ) const;
 		const std::vector<std::string>& getServerNames() const { return _serverNames; }
 		const std::vector<std::string> & getVecHostIp() const { return _hostIp; }
 		const std::vector<int> & getVecPort() const { return _port; }
@@ -64,7 +63,7 @@ class VirtualHostConfig
 		std::string	getFullPath( const std::string& filename, const std::string& endpoint ) const;
 		std::string	getUploadPath( const std::string& endpoint ) const;
 		bool		isMethodAllowed( const std::string& method, const std::string& endpoint ) const;
-		bool		shouldIndex( const std::string& endpoint ) const;
+		bool		shouldIndex( const std::string& filename,  const std::string& endpoint ) const;
 		bool		shouldAutoindex( const std::string& endpoint ) const;
 		bool		shouldRedirect( const std::string& endpoint ) const;
 

@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 16:41:24 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/27 20:23:01 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 		{
 			if (bytes < 0)
 			{
+				close(fd);
 				build.setStatusCode(500);
 				return (false);
 			}
@@ -53,10 +54,12 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 		bytes = write(fd, reqBody, req.getBodySize());
 		if (bytes < 0)
 		{
+			close(fd);
 			build.setStatusCode(500);
 			return (false);
 		}
 	}
+	close(fd);
 	return (true);
 }
 
@@ -210,7 +213,6 @@ bool	StaticFileHandler::handleException(int exception, std::string path, HttpReq
 	}
 	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
 	{
-		close(fd);
 		build.setHardFallback(true);
 		return (false);
 	}

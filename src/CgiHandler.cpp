@@ -6,13 +6,14 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 17:58:37 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 05:07:26 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CgiHandler.hpp"
+#include "Server.hpp"
 
-CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _stat_loc(0), _bytesWritten(0), _pid(0) {}
+CgiHandler::CgiHandler(): _readDone(false), _writeDone(false), _childExited(false), _stat_loc(0), _bytesWritten(0), _pid(0) {}
 
 CgiHandler::~CgiHandler() {}
 
@@ -31,6 +32,7 @@ CgiHandler&	CgiHandler::operator=(const CgiHandler& other)
 		this->_bytesWritten = other._bytesWritten;
 		this->_readDone = other._readDone;
 		this->_writeDone = other._writeDone;
+		this->_childExited = other._childExited;
 		this->_pid = other._pid;
 	}
 	return (*this);
@@ -41,16 +43,15 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 	HttpResponse&	res = builder.getHttpResponse();
 	CgiParser&		parser = builder.getCgiParser();
 
-	if (this->_pid > 0)
-		waitpid(this->_pid, &(this->_stat_loc), WNOHANG);
+	if (this->_pid > 0 && !this->_childExited)
+	{
+	    pid_t ret = waitpid(this->_pid, &(this->_stat_loc), WNOHANG);
+	    if (ret == this->_pid)
+	        this->_childExited = true;
+	}
 	while (true)
 	{
 		int bytes = 0;
-		if (WIFEXITED(this->_stat_loc))
-		{
-			this->_readDone = true;
-			break;
-		}
 		if (eventType & EPOLLIN)
 		{
 			char tmp[8192];
@@ -82,8 +83,13 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 		}
 		if (bytes < 0)
 			break ;
+		if (this->_childExited)
+		{
+			this->_readDone = true;
+			break;
+		}
 	}
-	if (WIFEXITED(this->_stat_loc) && this->_readDone && this->_writeDone)
+	if (this->_childExited && this->_readDone && this->_writeDone)
 	{
 		int status = WEXITSTATUS(this->_stat_loc);
 		if (status == 0)
@@ -114,7 +120,12 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 		*statusCode = 404;
 		return (bundle);
 	}
-	if ((pipe(fds) < 0) || ((pid = fork()) < 0))
+	if ((pipe(fds) < 0) || !Server::setFdFlags(fds[0]))
+	{
+		*statusCode = 500;
+		return (bundle);
+	}
+	if ((pid = fork()) < 0)	
 	{
 		*statusCode = 500;
 		return (bundle);
@@ -129,6 +140,12 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 			scriptPath.c_str(),
 			NULL
 		};
+		int devNull = open("/dev/null", O_RDONLY);
+		if (devNull < 0 || dup2(devNull, STDIN_FILENO) < 0)
+		{
+			*statusCode = 500;
+			_exit(1);
+		}
 		if (dup2(fds[1], STDOUT_FILENO) < 0)
 		{
 			*statusCode = 500;
@@ -180,7 +197,17 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 		*statusCode = 404;
 		return (bundles);
 	}
-	if ((pipe(pipe_in) < 0) || (pipe(pipe_out) < 0) || ((pid = fork()) < 0))
+	if ((pipe(pipe_in) < 0) || (pipe(pipe_out) < 0))
+	{
+		*statusCode = 500;
+		return (bundles);
+	}
+	if (!Server::setFdFlags(pipe_in[1]) || !Server::setFdFlags(pipe_out[0]))
+	{
+		*statusCode = 500;
+		return (bundles);
+	}
+	if ((pid = fork()) < 0)	
 	{
 		*statusCode = 500;
 		return (bundles);
@@ -241,4 +268,5 @@ void	CgiHandler::reset()
 	this->_bytesWritten = 0;
 	this->_readDone = false;
 	this->_writeDone = false;
+	this->_childExited = false;
 }

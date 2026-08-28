@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/03 15:37:20 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 00:48:19 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:38:59 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,24 +66,25 @@ bool VirtualHostConfig::findLocation( const std::string& path, Location& loc ) c
 	return (false);
 }
 
-static bool checkFileExtension( const std::string& filename )
-{
-	size_t		i;
-	std::string	extension;
-
-	i = filename.rfind('.');
-	extension = filename.substr(i);
-	return (extension == ".py" || extension == ".php");
-}
+//static bool checkFileExtension( const std::string& filename )
+//{
+//	size_t		i;
+//	std::string	extension;
+//
+//	i = filename.rfind('.');
+//	extension = filename.substr(i);
+//	return (extension == ".py" || extension == ".php");
+//}
 
 std::string	VirtualHostConfig::getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const
 {
 	Location local;
 
+	(void) filename;
 	if (findLocation(endpoint, local))
 	{
-		if (checkFileExtension(filename))
-		{
+		//if (checkFileExtension(filename))
+		//{
 			if (local.getPath().empty())
 			{
 				if (local.getCgiExtension() == ".py")
@@ -93,7 +94,7 @@ std::string	VirtualHostConfig::getCgiInterpreterPath( const std::string& filenam
 			}
 			else
 				return (local.getCgiPath());
-		}
+		//}
 	}
 	return (std::string());
 }
@@ -144,7 +145,7 @@ std::string	VirtualHostConfig::getFullPath( const std::string& filename, const s
 			root = local.getRoot();
 			if (filename.empty())
 				return (local.getRoot());
-			if (root[root.size() - 1] == '/')
+			if (root[root.size() - 1] == '/' || filename[0] == '/')
 				return (root + filename);
 			return (root + "/" + filename);
 		}
@@ -152,7 +153,7 @@ std::string	VirtualHostConfig::getFullPath( const std::string& filename, const s
 	root = getRoot();
 	if (filename.empty())
 		return (root);
-	if (root[root.size() - 1] == '/')
+	if (root[root.size() - 1] == '/' || filename[0] == '/')
 		return (root + filename);
 	return (root + "/" + filename);
 }
@@ -171,10 +172,12 @@ bool		VirtualHostConfig::isMethodAllowed( const std::string& method, const std::
 		!= _allowedMethods.end());
 }
 
-bool		VirtualHostConfig::shouldIndex( const std::string& endpoint ) const
+bool		VirtualHostConfig::shouldIndex( const std::string& filename, const std::string& endpoint ) const
 {
 	Location local;
 
+	if (filename.find('.') != std::string::npos)
+		return (false);
 	if (findLocation(endpoint, local))
 	{
 		return (!local.getIndex().empty());

@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 23:07:01 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:20:57 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -876,8 +876,8 @@ void	ConfigParser::handleLocationCgiExtension( Location& loc )
 
 	advance_token(1);
 
-	if (curr_token().second != ".py" && curr_token().second != ".php")
-		throw_exception("Error: invalid CGI extension, only '.php' and '.py' are accepted.");
+	//if (curr_token().second != ".py" && curr_token().second != ".php")
+	//	throw_exception("Error: invalid CGI extension, only '.php' and '.py' are accepted.");
 	loc.setCgiExtension(curr_token().second);
 	if (next_token().first != TOKEN_SEMICOLON)
 		throw_exception("Error: 'cgi_extension' takes exactly one argument or is missing ';'.");

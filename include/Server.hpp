@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 18:11:36 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 04:24:24 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ class	Server
 		void				handleProcessedFile(Client* client, int statusCode);
 		void				handleError(int fd, enum FdType fdType);
 		void				handleSession(Client* client);
+		static	bool		setFdFlags(int fd);
 		class ServerException: public std::exception
 		{
 			private:

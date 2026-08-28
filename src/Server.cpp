@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 18:11:17 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 04:52:42 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void	Server::startServer()
 			throw (ServerException(errno));
 		if ((status = listen(sockFd, BACKLOG)) == -1)
 			throw (ServerException(errno));
-		if ((status = fcntl(sockFd, F_SETFL, O_NONBLOCK)) == -1)
+		if (!setFdFlags(sockFd))
 			throw (ServerException(errno));
 		this->_multiplexer.addFd(sockFd, (EPOLLIN | EPOLLRDHUP));
 		freeaddrinfo(this->_currAddr);
@@ -144,7 +144,7 @@ void	Server::runServer()
 
 void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 {
-	bool isPipeDone;
+	bool isPipeDone = false;
 	enum ClientStatus	status;
 
 	switch (fdType)
@@ -227,8 +227,6 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		}
 		case CGI:
 		{
-			if ((eventType & EPOLLOUT) && (eventType & (EPOLLERR | EPOLLRDHUP | EPOLLHUP)))
-				break;
 			Client* client = this->_cgiMap[fd];
 			if (!client) break;
 			CgiHandler& cgi = client->getCgiHandler();
@@ -299,10 +297,10 @@ void	Server::handleError(int fd, enum FdType fdType)
 
 int	Server::createClient(int sockFd)
 {
+	int clientFd;
 	std::string ipStr;
 	struct sockaddr_storage addr;
 	socklen_t addr_len = sizeof(addr);
-	int clientFd, status;
 	uint16_t	port = 0;
 	uint32_t	ip = 0;
 
@@ -311,7 +309,7 @@ int	Server::createClient(int sockFd)
 		Server::printLog("Accept error on client!");
 		return (clientFd);
 	}
-	if ((status = fcntl(clientFd, F_SETFL, O_NONBLOCK)) == -1)
+	if (!setFdFlags(clientFd))
 	{
 		Server::printLog("Client creation error!");
 		this->destroyClient(clientFd);
@@ -339,10 +337,15 @@ void	Server::destroyClient(int clientFd)
 {
 	std::stringstream ss;
 	Client* client = this->_clientMap[clientFd];
+	enum ClientStatus status = client->getStatus();
+
 	if (!client) return ;
 
 	ss << clientFd;
-	this->_multiplexer.removeFd(clientFd);
+	if (status != PROCESSING_STATIC_FILE && status != PROCESSING_CGI && status != PROCESSING_EXCEPTION)
+		this->_multiplexer.removeFd(clientFd);
+	if (client->getPid() != 0)
+		kill(client->getPid(), SIGKILL);
 	this->_clientMap.erase(clientFd);
 	this->_sessionClientMap.erase(client->getSession());
 	this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), client), this->_clients.end());
@@ -414,9 +417,10 @@ void	Server::handleSession(Client* client)
 	HttpRequest& req = client->getHttpRequest();
 	HttpResponseBuilder& build = client->getHttpResponseBuilder();
 	std::string sessionId = client->findSessionId();
+	std::string cookie = req.getHeader("Cookie");
 
 	ss << client->getFd();
-	if (sessionId.empty() || !this->_sessionMap.count(sessionId))
+	if (cookie.empty())
 	{
 		std::string newCookie;
 		Session* newSession = new Session;
@@ -431,6 +435,13 @@ void	Server::handleSession(Client* client)
 	}
 	else
 	{
+		if (sessionId.empty() || !this->_sessionMap.count(sessionId))
+		{
+			std::string reset = "session_id=";
+			reset += "; Max-Age=0; Path=/";
+			build.addHeader("Set-Cookie", reset);
+			return;
+		}
 		Session* currentSession = this->_sessionMap[sessionId];
 		client->setSession(currentSession);
 		this->_sessionClientMap[currentSession] = client;
@@ -446,6 +457,19 @@ void	Server::killChildren()
 		if (currClient->getPid() != 0)
 			kill(currClient->getPid(), SIGKILL);
 	}
+}
+
+bool Server::setFdFlags(int fd)
+{
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+        return false;
+
+    int fdflags = fcntl(fd, F_GETFD, 0);
+    if (fdflags < 0 || fcntl(fd, F_SETFD, fdflags | FD_CLOEXEC) < 0)
+        return false;
+
+    return true;
 }
 
 void	Server::printLog(const std::string& msg)

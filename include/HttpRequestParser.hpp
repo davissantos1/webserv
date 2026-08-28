@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:36:47 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/23 01:06:44 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:26:35 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ class HttpRequestParser
 
 		void				splitRequestUri( VirtualHostConfig& conf );
 		enum RequestStatus	feed( const char* buffer, size_t size );
-		bool				hasCgi( void );
+		bool				hasCgi( VirtualHostConfig& conf );
 		void				cleanHttpRequest() { this->_httpRequest.reset(); }
 		void				reset( void );
 };

@@ -6,7 +6,7 @@
 /*   By: vitosant <vitosant@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/26 22:51:31 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 01:32:10 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,14 +224,16 @@ void	HttpRequestParser::handleChunked( void )
 	}
 }
 
-bool	HttpRequestParser::hasCgi()
+bool	HttpRequestParser::hasCgi(VirtualHostConfig& conf)
 {
+	Location local;
 	size_t dotPos = _httpRequest.getFilename().find_last_of(".");
 
 	if (dotPos != std::string::npos)
 	{
-		std::string	extensionFile = _httpRequest.getFilename().substr(dotPos);
-
+		std::string	extensionFile = this->_httpRequest.getFilename().substr(dotPos);
+		if (conf.findLocation(this->_httpRequest.getEndpoint(), local))
+			return (extensionFile == local.getCgiExtension());
 		return (extensionFile == ".py" || extensionFile == ".php");
 	}
 	return (false);
