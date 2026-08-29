@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/29 15:11:55 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 19:15:23 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,7 +135,14 @@ void	Server::runServer()
 			fdType = (it != listenEnd) ? SOCKET : CLIENT;
 			if (this->_cgiMap.count(fds[j].first) > 0)
 				fdType = CGI;
-			this->routeServer(fds[j].first, fds[j].second, fdType);
+			try 
+			{
+				this->routeServer(fds[j].first, fds[j].second, fdType);
+			}
+			catch (std::exception& e)
+			{
+				Server::printLog(e.what());
+			}
 		}
 		this->checkTimeouts();
 	}
@@ -153,9 +160,14 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		{
 			if (eventType & EPOLLIN)
 			{
-				int newClient = this->createClient(fd);
-				if (newClient != -1)
-					this->_multiplexer.addFd(newClient, (EPOLLIN | EPOLLRDHUP));
+				while (true)
+				{
+					int newClient = this->createClient(fd);
+					if (newClient != -1)
+						this->_multiplexer.addFd(newClient, (EPOLLIN | EPOLLRDHUP));
+					if (newClient == -1)
+						break;
+				}
 			}
 			break;
 		}
@@ -164,7 +176,12 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			if ((eventType & EPOLLOUT) && (eventType & (EPOLLERR | EPOLLRDHUP | EPOLLHUP)))
 				break;
 
-			Client* client = this->_clientMap[fd];
+			std::map<int, Client*>::iterator it = this->_clientMap.find(fd);
+
+			if (it == this->_clientMap.end())
+				break ;
+
+			Client* client = it->second;
 			if (!client) break;
 
 			status = client->getStatus();
@@ -224,7 +241,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				else
 					this->destroyClient(client->getFd());
 			}
-			break;
+			return ;
 		}
 		case CGI:
 		{
@@ -313,7 +330,7 @@ int	Server::createClient(int sockFd)
 	if (!setFdFlags(clientFd))
 	{
 		Server::printLog("Client creation error!");
-		this->destroyClient(clientFd);
+		close(clientFd);
 		return (-1);
 	}
 	if (addr.ss_family == AF_INET)
@@ -337,17 +354,26 @@ int	Server::createClient(int sockFd)
 void	Server::destroyClient(int clientFd)
 {
 	std::stringstream ss;
-	Client* client = this->_clientMap[clientFd];
+	std::map<int, Client*>::iterator it = this->_clientMap.find(clientFd);
+
+	if (it == this->_clientMap.end())
+		return ;
+
+	Client* client = it->second;
 	enum ClientStatus status = client->getStatus();
 
-	if (!client) return ;
+	if (!client)
+	{
+		this->_clientMap.erase(it);
+		return ;
+	}
 
 	ss << clientFd;
 	if (status != PROCESSING_STATIC_FILE && status != PROCESSING_CGI && status != PROCESSING_EXCEPTION)
 		this->_multiplexer.removeFd(clientFd);
 	if (client->getPid() != 0)
 		kill(client->getPid(), SIGKILL);
-	this->_clientMap.erase(clientFd);
+	this->_clientMap.erase(it);
 	this->_sessionClientMap.erase(client->getSession());
 	this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), client), this->_clients.end());
 	std::vector<int> activeFds = client->getActiveFds();
@@ -475,7 +501,10 @@ bool Server::setFdFlags(int fd)
 
 void	Server::printLog(const std::string& msg)
 {
-	std::cerr	<< "[WEBSERV]: "
-				<< msg
-				<< std::endl;
+	if (errno != EAGAIN || errno != EWOULDBLOCK)
+	{
+		std::cerr	<< "[WEBSERV]: "
+					<< msg
+					<< std::endl;
+	}
 }

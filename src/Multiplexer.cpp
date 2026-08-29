@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/21 05:53:47 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 18:30:17 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ void	Multiplexer::addFd(int fd, uint32_t event)
 	ev.data.fd = fd;
 	ev.events = event | EPOLLET;
 	status = epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &ev);
-	if (status < 0)
+	if (status < 0 && errno != ENOENT && errno != EBADF)
 		throw (MultiplexerException(errno));
 }
 
@@ -72,8 +72,9 @@ void	Multiplexer::removeFd(int fd)
 {
 	int		status;
 
+	errno = 0;
 	status = epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, fd, NULL);
-	if (status < 0)
+	if (status < 0 && errno != ENOENT && errno != EBADF)
 		throw (MultiplexerException(errno));
 }
 
@@ -86,6 +87,6 @@ void	Multiplexer::modifyFd(int fd, uint32_t event)
 	ev.data.fd = fd;
 	ev.events = event | EPOLLET;
 	status = epoll_ctl(this->_epollFd, EPOLL_CTL_MOD, fd, &ev);
-	if (status < 0)
+	if (status < 0 && errno != ENOENT && errno != EBADF)
 		throw (MultiplexerException(errno));
 }

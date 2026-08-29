@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 00:30:39 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/29 13:06:47 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 18:27:09 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 		conf = this->_virtualHostConfig;
 		parse.splitRequestUri(conf);
-		parse.setMaxBodySize(conf.getMaxBodySize());
+		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
 		this->_redirect = conf.shouldRedirect(req.getEndpoint());
 	}
 	switch (status)
@@ -236,8 +236,6 @@ void	Client::executeStaticFileMethod()
 		if(!stat.handleException(statusCode, conf.getErrorPage(statusCode, req.getEndpoint()), req, build))
 			build.setHardFallback(true);
 	}
-	if (stat.getFd() > 2)
-		this->registerFd(stat.getFd());
 	this->_status = PREPARING_RESPONSE;
 }
 

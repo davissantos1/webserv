@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/27 19:23:49 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 15:40:18 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,9 @@ void	CgiEnvironment::startEnvironment(HttpRequest& req)
 	this->_environment.push_back(tmp);
 	tmp = "QUERY_STRING=" + req.getQuery();
 	this->_environment.push_back(tmp);
-	tmp = "CONTENT_LENGTH=" + req.getHeader("Content-Length");
+	std::stringstream cl;
+	cl << req.getBodySize();
+	tmp = "CONTENT_LENGTH=" + cl.str();
 	this->_environment.push_back(tmp);
 	tmp = "CONTENT_TYPE=" + req.getHeader("Content-Type");
 	this->_environment.push_back(tmp);
