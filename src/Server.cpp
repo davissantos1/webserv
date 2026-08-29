@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/28 04:52:42 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 15:11:55 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 				this->destroyClient(fd);
 				return ;
 			}
+
 			if (status == PROCESSING_STATIC_FILE || status == PROCESSING_EXCEPTION)
 			{
 				this->_multiplexer.removeFd(client->getFd());
@@ -239,7 +240,7 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 			break;
 		}
 	}
-    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP) && !isPipeDone)
+    if (eventType & (EPOLLERR | EPOLLHUP | EPOLLRDHUP) && !isPipeDone && fdType != CGI)
 		this->handleError(fd, fdType);
 }
 

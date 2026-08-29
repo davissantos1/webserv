@@ -6,14 +6,14 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:43 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/28 04:24:24 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/28 10:31:27 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# define BACKLOG 20
+# define BACKLOG 1000
 # define SESSION_TIMEOUT 10000
 
 # include "webserv.hpp"

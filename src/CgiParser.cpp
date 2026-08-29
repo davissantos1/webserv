@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/28 05:12:12 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 13:07:39 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void	CgiParser::feed(char *buffer, int size)
 		trimStr(header[0]);
 		trimStr(header[1]);
 		this->_headers[header[0]] = header[1];
-		this->_buffer.erase(0, breakPoint + 2);
+		this->_buffer.erase(0, found + 2);
 	}
 	if (this->_status == BUILDING_BODY)
 	{

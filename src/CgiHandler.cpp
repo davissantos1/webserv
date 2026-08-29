@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/28 05:07:26 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 15:18:29 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,40 +47,60 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 	{
 	    pid_t ret = waitpid(this->_pid, &(this->_stat_loc), WNOHANG);
 	    if (ret == this->_pid)
-	        this->_childExited = true;
+			this->_childExited = true;
 	}
 	while (true)
 	{
 		int bytes = 0;
-		if (eventType & EPOLLIN)
+		if (eventType & (EPOLLIN | EPOLLHUP))
 		{
 			char tmp[8192];
 			bytes = read(fd, tmp, 8192); 	
-			if (bytes >= 0)
+			if (bytes > 0)
 			{
-				if (bytes > 0)
-					parser.feed(tmp, bytes);
-				else
-				{
-					this->_readDone = true;
-					break ;
-				}
+				parser.feed(tmp, bytes);
+				continue ;
 			}
+			if (bytes == 0)
+			{
+				this->_readDone = true;
+				break ;
+			}
+			if (this->_childExited)
+				this->_readDone = true;
+			break;
 		}
-		else if (eventType & EPOLLOUT)
+		else if (eventType & (EPOLLOUT | EPOLLHUP))
 		{
 			size_t bytesWritten = this->_bytesWritten;
 			const std::string* body = builder.getHttpRequestBody();
-			bytes  = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
-			if (bytes >= 0)
+			if(bytesWritten >= body->size())
 			{
-				if (bytes == 0)
-					break ;
-				this->_bytesWritten = bytesWritten + bytes;
-			}
-			if (this->_bytesWritten == body->size())
 				this->_writeDone = true;
+				break;
+			}
+			bytes  = write(fd, body->c_str() + bytesWritten, body->size() - bytesWritten);
+			if (bytes > 0)
+			{
+				this->_bytesWritten = bytesWritten + bytes;
+				if (this->_bytesWritten == body->size())
+				{
+					this->_writeDone = true;
+					break ;
+				}
+				continue ;
+			}
+			if (this->_childExited)
+				this->_writeDone = true;
+			break;
 		}
+		else if (eventType & EPOLLERR)
+		{
+			this->_writeDone = true;
+			close(fd);
+		}
+		else
+			break;
 		if (bytes < 0)
 			break ;
 		if (this->_childExited)
@@ -89,9 +109,14 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 			break;
 		}
 	}
-	if (this->_childExited && this->_readDone && this->_writeDone)
+	if (this->_readDone && this->_writeDone)
 	{
-		int status = WEXITSTATUS(this->_stat_loc);
+		if (this->_pid > 0 && !this->_childExited)
+		{
+			waitpid(this->_pid, &this->_stat_loc, 0);
+			this->_childExited = true;
+		}
+		int status = WIFEXITED(this->_stat_loc) ? WEXITSTATUS(this->_stat_loc): -1;
 		if (status == 0)
 		{
 			builder.setStatusCode(200);
@@ -170,12 +195,6 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 		}
 		
 	}
-	if (((waitpid(pid, &(this->_stat_loc), WNOHANG)) < 0) || (*statusCode == 500))
-	{
-		*statusCode = 500;
-		kill(pid, SIGKILL);
-		return (bundle);
-	}
 	this->_pid = pid;
 	this->_writeDone = true;
 	*statusCode = 200;
@@ -247,16 +266,16 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 		kill(pid, SIGKILL);
 		return (bundles);
 	}
-	if (((waitpid(pid, &(this->_stat_loc), WNOHANG)) < 0) || (*statusCode == 500))
-	{
-		*statusCode = 500;
-		kill(pid, SIGKILL);
-		return (bundles);
-	}
 	this->_pid = pid;
 	*statusCode = 200;
 	bundles.push_back(std::make_pair(pipe_out[0], CGI_READ));
-	bundles.push_back(std::make_pair(pipe_in[1], CGI_WRITE));
+	if (req.getBodySize() == 0)
+	{
+		close(pipe_in[1]);
+		this->_writeDone = true;
+	}
+	else
+		bundles.push_back(std::make_pair(pipe_in[1], CGI_WRITE));
 	return (bundles);
 }
 
