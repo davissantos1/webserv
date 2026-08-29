@@ -13,7 +13,7 @@
 #include "Location.hpp"
 #include <ostream>
 
-Location::Location( void ): _autoindex(false) {}
+Location::Location( void ): _maxBodySize(0), _autoindex(false) {}
 
 Location::~Location( void ) {}
 
@@ -30,6 +30,7 @@ Location&	Location::operator=( const Location& other )
 		this->_root = other._root;
 		this->_index = other._index;
 		this->_path = other._path;
+		this->_maxBodySize = other._maxBodySize;
 		this->_allowedMethods = other._allowedMethods;
 		this->_autoindex = other._autoindex;
 		this->_uploadPath = other._uploadPath;
@@ -51,6 +52,8 @@ std::ostream&	operator<<( std::ostream& out, const Location& loc )
 	for (std::size_t i = 0; i < loc.getIndex().size(); ++i)
 		out << loc.getIndex()[i] << " ";
 	out << "\n";
+
+	out << "    Max body size: " << loc.getMaxBodySize() << std::endl;
 
 	out << "    Allowed Methods: ";
 	for (std::size_t i = 0; i < loc.getAllowedMethods().size(); ++i)

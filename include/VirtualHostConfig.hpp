@@ -62,6 +62,7 @@ class VirtualHostConfig
 		std::string	getCgiInterpreterPath( const std::string& filename, const std::string& endpoint ) const;
 		std::string	getFullPath( const std::string& filename, const std::string& endpoint ) const;
 		std::string	getUploadPath( const std::string& endpoint ) const;
+		std::size_t	getMaxBodySize( const std::string& endpoint ) const;
 		bool		isMethodAllowed( const std::string& method, const std::string& endpoint ) const;
 		bool		shouldIndex( const std::string& filename,  const std::string& endpoint ) const;
 		bool		shouldAutoindex( const std::string& endpoint ) const;

@@ -72,6 +72,7 @@ class ConfigParser
 
 		void	handleLocationRoot( Location& loc );
 		void	handleLocationIndex( Location& loc );
+		void	handleLocationClientMaxBodySize( Location& loc );
 		void	handleLocationAllowedMethods( Location& loc );
 		void	handleLocationErrorPage( Location& local );
 		void	handleLocationAutoindex( Location& loc );

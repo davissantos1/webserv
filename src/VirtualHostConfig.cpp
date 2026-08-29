@@ -216,6 +216,18 @@ std::string	VirtualHostConfig::getUploadPath( const std::string& endpoint ) cons
 	return (getUploadPath());
 }
 
+std::size_t	VirtualHostConfig::getMaxBodySize( const std::string& endpoint ) const
+{
+	Location	local;
+
+	if (findLocation(endpoint, local))
+	{
+		if (local.getMaxBodySize() != 0)
+			return (local.getMaxBodySize());
+	}
+	return (_maxBodySize);
+}
+
 std::vector<std::string> VirtualHostConfig::getIndex(std::string endpoint)
 {
 	Location	local;

@@ -46,15 +46,16 @@ ConfigParser::ConfigParser( void )
 	_parseServer["return"]					= &ConfigParser::handleReturn;
 	_parseServer["upload_path"]				= &ConfigParser::handleUploadPath;
 
-	_parseLocation["root"]			= &ConfigParser::handleLocationRoot;
-	_parseLocation["index"]			= &ConfigParser::handleLocationIndex;
-	_parseLocation["allow_methods"]	= &ConfigParser::handleLocationAllowedMethods;
-	_parseLocation["error_page"]	= &ConfigParser::handleLocationErrorPage;
-	_parseLocation["autoindex"]		= &ConfigParser::handleLocationAutoindex;
-	_parseLocation["upload_path"]	= &ConfigParser::handleLocationUploadPath;
-	_parseLocation["cgi_extension"]	= &ConfigParser::handleLocationCgiExtension;
-	_parseLocation["cgi_path"]		= &ConfigParser::handleLocationCgiPath;
-	_parseLocation["return"]		= &ConfigParser::handleLocationReturn;
+	_parseLocation["root"]					= &ConfigParser::handleLocationRoot;
+	_parseLocation["index"]					= &ConfigParser::handleLocationIndex;
+	_parseLocation["client_max_body_size"]	= &ConfigParser::handleLocationClientMaxBodySize;
+	_parseLocation["allow_methods"]			= &ConfigParser::handleLocationAllowedMethods;
+	_parseLocation["error_page"]			= &ConfigParser::handleLocationErrorPage;
+	_parseLocation["autoindex"]				= &ConfigParser::handleLocationAutoindex;
+	_parseLocation["upload_path"]			= &ConfigParser::handleLocationUploadPath;
+	_parseLocation["cgi_extension"]			= &ConfigParser::handleLocationCgiExtension;
+	_parseLocation["cgi_path"]				= &ConfigParser::handleLocationCgiPath;
+	_parseLocation["return"]				= &ConfigParser::handleLocationReturn;
 }
 
 ConfigParser::~ConfigParser( void ) {}
@@ -239,7 +240,7 @@ VirtualHostConfig	ConfigParser::parseVirtualHost( void )
 	if (virtualHost.getRoot().empty())
 			throw_exception("Error: no 'root' directive was found in server block.");
 	if (virtualHost.getMaxBodySize() == 0)
-		virtualHost.setMaxBodySize(1 << 21);
+		virtualHost.setMaxBodySize(100 << 21);
 
 	_locationPaths.clear();
 
@@ -787,6 +788,59 @@ void	ConfigParser::handleLocationAllowedMethods( Location& loc )
 	advance_token(1);
 }
 
+void	ConfigParser::handleLocationClientMaxBodySize( Location& loc )
+{
+	long		parsedValue;
+	std::string	value;
+	std::size_t	scale = 0;
+	char		*end;
+
+	if (next_token().first != TOKEN_WORD)
+		throw_exception("Error: 'client_max_body_size' directive needs a valid value.");
+
+	if (loc.getMaxBodySize() != 0)
+		throw_exception("Error: 'client_max_body_size' duplicate ditective in location block.");
+
+	advance_token(1);
+
+	value = curr_token().second;
+	errno = 0;
+	parsedValue = std::strtol(value.c_str(), &end, 10);
+	if (parsedValue <= 0 || std::strlen(end) > 1 || errno)
+		throw_exception("Error: 'client_max_body_size' directive needs a valid value.");
+	switch (*end)
+	{
+		case '\0':
+			scale = 1;
+			break ;
+		case 'k':
+		case 'K':
+			scale = 1 << 10;
+			break ;
+		case 'm':
+		case 'M':
+			scale = 1 << 20;
+			break ;
+		case 'g':
+		case 'G':
+			scale = 1 << 30;
+			break ;
+		default:
+			throw_exception("Error: invalid scale at 'client_max_body_size' directive.");
+	}
+
+	std::size_t maxBodySize = static_cast<std::size_t>(parsedValue);
+
+	if ((static_cast<size_t>(-1) / scale) + 1 < maxBodySize)
+		throw_exception("Error: too large size at 'client_max_body_size' directive.");
+
+	if (next_token().first != TOKEN_SEMICOLON)
+		throw_exception("Error: missing ';' at the end of 'client_max_body_size' directive.");
+
+	advance_token(2);
+	loc.setMaxBodySize(maxBodySize * scale);
+}
+
 void	ConfigParser::handleLocationErrorPage( Location& local )
 {
 	char				*end;
@@ -840,7 +894,7 @@ void	ConfigParser::handleLocationAutoindex( Location& loc )
 	else if (state == "off")
 		loc.setAutoindex(false);
 	else
-		throw_exception("Error: 'autoindex' must be 'on' or 'off'.");
+		throw_exception("Error: 'autoation( void );index' must be 'on' or 'off'.");
 
 	if (next_token().first != TOKEN_SEMICOLON)
 		throw_exception("Error: 'autoindex' takes exactly one argument or is missing ';'.");

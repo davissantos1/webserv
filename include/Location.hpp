@@ -13,6 +13,7 @@
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <utility>
@@ -27,6 +28,7 @@ class Location
 		std::vector<std::string>	_allowedMethods;
 		std::map<int, std::string>	_errorPages;
 		std::string					_uploadPath;
+		std::size_t					_maxBodySize;
 
 		bool						_autoindex;
 		std::string					_cgiExtension;
@@ -50,6 +52,7 @@ class Location
 		void	setCgiPath( const std::string& cgiPath ) { _cgiPath = cgiPath; }
 		void	setReturn( const std::pair<int, std::string> & ret ) { _return = ret; } ;
 		void	setErrorPage( const std::map<int, std::string> & errorPages ) { _errorPages = errorPages; };
+		void	setMaxBodySize( const std::size_t maxBodySize ) { _maxBodySize = maxBodySize; }
 
 		void	addIndex( const std::string& index ) { _index.push_back(index); }
 		void	addAllowedMethod( const std::string& method ) { _allowedMethods.push_back(method); }
@@ -58,6 +61,7 @@ class Location
 		const std::string&					getPath( void ) const { return _path; }
 		const std::string&					getRoot( void ) const { return _root; }
 		const std::vector<std::string> &	getIndex( void ) const { return _index; }
+		std::size_t							getMaxBodySize( void ) const { return(_maxBodySize); }
 		const std::vector<std::string> &	getAllowedMethods( void ) const { return _allowedMethods; }
 		bool								getAutoindex( void ) const { return _autoindex; }
 		const std::string&					getUploadPath( void ) const { return _uploadPath; }
