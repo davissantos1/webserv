@@ -47,6 +47,7 @@ class HttpRequestParser
 		HttpRequest		_httpRequest;
 		std::string		_buffer;
 		bool			_heardersDone;
+		bool			_bodyLimitPending;
 		std::size_t		_expectedBodyLen;
 		std::size_t		_maxBodySize;
 		e_bodyProtocol	_bodyProtocol;
@@ -81,7 +82,7 @@ class HttpRequestParser
 		std::string			getBuffer() { return this->_buffer; }
 
 		void				setHeadersDone( bool headersDone ) { _heardersDone = headersDone; };
-		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; }
+		void				setMaxBodySize(std::size_t maxBodySize) { this->_maxBodySize = maxBodySize; this->_bodyLimitPending = false; }
 
 		void				splitRequestUri( VirtualHostConfig& conf );
 		enum RequestStatus	feed( const char* buffer, size_t size );

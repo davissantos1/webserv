@@ -29,7 +29,7 @@ StaticFileHandler::StaticFileHandler(const StaticFileHandler& other)
 StaticFileHandler&	StaticFileHandler::operator=(const StaticFileHandler& other)
 {
 	if (this != &other)
-		this->_fd = other._fd;
+		this->_fd = -1;
 	return (*this);
 }
 
@@ -45,6 +45,7 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 			if (bytes < 0)
 			{
 				close(fd);
+				this->_fd = -1;
 				build.setStatusCode(500);
 				return (false);
 			}
@@ -59,11 +60,13 @@ bool	StaticFileHandler::processStaticFile(int fd, enum StaticFileIoType type, Ht
 		if (bytes < 0)
 		{
 			close(fd);
+			this->_fd = -1;
 			build.setStatusCode(500);
 			return (false);
 		}
 	}
 	close(fd);
+	this->_fd = -1;
 	return (true);
 }
 
@@ -136,14 +139,12 @@ void	StaticFileHandler::handlePost(HttpRequest& req, VirtualHostConfig& conf, Ht
 		else
 		{
 			build.setStatusCode(201);
+			this->_fd = fd;
 			this->processStaticFile(fd, STATIC_FILE_WRITE, req, build);
 			build.addHeader("Location", filePath);
-			this->_fd = fd;
 			return ;
 		}
 	}
-	if (fd > 0)
-		this->_fd = fd;
 	build.setStatusCode(403);
 }
 
@@ -215,12 +216,12 @@ bool	StaticFileHandler::handleException(int exception, std::string path, HttpReq
 			fd = open(path.c_str(), O_RDONLY);
 			break;
 	}
+	this->_fd = fd;
 	if (!this->processStaticFile(fd, STATIC_FILE_READ, req, build))
 	{
 		build.setHardFallback(true);
 		return (false);
 	}
-	this->_fd = fd;
 	return (true);
 }
 

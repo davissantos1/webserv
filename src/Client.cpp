@@ -21,7 +21,7 @@ Client::Client() {}
 Client::~Client() {}
 
 Client::Client(std::string ip, uint16_t port, int fd, std::vector<VirtualHostConfig>* configs):
- _ip(ip), _port(port), _fd(fd), _configs(configs) 
+ _ip(ip), _port(port), _fd(fd), _configs(configs), _keepAlive(false), _redirect(false)
 {
 	std::stringstream ss;
 
@@ -94,13 +94,13 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 	if (parse.getHeadersDone())
 	{
 		this->_httpResponseBuilder.reset();
-		if (req.getKeepAlive())
-			this->_keepAlive = true;
+		this->_keepAlive = req.getKeepAlive();
 		this->_virtualHostConfig = this->getCurrentConfig(req.getHeader("Host"));
 		conf = this->_virtualHostConfig;
 		parse.splitRequestUri(conf);
 		parse.setMaxBodySize(conf.getMaxBodySize(req.getEndpoint()));
 		this->_redirect = conf.shouldRedirect(req.getEndpoint());
+		status = parse.feed("", 0);
 	}
 	switch (status)
 	{
@@ -137,6 +137,8 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		case ERROR_BAD_REQUEST:
 		{
 			this->setStatusCode(400);
+			this->_keepAlive = false;
+			req.setKeepAlive(false);
 			this->_httpResponseBuilder.setHttpRequest(&req);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);
@@ -144,6 +146,8 @@ enum ClientStatus	Client::checkRequest(enum RequestStatus status)
 		case ERROR_REQUEST_TOO_LARGE:
 		{
 			this->setStatusCode(413);
+			this->_keepAlive = false;
+			req.setKeepAlive(false);
 			this->_httpResponseBuilder.setHttpRequest(&req);
 			this->_status = PROCESSING_EXCEPTION;
 			return (PROCESSING_EXCEPTION);

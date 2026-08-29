@@ -97,7 +97,6 @@ bool	CgiHandler::processCgi(int fd, uint32_t eventType, HttpResponseBuilder& bui
 		else if (eventType & EPOLLERR)
 		{
 			this->_writeDone = true;
-			close(fd);
 			break;
 		}
 		else
@@ -146,13 +145,22 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 		*statusCode = 404;
 		return (bundle);
 	}
-	if ((pipe(fds) < 0) || !Server::setFdFlags(fds[0]))
+	if (pipe(fds) < 0)
 	{
 		*statusCode = 500;
 		return (bundle);
 	}
-	if ((pid = fork()) < 0)	
+	if (!Server::setFdFlags(fds[0]))
 	{
+		close(fds[0]);
+		close(fds[1]);
+		*statusCode = 500;
+		return (bundle);
+	}
+	if ((pid = fork()) < 0)
+	{
+		close(fds[0]);
+		close(fds[1]);
 		*statusCode = 500;
 		return (bundle);
 	}
@@ -190,6 +198,7 @@ std::pair<int, enum CgiIoType>	CgiHandler::handleGet(HttpRequest& req, VirtualHo
 	{
 		if (close(fds[1]) < 0)
 		{
+			close(fds[0]);
 			*statusCode = 500;
 			kill(pid, SIGKILL);
 			return (bundle);
@@ -217,18 +226,33 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 		*statusCode = 404;
 		return (bundles);
 	}
-	if ((pipe(pipe_in) < 0) || (pipe(pipe_out) < 0))
+	if (pipe(pipe_in) < 0)
 	{
+		*statusCode = 500;
+		return (bundles);
+	}
+	if (pipe(pipe_out) < 0)
+	{
+		close(pipe_in[0]);
+		close(pipe_in[1]);
 		*statusCode = 500;
 		return (bundles);
 	}
 	if (!Server::setFdFlags(pipe_in[1]) || !Server::setFdFlags(pipe_out[0]))
 	{
+		close(pipe_in[0]);
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+		close(pipe_out[1]);
 		*statusCode = 500;
 		return (bundles);
 	}
-	if ((pid = fork()) < 0)	
+	if ((pid = fork()) < 0)
 	{
+		close(pipe_in[0]);
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+		close(pipe_out[1]);
 		*statusCode = 500;
 		return (bundles);
 	}
@@ -263,6 +287,8 @@ std::vector<std::pair<int, enum CgiIoType> >	CgiHandler::handlePost(HttpRequest&
 	}
 	if ((close(pipe_in[0]) < 0) || (close(pipe_out[1]) < 0))
 	{
+		close(pipe_in[1]);
+		close(pipe_out[0]);
 		*statusCode = 500;
 		kill(pid, SIGKILL);
 		return (bundles);

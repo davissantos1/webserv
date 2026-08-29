@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 20:36:26 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/29 19:15:23 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 20:03:44 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,7 +245,11 @@ void	Server::routeServer(int fd, uint32_t eventType, enum FdType fdType)
 		}
 		case CGI:
 		{
-			Client* client = this->_cgiMap[fd];
+			std::map<int, Client*>::iterator cgiIt = this->_cgiMap.find(fd);
+			if (cgiIt == this->_cgiMap.end())
+				break;
+
+			Client* client = cgiIt->second;
 			if (!client) break;
 			CgiHandler& cgi = client->getCgiHandler();
 			HttpResponseBuilder& builder = client->getHttpResponseBuilder();
@@ -298,11 +302,18 @@ void	Server::handleError(int fd, enum FdType fdType)
 			break;
 		case CGI:
 		{
-			Client* client = this->_cgiMap[fd];
+			std::map<int, Client*>::iterator it = this->_cgiMap.find(fd);
+
+			if (it == this->_cgiMap.end())
+				break ;
+
+			Client* client = it->second;
 
 			this->_multiplexer.removeFd(fd);
-			this->_cgiMap.erase(fd);
+			this->_cgiMap.erase(it);
 			close(fd);
+			if (!client)
+				break ;
 			client->destroyCgi(fd);
 			client->setStatusCode(500);
 			client->setStatus(PREPARING_RESPONSE);
@@ -345,6 +356,20 @@ int	Server::createClient(int sockFd)
 					<< ((ip & 0xFF));
 		ipStr = ipStream.str();
 	}
+	std::map<int, Client*>::iterator it = this->_clientMap.find(clientFd);
+	if (it != this->_clientMap.end())
+	{
+		Client* stale = it->second;
+
+		this->_clientMap.erase(it);
+		if (stale)
+		{
+			this->_sessionClientMap.erase(stale->getSession());
+			this->_clients.erase(std::remove(this->_clients.begin(), this->_clients.end(), stale), this->_clients.end());
+			delete (stale);
+		}
+		Server::printLog("Stale client entry discarded on FD reuse");
+	}
 	Client* newClient = new Client(ipStr, port, clientFd, &this->_configs);
 	this->_clients.push_back(newClient);
 	this->_clientMap[clientFd] = newClient;
@@ -360,13 +385,14 @@ void	Server::destroyClient(int clientFd)
 		return ;
 
 	Client* client = it->second;
-	enum ClientStatus status = client->getStatus();
 
 	if (!client)
 	{
 		this->_clientMap.erase(it);
 		return ;
 	}
+
+	enum ClientStatus status = client->getStatus();
 
 	ss << clientFd;
 	if (status != PROCESSING_STATIC_FILE && status != PROCESSING_CGI && status != PROCESSING_EXCEPTION)
@@ -385,6 +411,7 @@ void	Server::destroyClient(int clientFd)
 		if (fd > 0)
 			close (fd);
 	}
+	Server::drainSocket(clientFd);
 	close(clientFd);
 	delete (client);
 	Server::printLog("TCP connection " + color::red + "destroyed" + color::reset + " on FD " + ss.str());
@@ -401,6 +428,7 @@ void	Server::checkTimeouts()
 
 	for (size_t i = 0; i < this->_clients.size();)
 	{
+		size_t clientsBefore = this->_clients.size();
 		currentClient = this->_clients[i];
 		secondsIdle = std::difftime(currentTime, currentClient->getLastActivity());
 		if (secondsIdle > TIMEOUT)
@@ -410,7 +438,8 @@ void	Server::checkTimeouts()
 			this->destroyClient(currentClient->getFd());
 			ss.str("");
 		}
-		else
+		size_t clientsAfter = this->_clients.size();
+		if (clientsBefore == clientsAfter)
 			i++;
 	}
 	currentTime = std::time(NULL);
@@ -483,6 +512,17 @@ void	Server::killChildren()
 		Client* currClient = this->_clients[i];
 		if (currClient->getPid() != 0)
 			kill(currClient->getPid(), SIGKILL);
+	}
+}
+
+void	Server::drainSocket(int fd)
+{
+	char	buffer[8192];
+
+	for (int i = 0; i < DRAIN_LIMIT; i++)
+	{
+		if (recv(fd, buffer, sizeof(buffer), 0) <= 0)
+			return ;
 	}
 }
 

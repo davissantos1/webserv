@@ -15,6 +15,7 @@
 
 # define BACKLOG 1000
 # define SESSION_TIMEOUT 10000
+# define DRAIN_LIMIT 64
 
 # include "webserv.hpp"
 # include "ConfigParser.hpp"
@@ -74,6 +75,7 @@ class	Server
 		void				handleError(int fd, enum FdType fdType);
 		void				handleSession(Client* client);
 		static	bool		setFdFlags(int fd);
+		static	void		drainSocket(int fd);
 		class ServerException: public std::exception
 		{
 			private:

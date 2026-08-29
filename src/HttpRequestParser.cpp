@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _expectedBodyLen(0), _maxBodySize(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0)  {}
+HttpRequestParser::HttpRequestParser( void ): _requestStatus(PARSING_REQUEST_LINE), _heardersDone(false), _bodyLimitPending(false), _expectedBodyLen(0), _maxBodySize(0), _bodyProtocol(TO_VERIFY), _chunckState(SIZE), _chunkLen(0)  {}
 
 HttpRequestParser::~HttpRequestParser( void ) {}
 
@@ -44,6 +44,7 @@ HttpRequestParser&	HttpRequestParser::operator=(const HttpRequestParser& other)
 		_chunkLen = other._chunkLen;
 		_maxBodySize = other._maxBodySize;
 		_heardersDone = other._heardersDone;
+		_bodyLimitPending = other._bodyLimitPending;
 	}
 	return (*this);
 }
@@ -72,6 +73,8 @@ enum RequestStatus HttpRequestParser::feed( const char* buffer, size_t len )
 			if (_heardersDone)
 				processHeaders();
 			_buffer.erase(0, i + 2);
+			if (_bodyLimitPending)
+				break ;
 		}
 		else
 		{
@@ -148,15 +151,21 @@ void	HttpRequestParser::processHeaders( void )
 	checkHeaders();
 	if (_requestStatus != PARSING_BODY)
 		return ;
+	_bodyLimitPending = true;
 	processConnection();
 	processContentProtocol();
 }
 
 void	HttpRequestParser::processConnection( void )
 {
-	bool	keep;
+	bool		keep;
+	std::string	connection = _httpRequest.getHeader("Connection");
 
-	keep = (_httpRequest.getHeader("Connection") == "keep-alive");
+	strToLower(connection);
+	if (_httpRequest.getVersion() == "HTTP/1.0")
+		keep = (connection == "keep-alive");
+	else
+		keep = (connection != "close");
 	_httpRequest.setKeepAlive(keep);
 }
 
@@ -323,6 +332,7 @@ void	HttpRequestParser::reset( void )
 	_requestStatus = PARSING_REQUEST_LINE;
 	_httpRequest.reset();
 	_heardersDone = false;
+	_bodyLimitPending = false;
 	_expectedBodyLen = 0;
 	_maxBodySize = 0;
 	_bodyProtocol = TO_VERIFY;
