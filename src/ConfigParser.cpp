@@ -533,7 +533,7 @@ void	ConfigParser::handleClientMaxBodySize( VirtualHostConfig& vec )
 
 	std::size_t maxBodySize = static_cast<std::size_t>(parsedValue);
 
-	if ((static_cast<size_t>(-1) / scale) + 1 < maxBodySize)
+	if ((static_cast<size_t>(-1) / scale) < maxBodySize - 1)
 		throw_exception("Error: too large size at 'client_max_body_size' directive.");
 
 	if (next_token().first != TOKEN_SEMICOLON)
@@ -831,7 +831,7 @@ void	ConfigParser::handleLocationClientMaxBodySize( Location& loc )
 
 	std::size_t maxBodySize = static_cast<std::size_t>(parsedValue);
 
-	if ((static_cast<size_t>(-1) / scale) + 1 < maxBodySize)
+	if ((static_cast<size_t>(-1) / scale) < maxBodySize - 1)
 		throw_exception("Error: too large size at 'client_max_body_size' directive.");
 
 	if (next_token().first != TOKEN_SEMICOLON)
