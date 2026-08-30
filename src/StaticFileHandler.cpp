@@ -6,7 +6,7 @@
 /*   By: dasimoes <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/07 08:58:16 by dasimoes          #+#    #+#             */
-/*   Updated: 2026/08/28 16:06:57 by dasimoes         ###   ########.fr       */
+/*   Updated: 2026/08/29 21:23:55 by dasimoes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,14 +246,14 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 			<<		"<head>\n"
 			<<			"<meta charset=\"utf-8\"/>\n"
 			<<			"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n"
-			<<			"<title>Index of" << path << "</title>\n"
+			<<			"<title>Index of " << path << "</title>\n"
 			<<			"<link rel=\"stylesheet\" href=\"error_pages/directory.css\">\n"
 			<<		"</head>\n"
 			<<		"<body lang=\"en\">\n"
 			<<			"<main>\n"
 			<<				"<section>\n"
 			<<				"<header>\n"
-			<<					"<h1>Index of" << path << "</h1>\n"
+			<<					"<h1>Index of " << path << "</h1>\n"
 			<<				"</header>\n"
 			<<				"<table>\n";
 
@@ -281,7 +281,7 @@ int	StaticFileHandler::handleAutoindex(HttpRequest& req, VirtualHostConfig& conf
 		double kbSize = static_cast<double>(info.st_size) / 1024;
 		html	<< "<tr>\n"
 				<< "<td class=\"link\"><a href=\"" << entryPath << "\">" << displayName << ".</a></td>\n"
-				<< "<td class=\"date\">" << std::ctime(&info.st_mtime) << "</td>\n"
+				<< "<td class=\"date\">" << std::ctime(&info.st_mtime) << " </td>\n"
 				<< "<td class=\"size\">" << kbSize << "KB</td>\n"
 				<< "<\tr>\n";
 	}

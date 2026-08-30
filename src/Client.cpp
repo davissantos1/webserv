@@ -328,8 +328,11 @@ void	Client::handleIndex()
 	HttpRequest& req = this->_httpRequestParser.getHttpRequest();
 	const std::vector<std::string> index = this->_virtualHostConfig.getIndex(req.getEndpoint());
 	std::string basePath = this->_virtualHostConfig.getFullPath(req.getFilename(), req.getEndpoint());
+	std::string base = req.getEndpoint() + req.getFilename();
 
 	uri = "";
+	if (base.size() > 1 && base[base.size() - 1] == '/')
+		base.erase(base.size() - 1);
 	if (basePath[basePath.size() -1] != '/')
 		basePath += "/";
 	for (size_t i = 0; i < index.size(); i++)
@@ -341,10 +344,11 @@ void	Client::handleIndex()
 			uri = index[i];
 			if (uri[0] != '/')
 				uri = "/" + uri;
-			if (req.getEndpoint() != "/")
-				uri = req.getEndpoint() + uri;
+			if (base != "/")
+				uri = base + uri;
 			req.setUri(uri);
 			this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
+			break ;
 		}
 	}
 	if (uri.empty())
@@ -352,8 +356,8 @@ void	Client::handleIndex()
 		uri = index[0];
 		if (uri[0] != '/')
 			uri = "/" + uri;
-		if (req.getEndpoint() != "/")
-			uri = req.getEndpoint() + uri;
+		if (base != "/")
+			uri = base + uri;
 		req.setUri(uri);
 		this->_httpRequestParser.splitRequestUri(this->_virtualHostConfig);
 	}
